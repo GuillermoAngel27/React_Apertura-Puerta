@@ -792,6 +792,11 @@
     display: none;
   }
   
+  /* Ocultar mensajes superiores en móvil (usar mensajes contextuales) */
+  .desktop-only-message {
+    display: none !important;
+  }
+  
   /* Mobile Cards Layout */
   .users-cards-container {
     display: flex;
@@ -806,6 +811,46 @@
     padding: 15px;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  /* Mensaje específico del usuario en móvil */
+  .user-card-message {
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #00ff88;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    animation: slideInFromTop 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 
+      0 4px 12px rgba(0, 255, 136, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .user-card-message--error {
+    background: rgba(255, 68, 68, 0.1);
+    border-color: rgba(255, 68, 68, 0.3);
+    color: #ff4444;
+    box-shadow: 
+      0 4px 12px rgba(255, 68, 68, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  @keyframes slideInFromTop {
+    0% {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
   
   .user-card:hover {
@@ -1073,6 +1118,14 @@
   .user-card {
     padding: 12px;
     border-radius: 10px;
+  }
+  
+  /* Mensaje específico del usuario en pantallas muy pequeñas */
+  .user-card-message {
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    border-radius: 6px;
   }
   
   .user-card-header {

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './UserManagementModal.css';
+import useAnimatedMessages from '../hooks/useAnimatedMessages';
+import MessageContainer from './MessageContainer';
 
 const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   const [users, setUsers] = useState([]);
@@ -9,6 +12,12 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Estado para mensaje específico del usuario (móvil)
+  const [userSpecificMessage, setUserSpecificMessage] = useState(null);
+  
+  // Sistema de mensajes animados
+  const { messages, showSuccess, showError, showWarning, showInfo, showLoading, showConfirm, removeMessage } = useAnimatedMessages();
   
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
@@ -197,11 +206,27 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     }
   };
 
-  const handleDelete = async (userId) => {
-    if (!window.confirm('¿Está seguro de que desea eliminar este usuario?')) {
-      return;
-    }
+  const handleDelete = async (userId, username) => {
+    // Mostrar mensaje de confirmación en lugar del alert
+    showConfirm(
+      `¿Eliminar usuario ${username}?\n\nEsta acción no se puede deshacer. El usuario será eliminado permanentemente del sistema.`,
+      () => {
+        // Función de confirmación - ejecutar la eliminación
+        executeDelete(userId, username);
+      },
+      () => {
+        // Función de cancelación - no hacer nada
+        console.log('🗑️ Eliminación cancelada por el usuario');
+      },
+      {
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar'
+      }
+    );
+  };
 
+  // Función separada para ejecutar la eliminación
+  const executeDelete = async (userId, username) => {
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
         method: 'DELETE',
@@ -209,25 +234,75 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       });
 
       if (response.ok) {
-        setSuccess('Usuario eliminado exitosamente');
-        loadUsers();
+        setSuccess(`✅ Usuario ${username} eliminado exitosamente`);
         setTimeout(() => setSuccess(''), 3000);
+        
+        // Mensaje específico para móvil
+        setUserSpecificMessage({
+          userId: userId,
+          username: username,
+          message: `✅ Usuario ${username} eliminado exitosamente`,
+          type: 'success'
+        });
+        
+        // Limpiar mensaje específico después de 4 segundos
+        setTimeout(() => setUserSpecificMessage(null), 4000);
+        
+        loadUsers();
       } else {
         const data = await response.json();
         setError(data.message || 'Error al eliminar usuario');
+        
+        // Mensaje específico para móvil (error)
+        setUserSpecificMessage({
+          userId: userId,
+          username: username,
+          message: `❌ Error al eliminar usuario ${username}`,
+          type: 'error'
+        });
+        
+        // Limpiar mensaje específico después de 5 segundos
+        setTimeout(() => setUserSpecificMessage(null), 5000);
       }
     } catch (error) {
       console.error('Error eliminando usuario:', error);
       setError('Error de conexión al eliminar usuario');
+      
+      // Mensaje específico para móvil (error de conexión)
+      setUserSpecificMessage({
+        userId: userId,
+        username: username,
+        message: `❌ Error de conexión al eliminar usuario`,
+        type: 'error'
+      });
+      
+      // Limpiar mensaje específico después de 5 segundos
+      setTimeout(() => setUserSpecificMessage(null), 5000);
     }
   };
 
   // Nueva función para refrescar token de dispositivo (SOLO ADMIN)
   const handleRefreshToken = async (userId, username) => {
-    if (!window.confirm(`⚠️ ¿Refrescar token de dispositivo para ${username}?\n\nEsto permitirá que el usuario active su token en un dispositivo nuevo. El usuario deberá hacer login nuevamente.`)) {
-      return;
-    }
+    // Mostrar mensaje de confirmación en lugar del alert
+    showConfirm(
+      `¿Refrescar token de dispositivo para ${username}?\n\nEsto permitirá que el usuario active su token en un dispositivo nuevo. El usuario deberá hacer login nuevamente.`,
+      () => {
+        // Función de confirmación - ejecutar el refresh token
+        executeRefreshToken(userId, username);
+      },
+      () => {
+        // Función de cancelación - no hacer nada
+        console.log('🔄 Refresh token cancelado por el usuario');
+      },
+      {
+        confirmText: 'Refrescar',
+        cancelText: 'Cancelar'
+      }
+    );
+  };
 
+  // Función separada para ejecutar el refresh token
+  const executeRefreshToken = async (userId, username) => {
     try {
       setLoading(true);
       setError('');
@@ -248,6 +323,17 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         setSuccess(`✅ Token refrescado exitosamente para ${username}. El usuario puede hacer login nuevamente.`);
         setTimeout(() => setSuccess(''), 5000);
         
+        // Mensaje específico para móvil
+        setUserSpecificMessage({
+          userId: userId,
+          username: username,
+          message: `✅ Token refrescado exitosamente para ${username}`,
+          type: 'success'
+        });
+        
+        // Limpiar mensaje específico después de 4 segundos
+        setTimeout(() => setUserSpecificMessage(null), 4000);
+        
         // Recargar la lista de usuarios para mostrar el nuevo token
         loadUsers();
         
@@ -258,11 +344,33 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       } else {
         const errorData = await response.json();
         console.error(`❌ ADMIN REFRESH TOKEN - Error para ${username}:`, errorData);
-        setError(errorData.message || 'Error al refrescar token');
+        setError(`❌ Error al refrescar token de ${username}: ${errorData.message || 'Error desconocido'}`);
+        
+        // Mensaje específico para móvil (error)
+        setUserSpecificMessage({
+          userId: userId,
+          username: username,
+          message: `❌ Error al refrescar token de ${username}`,
+          type: 'error'
+        });
+        
+        // Limpiar mensaje específico después de 5 segundos
+        setTimeout(() => setUserSpecificMessage(null), 5000);
       }
     } catch (error) {
       console.error('💥 ADMIN REFRESH TOKEN - Error de conexión:', error);
-      setError('Error de conexión al refrescar token');
+      setError(`❌ Error de conexión al refrescar token de ${username}`);
+      
+      // Mensaje específico para móvil (error de conexión)
+      setUserSpecificMessage({
+        userId: userId,
+        username: username,
+        message: `❌ Error de conexión al refrescar token`,
+        type: 'error'
+      });
+      
+      // Limpiar mensaje específico después de 5 segundos
+      setTimeout(() => setUserSpecificMessage(null), 5000);
     } finally {
       setLoading(false);
     }
@@ -308,22 +416,76 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
 
       if (response.ok) {
         setSuccess(editingUser ? 'Usuario actualizado exitosamente' : 'Usuario registrado exitosamente');
+        
+        // Mensaje específico para móvil (solo para actualizaciones)
+        if (editingUser) {
+          setUserSpecificMessage({
+            userId: editingUser.id,
+            username: editingUser.username,
+            message: `✅ Usuario ${editingUser.username} actualizado exitosamente`,
+            type: 'success'
+          });
+          
+          // Limpiar mensaje específico después de 4 segundos
+          setTimeout(() => setUserSpecificMessage(null), 4000);
+        }
+        
         loadUsers();
         resetForm();
         setTimeout(() => setSuccess(''), 3000);
       } else {
         setError(data.message || 'Error al procesar usuario');
+        
+        // Mensaje específico para móvil (error)
+        if (editingUser) {
+          setUserSpecificMessage({
+            userId: editingUser.id,
+            username: editingUser.username,
+            message: `❌ Error al actualizar usuario ${editingUser.username}`,
+            type: 'error'
+          });
+          
+          // Limpiar mensaje específico después de 5 segundos
+          setTimeout(() => setUserSpecificMessage(null), 5000);
+        }
       }
     } catch (error) {
       console.error('Error procesando usuario:', error);
       setError('Error de conexión. Verifique que el servidor esté ejecutándose.');
+      
+      // Mensaje específico para móvil (error de conexión)
+      if (editingUser) {
+        setUserSpecificMessage({
+          userId: editingUser.id,
+          username: editingUser.username,
+          message: `❌ Error de conexión al actualizar usuario`,
+          type: 'error'
+        });
+        
+        // Limpiar mensaje específico después de 5 segundos
+        setTimeout(() => setUserSpecificMessage(null), 5000);
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // Componente Portal para mensajes - renderiza fuera del modal
+  const MessagePortal = () => {
+    return createPortal(
+      <MessageContainer 
+        messages={messages} 
+        onRemoveMessage={removeMessage} 
+      />,
+      document.body
+    );
+  };
+
   return (
     <div className="modal-overlay">
+      {/* Portal de mensajes - renderiza en document.body */}
+      <MessagePortal />
+      
       <div className="modal-content user-management-modal">
         <div className="modal-header">
           <h2>👥 Administración de Usuarios</h2>
@@ -363,8 +525,8 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                 </button>
               </div>
 
-              {error && <div className="error-message">{error}</div>}
-              {success && <div className="success-message">{success}</div>}
+              {error && <div className="error-message desktop-only-message">{error}</div>}
+              {success && <div className="success-message desktop-only-message">{success}</div>}
 
               <div className="table-wrapper">
                 <table className="users-table">
@@ -420,7 +582,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                             </button>
                             <button 
                               className="delete-button" 
-                              onClick={() => handleDelete(user.id)} 
+                              onClick={() => handleDelete(user.id, user.username)} 
                               title="Eliminar usuario"
                             >
                               🗑️
@@ -440,6 +602,13 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                   const globalNumber = (currentPage - 1) * usersPerPage + index + 1;
                   return (
                   <div key={user.id} className="user-card">
+                    {/* Mensaje específico del usuario (móvil) */}
+                    {userSpecificMessage && userSpecificMessage.userId === user.id && (
+                      <div className={`user-card-message user-card-message--${userSpecificMessage.type}`}>
+                        {userSpecificMessage.message}
+                      </div>
+                    )}
+                    
                     <div className="user-card-header">
                       <div className="user-card-number">#{globalNumber}</div>
                     </div>
@@ -482,7 +651,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                         </button>
                         <button 
                           className="mobile-action-button mobile-delete-button" 
-                          onClick={() => handleDelete(user.id)} 
+                          onClick={() => handleDelete(user.id, user.username)} 
                           title="Eliminar usuario"
                         >
                           🗑️

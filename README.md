@@ -8,8 +8,7 @@ Sistema completo de apertura remota de puerta desarrollado con React y Express.j
 - **Gestión de Usuarios**: Panel de administración completo
 - **Validación de Ubicación**: Integración con Node-RED para verificar coordenadas GPS
 - **Historial Completo**: Registro de todas las aperturas con filtros avanzados
-- **Notificaciones**: Sistema de notificaciones en tiempo real
-- **WebSocket**: Comunicación bidireccional para actualizaciones instantáneas
+- **Notificaciones**: Sistema de notificaciones con polling automático
 - **Responsive Design**: Interfaz moderna y adaptable
 
 ## 🛠️ Tecnologías Utilizadas
@@ -17,7 +16,6 @@ Sistema completo de apertura remota de puerta desarrollado con React y Express.j
 ### Backend
 - **Node.js** con Express.js
 - **MySQL** para base de datos
-- **WebSocket** para comunicación en tiempo real
 - **JWT** para autenticación
 - **bcryptjs** para encriptación de contraseñas
 - **Crypto** para encriptación bidireccional
@@ -29,7 +27,7 @@ Sistema completo de apertura remota de puerta desarrollado con React y Express.j
 
 ### Integración
 - **Node-RED** para procesamiento de datos de ubicación
-- **Axios** para peticiones HTTP
+- **Fetch API** para comunicación HTTP
 
 ## 📋 Requisitos Previos
 
@@ -97,7 +95,7 @@ npm start
 2. **Gestión de Usuarios**: Crear, editar y eliminar usuarios
 3. **Configuración**: Establecer URL de Node-RED y horarios
 4. **Historial**: Revisar todas las aperturas con filtros
-5. **Notificaciones**: Gestionar tokens pendientes de activación
+5. **Notificaciones**: Gestionar tokens pendientes de activación (actualización automática cada 30 segundos)
 
 ### Para Usuarios
 1. **Login**: Ingresar credenciales asignadas
@@ -130,6 +128,7 @@ El sistema crea automáticamente las tablas necesarias:
 - **Validación de Ubicación**: Verificación GPS obligatoria
 - **Sesiones Seguras**: Cookies HTTPOnly con expiración configurable
 - **CORS**: Configuración de origen cruzado segura
+- **Polling Automático**: Actualizaciones periódicas de notificaciones
 
 ## 📊 API Endpoints
 

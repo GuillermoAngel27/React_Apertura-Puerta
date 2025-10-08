@@ -3,6 +3,8 @@ import ConfigModal from './ConfigModal';
 import UserManagementModal from './UserManagementModal';
 import NotificationsModal from './NotificationsModal';
 import HistoryModal from './HistoryModal';
+import MessageContainer from './MessageContainer';
+import useAnimatedMessages from '../hooks/useAnimatedMessages';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -11,11 +13,12 @@ const Dashboard = ({ user, onLogout }) => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
   const [logoutCountdown, setLogoutCountdown] = useState(0);
   const [notificationsRefreshTrigger, setNotificationsRefreshTrigger] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
+
+  // Sistema de mensajes animados
+  const { messages, showSuccess, showError, showWarning, showInfo, showLoading, removeMessage } = useAnimatedMessages();
 
   // WebSocket temporalmente deshabilitado - usando polling
 
@@ -105,12 +108,22 @@ const Dashboard = ({ user, onLogout }) => {
   }, [notificationCount]);
 
   const showMessage = (text, type) => {
-    setMessage(text);
-    setMessageType(type);
-    setTimeout(() => {
-      setMessage('');
-      setMessageType('');
-    }, 5000);
+    switch (type) {
+      case 'success':
+        showSuccess(text);
+        break;
+      case 'error':
+        showError(text);
+        break;
+      case 'warning':
+        showWarning(text);
+        break;
+      case 'loading':
+        showLoading(text);
+        break;
+      default:
+        showInfo(text);
+    }
   };
 
 
@@ -263,7 +276,6 @@ const Dashboard = ({ user, onLogout }) => {
 
   const handleAbrirPuerta = async () => {
     setLoading(true);
-    setMessage('');
 
     try {
       // Obtener geolocalización solo para usuarios (NO para admins ni jefes)
@@ -276,7 +288,7 @@ const Dashboard = ({ user, onLogout }) => {
           // No mostrar mensaje para mantener discreción
         } catch (geoError) {
           console.error('Error crítico: No se pudo obtener la ubicación:', geoError.message);
-          showMessage(`❌ Error crítico: ${geoError.message}`, 'error');
+          showMessage(`🚫 Error crítico de ubicación: ${geoError.message}`, 'error');
           setLoading(false);
           return; // NO continuar sin ubicación por seguridad
         }
@@ -329,17 +341,24 @@ const Dashboard = ({ user, onLogout }) => {
         console.log('🔍 FRONTEND - data.status === "location_denied":', data.status === 'location_denied');
         
         if (data.canOpenDoor === true) {
-          showMessage('✅ Puerta abierta exitosamente', 'success');
+          showMessage('Puerta abierta - Usuario autorizado', 'success');
           console.log('✅ FRONTEND - Puerta abierta - Usuario autorizado');
-        } else if (data.status === 'location_denied') {
-          showMessage('❌ Usuario fuera de ubicación autorizada', 'error');
+        } else if (data.status === 'fuera_de_area') {
+          showMessage('Usuario fuera de ubicación autorizada', 'error');
           console.log('❌ FRONTEND - Acceso denegado - Usuario fuera de ubicación autorizada');
         } else if (data.status === 'warning') {
           showMessage(`⚠️ ${data.message}`, 'warning');
           console.log('⚠️ FRONTEND - Advertencia:', data.message);
+        } else if (data.status === 'incorrecto') {
+          showMessage(`🚨 Error del sistema: ${data.message}`, 'error');
+          console.log('🚨 FRONTEND - Error del sistema:', data.message);
         } else {
-          // Fallback para otros casos
-          showMessage(data.message || '✅ Puerta abierta exitosamente', 'success');
+          // Fallback para otros casos - Solo mostrar éxito si realmente se puede abrir
+          if (data.canOpenDoor === true) {
+            showMessage(data.message || '🎉 ¡Puerta abierta exitosamente! Acceso autorizado', 'success');
+          } else {
+            showMessage(data.message || '🚫 Acceso denegado: Ubicación no autorizada', 'error');
+          }
           console.log('📝 FRONTEND - Respuesta del servidor:', data.message);
         }
         
@@ -363,7 +382,6 @@ const Dashboard = ({ user, onLogout }) => {
           
           // Iniciar contador visual
           setLogoutCountdown(3);
-          showMessage('🔒 Sesión expirada. Cerrando sesión...', 'error');
           
           // Contador visual cada segundo
           const countdownInterval = setInterval(() => {
@@ -384,12 +402,12 @@ const Dashboard = ({ user, onLogout }) => {
           }, 3000); // 3 segundos como solicitado
         } else {
           // Otros errores - mostrar normalmente sin cerrar sesión
-          showMessage(`❌ Error: ${data.message}`, 'error');
+          showMessage(`🚨 Error del sistema: ${data.message}`, 'error');
         }
       }
     } catch (error) {
       console.error('Error al abrir puerta:', error);
-      showMessage('❌ Error de conexión. Verifique que el servidor esté ejecutándose.', 'error');
+      showMessage('🌐 Error de conexión. Verifique que el servidor esté ejecutándose.', 'error');
     } finally {
       setLoading(false);
     }
@@ -397,14 +415,14 @@ const Dashboard = ({ user, onLogout }) => {
 
   const handleConfigSuccess = () => {
     setShowConfigModal(false);
-    showMessage('✅ Configuración actualizada exitosamente', 'success');
+    showMessage('⚙️ ¡Configuración actualizada exitosamente! Sistema optimizado', 'success');
   };
 
   const handleUserManagementSuccess = (action = '') => {
     // Solo cerrar modal para acciones que no sean refresh token
     if (action !== 'token_refreshed') {
       setShowUserManagementModal(false);
-      showMessage('✅ Usuarios actualizados exitosamente', 'success');
+      showMessage('👥 ¡Usuarios actualizados exitosamente! Gestión completada', 'success');
     }
     
     // Si la acción fue refrescar token, disparar refresco de notificaciones
@@ -471,7 +489,7 @@ const Dashboard = ({ user, onLogout }) => {
       <main className="dashboard-main">
         <div className="control-panel">
           <div className="panel-header">
-            <h2>Panel de Control</h2>
+            <h2>Control de Acceso</h2>
             {/* <p>Control remoto de la puerta</p> */}
           </div>
 
@@ -494,37 +512,33 @@ const Dashboard = ({ user, onLogout }) => {
             </button>
           </div>
 
-      {message && (
-        <div className={`message ${messageType}`}>
-          {message}
+          {/* Sistema de mensajes animados */}
+          <MessageContainer 
+            messages={messages} 
+            onRemoveMessage={removeMessage} 
+          />
+
+          {/* Contador regresivo para cierre de sesión */}
           {logoutCountdown > 0 && (
-            <div className="logout-countdown">
-              <span className="countdown-number">{logoutCountdown}</span>
+            <div className="logout-countdown-overlay">
+              <div className="logout-countdown-content">
+                <div className="logout-countdown-text">
+                  Cerrando sesión...
+                </div>
+                <div className="logout-countdown-number">
+                  {logoutCountdown}
+                </div>
+              </div>
             </div>
           )}
-          {messageType === 'info' && message === 'Procesando' && (
-            <div className="loading-dots">
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
-          )}
-        </div>
-      )}
 
           <div className="info-panel">
-            <h3>Información del Sistema</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <strong>Usuario:</strong> {user.username}
-              </div>
-              <div className="info-item">
-                <strong>Nombre:</strong> {user.nombre} {user.apellido}
-              </div>
-              <div className="info-item">
-                <strong>Estado:</strong> <span className="status-online">🟢 Conectado</span>
-              </div>
+            <div className="user-info">
+              <div className="username-display">{user.username}</div>
+              <div className="fullname-display">{user.nombre} {user.apellido}</div>
+            </div>
+            <div className="status-section">
+              <span className="status-online">🟢 Conectado</span>
             </div>
           </div>
         </div>

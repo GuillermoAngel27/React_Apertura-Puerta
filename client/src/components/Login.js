@@ -120,7 +120,7 @@ const Login = ({ onLogin }) => {
         if (data.tokenGenerated) {
           console.log('✨ TOKEN GENERATED - Token:', data.token);
           setShowTokenActivation(true);
-          setError('Token generado. El administrador le compartirá el token para activar su dispositivo.');
+          setError('🔑 Token generado exitosamente. El administrador le compartirá el token para activar su dispositivo.');
           
           // Disparar evento global para refrescar notificaciones
           console.log('🔄 Login: Token generado, disparando evento global');
@@ -139,15 +139,15 @@ const Login = ({ onLogin }) => {
           setError('Token asignado pero no activado. Ingrese el token para activar su dispositivo.');
         } else if (data.hasToken) {
           // Usuario tiene token pero dispositivo no autorizado
-          setError(data.message || 'Dispositivo no autorizado. Contacte al administrador.');
+          setError(data.message || '🚫 Dispositivo no autorizado. Contacte al administrador.');
         } else {
           // Credenciales inválidas
-          setError(data.message || 'Error en el login');
+          setError(data.message || '🔐 Credenciales inválidas. Verifique usuario y contraseña.');
         }
       }
     } catch (error) {
       console.error('💥 LOGIN ERROR:', error);
-      setError('Error de conexión. Verifique que el servidor esté ejecutándose.');
+      setError('🌐 Error de conexión. Verifique que el servidor esté ejecutándose.');
     } finally {
       setLoading(false);
     }
@@ -214,12 +214,12 @@ const Login = ({ onLogin }) => {
           setError(`🚨 Este token no corresponde al usuario "${formData.username}". Contacte al administrador para obtener el token correcto.`);
           console.log(`🚨 SEGURIDAD: Token pertenece a ${data.tokenOwner}, pero se intentó activar para ${data.requestedUser}`);
         } else {
-          setError(data.message || 'Token inválido o ya activado en otro dispositivo.');
+          setError(data.message || '🔐 Token inválido o ya activado en otro dispositivo.');
         }
       }
     } catch (error) {
       console.error('💥 TOKEN ACTIVATION ERROR:', error);
-      setError('Error de conexión. Verifique que el servidor esté ejecutándose.');
+      setError('🌐 Error de conexión. Verifique que el servidor esté ejecutándose.');
     } finally {
       setLoading(false);
     }
@@ -260,7 +260,7 @@ const Login = ({ onLogin }) => {
               />
             </div>
 
-            {error && <div className="error-message">{error}</div>}
+            {error && <div className={`error-message ${error.includes('Token asignado') ? 'warning-style' : ''}`}>{error}</div>}
 
             <button 
               type="submit" 
@@ -311,7 +311,7 @@ const Login = ({ onLogin }) => {
           </div>
 
           {error && (
-            <div className={`message ${tokenGenerated ? 'success' : 'error'}`}>
+            <div className={`message ${tokenGenerated ? 'success' : (error.includes('Token asignado pero no activado') ? 'warning' : 'error')}`}>
               {error}
             </div>
           )}

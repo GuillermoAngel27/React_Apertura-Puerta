@@ -153,7 +153,7 @@ const ConfigModal = ({ onClose, onSuccess }) => {
       if (response.ok) {
         setSuccess('Configuración actualizada exitosamente');
         setTimeout(() => {
-          onSuccess();
+          onClose();
         }, 1500);
       } else {
         setError(data.message || 'Error al actualizar configuración');

@@ -494,45 +494,159 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
-  padding: 25px;
+  padding: 30px 25px;
   backdrop-filter: blur(10px);
-}
-
-.info-panel h3 {
-  color: #e0a3ff;
-  font-size: 1.3rem;
-  margin-bottom: 20px;
-  font-weight: 600;
   text-align: center;
 }
 
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
-}
-
-.info-item {
+/* Estilos para la información del usuario centrada */
+.user-info {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 6px;
+  margin-bottom: 20px;
 }
 
-.info-item:last-child {
-  border-bottom: none;
+.username-display {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e0a3ff;
+  text-shadow: 0 0 20px rgba(224, 163, 255, 0.5);
+  background: linear-gradient(45deg, #e0a3ff, #ff69b4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
 }
 
-.info-item strong {
+.fullname-display {
+  font-size: 1.1rem;
+  font-weight: 400;
   color: #ffffff;
-  font-weight: 500;
+  opacity: 0.85;
+  letter-spacing: 0.3px;
+}
+
+/* Sección de estado */
+.status-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .status-online {
   color: #00ff88;
   font-weight: 600;
-  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  font-size: 1rem;
+  text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+  padding: 8px 16px;
+  background: rgba(0, 255, 136, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+/* Contador regresivo para cierre de sesión */
+.logout-countdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.logout-countdown-content {
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.logout-countdown-text {
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.logout-countdown-number {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #ff4444;
+  text-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+  animation: pulse 1s infinite;
+  line-height: 1;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Responsive para móvil */
+@media (max-width: 768px) {
+  .logout-countdown-content {
+    padding: 1.5rem;
+    border-radius: 15px;
+  }
+  
+  .logout-countdown-text {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+  }
+  
+  .logout-countdown-number {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logout-countdown-content {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  
+  .logout-countdown-text {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .logout-countdown-number {
+    font-size: 2.5rem;
+  }
 }
 
 /* Mobile Bottom Navigation */
