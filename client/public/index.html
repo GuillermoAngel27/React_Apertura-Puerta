@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#e0a3ff" />
+    <meta name="description" content="Sistema de control de apertura remota de puerta con autenticación segura" />
+    <meta name="keywords" content="puerta, control, acceso, seguridad, autenticación" />
+    <meta name="author" content="G-Angel" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Control Puerta" />
+    <meta name="application-name" content="Control Puerta" />
+    <meta name="msapplication-TileColor" content="#e0a3ff" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="%PUBLIC_URL%/logo512.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon.ico" />
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="http://localhost:5000" />
+    
+    <title>Control de Puerta - Sistema de Apertura Remota</title>
+  </head>
+  <body>
+    <noscript>Necesitas habilitar JavaScript para ejecutar esta aplicación.</noscript>
+    <div id="root"></div>
+    
+    <!-- PWA Installation Script -->
+    <script>
+      // Registrar Service Worker SIN actualizaciones automáticas
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('✅ Service Worker registrado:', registration.scope);
+              
+              // NO forzar actualizaciones automáticas para evitar bucles
+              console.log('🔄 Service Worker: Modo desarrollo - sin actualizaciones automáticas');
+            })
+            .catch((error) => {
+              console.error('❌ Error registrando Service Worker:', error);
+            });
+        });
+      }
+      
+      // Manejar instalación de PWA
+      let deferredPrompt;
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('📱 PWA: Evento beforeinstallprompt');
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Mostrar botón de instalación después de 3 segundos
+        setTimeout(() => {
+          showInstallButton();
+        }, 3000);
+      });
+      
+      function showInstallButton() {
+        // Crear botón de instalación
+        const installButton = document.createElement('button');
+        installButton.innerHTML = '📱 Instalar App';
+        installButton.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 1000;
+          background: linear-gradient(135deg, #e0a3ff, #ff69b4);
+          color: #000;
+          border: none;
+          padding: 12px 20px;
+          border-radius: 25px;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(224, 163, 255, 0.3);
+          animation: slideIn 0.3s ease-out;
+        `;
+        
+        installButton.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('📱 PWA: Resultado de instalación:', outcome);
+            deferredPrompt = null;
+            installButton.remove();
+          }
+        });
+        
+        document.body.appendChild(installButton);
+        
+        // Remover botón después de 10 segundos
+        setTimeout(() => {
+          if (installButton.parentNode) {
+            installButton.remove();
+          }
+        }, 10000);
+      }
+      
+      // Detectar si la app está instalada
+      window.addEventListener('appinstalled', () => {
+        console.log('✅ PWA instalada exitosamente');
+        deferredPrompt = null;
+      });
+    </script>
+    
+    <!-- CSS para animación del botón de instalación -->
+    <style>
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  </body>
+</html>

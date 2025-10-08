@@ -1,0 +1,37 @@
+{
+  "name": "sistema-apertura-puerta",
+  "version": "1.0.0",
+  "description": "Sistema de apertura remota de puerta con React y Express",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npm run server",
+    "server": "nodemon server.js",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "install-client": "cd client && npm install"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.15.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "react",
+    "express",
+    "puerta",
+    "node-red",
+    "webservice"
+  ],
+  "author": "G-Angel",
+  "license": "MIT"
+}

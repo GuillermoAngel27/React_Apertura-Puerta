@@ -1,0 +1,330 @@
+/*
+Sistema de Apertura de Puerta - Neural Glass Style
+Adaptado de TemplateMo 597 Neural Glass
+*/
+
+@charset "utf-8";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: #000;
+  color: #e0a3ff;
+  overflow-x: hidden;
+  min-height: 100vh;
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Neural Background - Colores originales de Neural Glass */
+.neural-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: radial-gradient(circle at 15% 85%, rgba(75, 0, 130, 0.7) 0%, transparent 50%), 
+              radial-gradient(circle at 85% 15%, rgba(139, 37, 99, 0.8) 0%, transparent 50%), 
+              radial-gradient(circle at 45% 60%, rgba(128, 0, 128, 0.6) 0%, transparent 50%), 
+              radial-gradient(circle at 70% 40%, rgba(34, 139, 34, 0.4) 0%, transparent 50%), 
+              linear-gradient(135deg, #0a0a0a 0%, #2d1b3d 50%, #000000 100%);
+  animation: backgroundPulse 14s ease-in-out infinite;
+}
+
+@keyframes backgroundPulse {
+  0%, 100% {
+    filter: brightness(0.9) saturate(1.4) hue-rotate(0deg);
+  }
+  33% {
+    filter: brightness(1.1) saturate(1.7) hue-rotate(15deg);
+  }
+  66% {
+    filter: brightness(1.0) saturate(1.5) hue-rotate(-10deg);
+  }
+}
+
+/* Floating geometric shapes */
+.geometric-shapes {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.shape {
+  position: absolute;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  animation: floatShape 20s linear infinite;
+}
+
+.shape:nth-child(1) {
+  width: 100px;
+  height: 100px;
+  left: 10%;
+  animation-delay: 0s;
+  border-color: rgba(255, 105, 180, 0.4);
+}
+
+.shape:nth-child(2) {
+  width: 60px;
+  height: 60px;
+  left: 70%;
+  animation-delay: -5s;
+  border-radius: 50%;
+  border-color: rgba(147, 112, 219, 0.4);
+}
+
+.shape:nth-child(3) {
+  width: 80px;
+  height: 80px;
+  left: 30%;
+  animation-delay: -10s;
+  transform: rotate(45deg);
+  border-color: rgba(224, 163, 255, 0.4);
+}
+
+.shape:nth-child(4) {
+  width: 120px;
+  height: 120px;
+  left: 50%;
+  animation-delay: -15s;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  background: linear-gradient(45deg, rgba(255, 105, 180, 0.1), transparent);
+}
+
+@keyframes floatShape {
+  from {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Neural network lines */
+.neural-lines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.neural-line {
+  position: absolute;
+  background: linear-gradient(90deg, transparent, #00ffff, transparent);
+  height: 1px;
+  animation: neuralPulse 3s ease-in-out infinite;
+}
+
+.neural-line:nth-child(1) {
+  top: 20%;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, #e0a3ff, transparent);
+  animation-delay: 0s;
+}
+
+.neural-line:nth-child(2) {
+  top: 60%;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, #ff69b4, transparent);
+  animation-delay: -1s;
+}
+
+.neural-line:nth-child(3) {
+  top: 40%;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, #9370db, transparent);
+  animation-delay: -2s;
+}
+
+@keyframes neuralPulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scaleX(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Glassmorphism styles */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* App container */
+.App {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Loading container with neural style */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #e0a3ff;
+  text-align: center;
+  position: relative;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(224, 163, 255, 0.3);
+  border-top: 4px solid #e0a3ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+  box-shadow: 0 0 20px rgba(224, 163, 255, 0.5);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Enhanced scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #00ffff, #ff0080);
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #ff0080, #8000ff);
+  box-shadow: 0 0 15px rgba(255, 0, 128, 0.7);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .App {
+    padding: 20px;
+  }
+  
+  /* Optimize shapes for mobile - smaller and fewer */
+  .shape {
+    opacity: 0.6; /* Reduce opacity for better performance */
+  }
+  
+  .shape:nth-child(1) {
+    width: 60px;
+    height: 60px;
+    left: 15%;
+  }
+  
+  .shape:nth-child(2) {
+    width: 40px;
+    height: 40px;
+    left: 75%;
+  }
+  
+  .shape:nth-child(3) {
+    width: 50px;
+    height: 50px;
+    left: 35%;
+  }
+  
+  .shape:nth-child(4) {
+    width: 70px;
+    height: 70px;
+    left: 55%;
+  }
+  
+  /* Reduce animation duration for better mobile performance */
+  .shape {
+    animation: floatShape 15s linear infinite;
+  }
+  
+  /* Optimize neural lines for mobile */
+  .neural-line {
+    height: 0.5px; /* Thinner lines */
+    opacity: 0.7; /* Reduce opacity */
+  }
+}
+
+@media (max-width: 480px) {
+  /* Further optimize for small mobile screens */
+  .shape {
+    opacity: 0.4; /* Even more reduced opacity */
+  }
+  
+  .shape:nth-child(1) {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .shape:nth-child(2) {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .shape:nth-child(3) {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .shape:nth-child(4) {
+    width: 45px;
+    height: 45px;
+  }
+  
+  /* Slower animation for very small screens */
+  .shape {
+    animation: floatShape 18s linear infinite;
+  }
+  
+  .neural-line {
+    height: 0.3px;
+    opacity: 0.5;
+  }
+}

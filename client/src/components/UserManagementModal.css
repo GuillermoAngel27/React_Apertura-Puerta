@@ -1,0 +1,1158 @@
+/* UserManagementModal Component - Neural Glass Style */
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(20px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.modal-content {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+  position: relative;
+  margin: 20px;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 30px 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(224, 163, 255, 0.05);
+  border-radius: 25px 25px 0 0;
+}
+
+.modal-header h2 {
+  color: #e0a3ff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 15px rgba(224, 163, 255, 0.4);
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.close-button:hover {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: rgba(255, 68, 68, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+}
+
+.user-management-modal {
+  max-width: 900px;
+  max-height: 90vh;
+  width: 95vw;
+}
+
+.user-management-content {
+  padding: 25px;
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+}
+
+/* Table Styles */
+.users-table-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Hide cards on desktop */
+.users-cards-container {
+  display: none;
+}
+
+/* Search and Add Button Row */
+.search-add-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 45px 12px 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: #ffffff;
+  font-family: inherit;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
+.clear-search-button {
+  position: absolute;
+  right: 10px;
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.clear-search-button:hover {
+  background: rgba(255, 68, 68, 0.3);
+  transform: scale(1.1);
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table-header h3 {
+  color: #e0a3ff;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.add-user-button {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #e0a3ff, #ff69b4);
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.add-user-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(224, 163, 255, 0.3);
+}
+
+.table-wrapper {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.users-table th {
+  background: rgba(224, 163, 255, 0.1);
+  color: #e0a3ff;
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.users-table td {
+  padding: 12px;
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+}
+
+.users-table tr:hover {
+  background: rgba(224, 163, 255, 0.05);
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.role-badge.admin {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+
+.role-badge.jefe {
+  background: rgba(34, 139, 34, 0.2);
+  color: #228b22;
+  border: 1px solid rgba(34, 139, 34, 0.3);
+}
+
+.role-badge.user {
+  background: rgba(224, 163, 255, 0.2);
+  color: #e0a3ff;
+  border: 1px solid rgba(224, 163, 255, 0.3);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-button,
+.delete-button {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.edit-button:hover {
+  background: rgba(0, 255, 255, 0.2);
+  border-color: rgba(0, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.delete-button:hover:not(:disabled) {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: rgba(255, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+.delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Styles */
+.user-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-header h3 {
+  color: #e0a3ff;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.back-button {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Password Generator Styles */
+.password-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.password-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input {
+  width: 100%;
+  padding: 12px 50px 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.password-input:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  box-shadow: 0 0 0 3px rgba(224, 163, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.password-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+.toggle-password-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.toggle-password-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.password-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.generate-password-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.generate-password-btn:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.copy-password-btn {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.copy-password-btn:hover {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+.generated-password-display {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.password-label {
+  font-size: 0.8rem;
+  color: #4CAF50;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.generated-password {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2E7D32;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+  letter-spacing: 1px;
+  word-break: break-all;
+}
+
+/* Responsive adjustments for password buttons */
+@media (max-width: 768px) {
+  .password-buttons {
+    flex-direction: row;
+    gap: 8px;
+    justify-content: center;
+  }
+  
+  .generate-password-btn,
+  .copy-password-btn {
+    flex: 1;
+    max-width: 120px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 25px;
+  backdrop-filter: blur(10px);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #e0a3ff;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.form-group input,
+.form-group select {
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: #ffffff;
+  font-family: inherit;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #888;
+}
+
+.form-group select option {
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.save-button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.02em;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(135deg, #e0a3ff, #ff69b4);
+  color: #000;
+  box-shadow: 0 4px 15px rgba(224, 163, 255, 0.2);
+}
+
+.save-button:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(224, 163, 255, 0.3);
+}
+
+.save-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cancel-button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.02em;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.cancel-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Messages */
+.error-message {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  text-align: center;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+}
+
+.success-message {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  text-align: center;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+/* Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pagination-button {
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: rgba(224, 163, 255, 0.1);
+  border-color: rgba(224, 163, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.pagination-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pagination-info {
+  color: #e0a3ff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 6px 12px;
+  background: rgba(224, 163, 255, 0.05);
+  border: 1px solid rgba(224, 163, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  letter-spacing: 0.02em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+  
+  .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: 10px;
+  }
+  
+  .user-management-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: 10px;
+  }
+  
+  .user-management-content {
+    padding: 15px;
+    max-height: calc(95vh - 120px);
+  }
+  
+  .table-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .search-add-row {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .search-input-wrapper {
+    flex: none;
+    order: 2;
+  }
+  
+  .add-user-button {
+    order: 1;
+    align-self: flex-end;
+    width: auto;
+    padding: 10px 15px;
+    font-size: 0;
+  }
+  
+  /* Cambiar texto del botón en móvil */
+  .add-user-button::before {
+    content: "+Usuario";
+    font-size: 0.9rem;
+  }
+  
+  /* Hide table on mobile, show cards */
+  .table-wrapper {
+    display: none;
+  }
+  
+  /* Mobile Cards Layout */
+  .users-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .user-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  
+  .user-card:hover {
+    background: rgba(224, 163, 255, 0.05);
+    border-color: rgba(224, 163, 255, 0.2);
+  }
+  
+  .user-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  
+  .user-card-number {
+    background: rgba(224, 163, 255, 0.1);
+    color: #e0a3ff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .user-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .user-card-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .user-card-label {
+    font-size: 0.75rem;
+    color: #e0a3ff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .user-card-value {
+    font-size: 0.9rem;
+    color: #ffffff;
+    word-break: break-word;
+  }
+  
+  .user-card-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .user-card-role {
+    flex: 1;
+  }
+  
+  .user-card-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .mobile-action-button {
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    backdrop-filter: blur(10px);
+  }
+  
+  .mobile-refresh-button {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-refresh-button:hover {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  .mobile-edit-button {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-edit-button:hover {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  .mobile-delete-button {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-delete-button:hover {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: rgba(255, 68, 68, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  .form-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .form-header .back-button {
+    align-self: flex-start;
+    order: -1;
+  }
+  
+  .user-form {
+    padding: 20px;
+  }
+  
+  .form-actions {
+    flex-direction: row;
+    justify-content: center;
+    gap: 15px;
+  }
+  
+  .save-button,
+  .cancel-button {
+    flex: 1;
+    max-width: 120px;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 5px;
+  }
+  
+  .modal-content {
+    max-width: calc(100vw - 10px);
+    max-height: calc(100vh - 10px);
+    margin: 5px;
+  }
+  
+  .modal-header {
+    padding: 20px 15px 15px;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.0rem;
+  }
+  
+  .user-management-content {
+    padding: 10px;
+    max-height: calc(100vh - 140px);
+  }
+  
+  .users-table th,
+  .users-table td {
+    padding: 8px 6px;
+    font-size: 0.75rem;
+  }
+  
+  .role-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+  
+  .user-form {
+    padding: 15px;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+  
+  /* Mobile pagination adjustments */
+  .pagination-container {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 10px;
+  }
+  
+  .pagination-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .pagination-info {
+    order: 2;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    flex: 1;
+    margin: 0 8px;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .pagination-button {
+    padding: 6px 8px;
+    font-size: 1rem;
+    min-width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+  
+  .pagination-controls .pagination-button:first-child {
+    order: 1;
+  }
+  
+  .pagination-controls .pagination-button:last-child {
+    order: 3;
+  }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 360px) {
+  .pagination-container {
+    margin-top: 6px;
+    padding: 6px;
+    border-radius: 8px;
+  }
+  
+  .pagination-controls {
+    gap: 6px;
+  }
+  
+  .pagination-info {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    margin: 0 4px;
+  }
+  
+  .pagination-button {
+    padding: 4px 6px;
+    font-size: 0.9rem;
+    min-width: 28px;
+    height: 28px;
+  }
+  
+  /* Extra small mobile cards */
+  .user-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+  
+  .user-card-header {
+    margin-bottom: 10px;
+  }
+  
+  .user-card-info {
+    gap: 6px;
+  }
+  
+  .user-card-field {
+    gap: 3px;
+  }
+  
+  .user-card-label {
+    font-size: 0.7rem;
+  }
+  
+  .user-card-value {
+    font-size: 0.85rem;
+  }
+  
+  .user-card-actions {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+  
+  .mobile-action-button {
+    min-width: 32px;
+    height: 32px;
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+  }
+  
+  .user-card-buttons {
+    gap: 6px;
+  }
+  
+  /* Extra small mobile layout adjustments */
+  .add-user-button {
+    padding: 8px 12px;
+    font-size: 0;
+  }
+  
+  .add-user-button::before {
+    font-size: 0.85rem;
+  }
+  
+  .search-input-wrapper {
+    order: 2;
+  }
+  
+  /* Extra small mobile form buttons */
+  .form-actions {
+    gap: 12px;
+    margin-top: 15px;
+  }
+  
+  .save-button,
+  .cancel-button {
+    max-width: 100px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+  
+  /* Extra small mobile password buttons */
+  .password-buttons {
+    gap: 6px;
+  }
+  
+  .generate-password-btn,
+  .copy-password-btn {
+    max-width: 100px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+  
+  /* Extra small modal title */
+  .modal-header h2 {
+    font-size: 0.9rem;
+  }
+}
