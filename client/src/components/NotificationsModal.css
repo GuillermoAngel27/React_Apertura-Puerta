@@ -56,6 +56,13 @@
   gap: 20px;
   max-height: calc(90vh - 160px);
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Ocultar scrollbars en WebKit */
+.notifications-modal__content::-webkit-scrollbar {
+  display: none;
 }
 
 .notifications-header {
@@ -99,7 +106,7 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
-  padding: 20px;
+  padding: 15px;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
@@ -114,42 +121,57 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 15px;
-  gap: 15px;
+  margin-bottom: 10px;
+  gap: 10px;
+  width: 100%;
 }
 
 .user-info {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .user-name {
   color: #ffffff;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
   text-transform: capitalize;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: left;
+  width: 100%;
 }
 
 .user-email {
   color: #e0a3ff;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   opacity: 0.8;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: left;
+  width: 100%;
 }
 
 .notification-date {
   color: #888;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   white-space: nowrap;
   background: rgba(255, 255, 255, 0.05);
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0; /* Evita que se comprima */
 }
 
 .token-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .token-label {
@@ -365,13 +387,20 @@
   }
   
   .notification-header {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: flex-start;
     gap: 10px;
+    justify-content: space-between;
+  }
+  
+  .user-info {
+    flex: 1;
+    min-width: 0;
   }
   
   .notification-date {
-    align-self: center;
+    align-self: flex-start;
+    flex-shrink: 0;
   }
   
   .token-display {

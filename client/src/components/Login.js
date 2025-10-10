@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DoorAnimation from './DoorAnimation';
 import './Login.css';
 
 const Login = ({ onLogin }) => {
@@ -12,6 +13,10 @@ const Login = ({ onLogin }) => {
   const [showTokenActivation, setShowTokenActivation] = useState(false);
   const [tokenToActivate, setTokenToActivate] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  
+  // Estados para la animación de puerta
+  const [showDoorAnimation, setShowDoorAnimation] = useState(false);
+  const [loginUser, setLoginUser] = useState(null);
 
   // useEffect para verificar cookie después de activación exitosa
   useEffect(() => {
@@ -85,6 +90,13 @@ const Login = ({ onLogin }) => {
     });
   };
 
+  // Función para manejar la finalización de la animación de puerta
+  const handleDoorAnimationComplete = () => {
+    setShowDoorAnimation(false);
+    setLoginUser(null);
+    onLogin(loginUser);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -129,7 +141,9 @@ const Login = ({ onLogin }) => {
           }));
         } else {
           console.log('✅ LOGIN SUCCESS - User:', data.user);
-          onLogin(data.user);
+          // Mostrar animación de puerta en lugar de ir directamente al dashboard
+          setLoginUser(data.user);
+          setShowDoorAnimation(true);
         }
       } else {
         console.log('❌ LOGIN FAILED - Reason:', data.message);
@@ -279,6 +293,9 @@ const Login = ({ onLogin }) => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
+          <div className="login-logo">
+            <img src="/logotaq02.png" alt="Logo TAQ" className="logo-image" />
+          </div>
           <h1>🔐 Sistema de Apertura de Puerta</h1>
           <p>Inicie sesión para acceder al sistema</p>
         </div>
@@ -330,14 +347,15 @@ const Login = ({ onLogin }) => {
             <p>Espere a que el administrador le comparta el token para activar su dispositivo.</p>
           </div>
         )}
-
-        <div className="login-footer">
-          <p><strong>Usuarios de prueba:</strong></p>
-          <p>Admin: usuario: <code>admin</code>, contraseña: <code>password</code></p>
-          <p>Usuario: usuario: <code>usuario</code>, contraseña: <code>password</code></p>
-          <p>Jefe: usuario: <code>jefe</code>, contraseña: <code>password</code></p>
-        </div>
       </div>
+
+      {/* Animación de puerta abriendo */}
+      {showDoorAnimation && loginUser && (
+        <DoorAnimation 
+          onComplete={handleDoorAnimationComplete}
+          username={loginUser.username}
+        />
+      )}
     </div>
   );
 };

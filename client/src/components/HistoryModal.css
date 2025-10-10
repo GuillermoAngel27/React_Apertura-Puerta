@@ -73,6 +73,13 @@
   flex: 1;
   padding: 25px 30px;
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Ocultar scrollbars en WebKit */
+.history-modal__content::-webkit-scrollbar {
+  display: none;
   display: flex;
   flex-direction: column;
   gap: 20px;

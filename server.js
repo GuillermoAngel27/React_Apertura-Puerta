@@ -158,6 +158,79 @@ const executeQuery = async (query, params = []) => {
 // FUNCIONES DE CONFIGURACIÓN DEL SISTEMA
 // ========================================
 
+// Función para inicializar usuario maestro automáticamente
+async function initializeMasterAdmin() {
+  try {
+    // Verificar si la funcionalidad está habilitada
+    const masterAdminEnabled = process.env.MASTER_ADMIN_ENABLED !== 'false';
+    if (!masterAdminEnabled) {
+      console.log('ℹ️ Inicialización de usuario maestro deshabilitada');
+      return;
+    }
+
+    // Configuración del usuario maestro desde variables de entorno
+    const masterAdmin = {
+      username: process.env.MASTER_ADMIN_USERNAME || 'admin',
+      email: process.env.MASTER_ADMIN_EMAIL || 'admin@sistema.com',
+      password: process.env.MASTER_ADMIN_PASSWORD || 'admin123',
+      rol: 'admin',
+      nombre: process.env.MASTER_ADMIN_NAME || 'Administrador',
+      apellido: 'Sistema'
+    };
+
+    console.log('🔍 Verificando existencia de usuarios administradores...');
+
+    // Verificar si ya existe algún usuario administrador
+    const existingAdmins = await executeQuery(
+      'SELECT id, username, email, rol FROM usuarios WHERE rol = ?',
+      ['admin']
+    );
+
+    if (existingAdmins.length > 0) {
+      console.log('ℹ️ Usuario administrador ya existe:');
+      existingAdmins.forEach(admin => {
+        console.log(`   - ${admin.username} (${admin.email})`);
+      });
+      return;
+    }
+
+    // Verificar si el usuario maestro específico ya existe
+    const existingMaster = await executeQuery(
+      'SELECT id, username, email FROM usuarios WHERE username = ? OR email = ?',
+      [masterAdmin.username, masterAdmin.email]
+    );
+
+    if (existingMaster.length > 0) {
+      console.log('ℹ️ Usuario maestro ya existe:');
+      existingMaster.forEach(user => {
+        console.log(`   - ${user.username} (${user.email})`);
+      });
+      return;
+    }
+
+    // Crear usuario maestro
+    console.log('🔧 Creando usuario maestro automáticamente...');
+    const encryptedPassword = encryptPassword(masterAdmin.password);
+    
+    const result = await executeQuery(
+      'INSERT INTO usuarios (username, email, password, rol, nombre, apellido, activo, fecha_creado_user) VALUES (?, ?, ?, ?, ?, ?, TRUE, NOW())',
+      [masterAdmin.username, masterAdmin.email, encryptedPassword, masterAdmin.rol, masterAdmin.nombre, masterAdmin.apellido]
+    );
+
+    console.log('✅ Usuario maestro creado exitosamente:');
+    console.log(`   - ID: ${result.insertId}`);
+    console.log(`   - Usuario: ${masterAdmin.username}`);
+    console.log(`   - Email: ${masterAdmin.email}`);
+    console.log(`   - Rol: ${masterAdmin.rol}`);
+    console.log(`   - Nombre: ${masterAdmin.nombre} ${masterAdmin.apellido}`);
+    console.log('⚠️ IMPORTANTE: Cambiar la contraseña por defecto en producción');
+
+  } catch (error) {
+    console.error('❌ Error inicializando usuario maestro:', error.message);
+    console.log('⚠️ El sistema continuará sin usuario maestro automático');
+  }
+}
+
 // Obtener configuración específica de la base de datos
 async function getConfig(clave) {
   try {
@@ -2042,6 +2115,9 @@ server.listen(PORT, async () => {
   try {
     await executeQuery('SELECT 1');
     console.log('✅ Conexión a base de datos MySQL establecida');
+    
+    // Inicializar usuario maestro automáticamente
+    await initializeMasterAdmin();
     
     // Cargar configuración del sistema desde base de datos
     const configCargada = await loadAllConfig();

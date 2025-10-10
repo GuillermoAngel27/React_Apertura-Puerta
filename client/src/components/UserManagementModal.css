@@ -37,6 +37,14 @@
   max-width: 900px;
   max-height: 90vh;
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Ocultar scrollbars en WebKit */
+.user-management-modal__content::-webkit-scrollbar,
+.user-management-modal__form::-webkit-scrollbar {
+  display: none;
   animation: modalSlideIn 0.3s ease-out;
   position: relative;
   margin: 20px;
@@ -107,6 +115,14 @@
   padding: 25px;
   max-height: calc(90vh - 120px);
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Ocultar scrollbars en WebKit */
+.user-management-modal__content::-webkit-scrollbar,
+.user-management-modal__form::-webkit-scrollbar {
+  display: none;
 }
 
 /* Table Styles */

@@ -4,6 +4,7 @@ import UserManagementModal from './UserManagementModal';
 import NotificationsModal from './NotificationsModal';
 import HistoryModal from './HistoryModal';
 import MessageContainer from './MessageContainer';
+import LogoutAnimation from './LogoutAnimation';
 import useAnimatedMessages from '../hooks/useAnimatedMessages';
 import './Dashboard.css';
 
@@ -16,6 +17,7 @@ const Dashboard = ({ user, onLogout }) => {
   const [logoutCountdown, setLogoutCountdown] = useState(0);
   const [notificationsRefreshTrigger, setNotificationsRefreshTrigger] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [showLogoutAnimation, setShowLogoutAnimation] = useState(false);
 
   // Sistema de mensajes animados
   const { messages, showSuccess, showError, showWarning, showInfo, showLoading, removeMessage } = useAnimatedMessages();
@@ -432,12 +434,23 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleLogoutClick = () => {
+    setShowLogoutAnimation(true);
+  };
+
+  const handleLogoutAnimationComplete = () => {
+    setShowLogoutAnimation(false);
+    onLogout();
+  };
+
   return (
     <div className="dashboard-container">
       <nav className="navbar">
         <div className="navbar-content">
           <div className="navbar-brand">
-            <h1>Control Puerta</h1>
+            <div className="dashboard-logo">
+              <img src="/logotaq02.png" alt="Logo TAQ" className="logo-image" />
+            </div>
           </div>
           <div className="navbar-actions">
             {user.role === 'admin' && (
@@ -479,7 +492,7 @@ const Dashboard = ({ user, onLogout }) => {
                  </button>
                </>
              )}
-              <button className="logout-button" onClick={onLogout}>
+              <button className="logout-button" onClick={handleLogoutClick}>
               ❌Salir
               </button>
           </div>
@@ -584,7 +597,7 @@ const Dashboard = ({ user, onLogout }) => {
         
         <button 
           className="mobile-nav-button logout"
-          onClick={onLogout}
+          onClick={handleLogoutClick}
         >
           <span className="nav-icon">❌</span>
           <span className="nav-label"></span>
@@ -618,6 +631,14 @@ const Dashboard = ({ user, onLogout }) => {
                   onClose={() => setShowHistoryModal(false)}
                 />
               )}
+
+      {/* Animación de cierre de sesión */}
+      {showLogoutAnimation && (
+        <LogoutAnimation
+          onComplete={handleLogoutAnimationComplete}
+          userName={user.username}
+        />
+      )}
     </div>
   );
 };

@@ -11,6 +11,13 @@
   gap: 25px;
   max-height: calc(90vh - 120px);
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Ocultar scrollbars en WebKit */
+.config-modal__content::-webkit-scrollbar {
+  display: none;
 }
 
 .config-section {

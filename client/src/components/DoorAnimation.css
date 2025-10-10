@@ -1,0 +1,506 @@
+/* Door Animation - Neural Glass Style */
+.door-animation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.422);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: fadeIn 0.5s ease-in-out;
+  overflow: hidden;
+}
+
+.door-animation-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 400px;
+  height: 600px;
+  overflow: hidden;
+}
+
+/* Mensaje de bienvenida */
+.welcome-message {
+  text-align: center;
+  animation: slideDown 0.5s ease-out;
+}
+
+.welcome-message h2 {
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #e0a3ff, #ff69b4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(224, 163, 255, 0.5);
+}
+
+.welcome-message p {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+/* Puerta */
+.door {
+  position: relative;
+  width: 250px;
+  height: 500px;
+  transition: transform 2.5s ease-in-out;
+  transform-origin: left center; /* Simula bisagras en el lado izquierdo */
+}
+
+/* Marco exterior de la puerta */
+.door-outer-frame {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 25px;
+  padding: 8px;
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+
+/* Marco interior de la puerta */
+.door-inner-frame {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  padding: 6px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.door-frame {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 15px;
+  padding: 12px;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Paneles de la puerta - diseño tradicional */
+.door-panels {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.door-panel {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Panel superior grande (2/3 de la altura) */
+.door-panel-top {
+  flex: 2;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Panel inferior pequeño (1/3 de la altura) */
+.door-panel-bottom {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Efecto neural glass en los paneles cuando la puerta se desliza */
+.door.opening .door-panel {
+  background: rgba(255, 255, 255, 0.01);
+  opacity: 0.8;
+  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.door.opened .door-panel {
+  background: rgba(255, 255, 255, 0.005);
+  opacity: 0.6;
+}
+
+/* Bisagras */
+.door-hinges {
+  position: absolute;
+  left: -12px;
+  top: 0;
+  width: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.hinge {
+  width: 12px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.hinge::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1px;
+}
+
+.hinge-1 {
+  margin-top: 20px;
+}
+
+.hinge-2 {
+  margin-top: 10px;
+}
+
+.hinge-3 {
+  margin-top: 10px;
+}
+
+/* Efecto neural glass para bisagras cuando la puerta se desliza */
+.door.opening .hinge {
+  background: rgba(255, 255, 255, 0.03);
+  opacity: 0.8;
+  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.door.opened .hinge {
+  background: rgba(255, 255, 255, 0.02);
+  opacity: 0.6;
+}
+
+/* Manija y cerradura */
+.door-handle {
+  position: absolute;
+  right: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 60px;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.handle-lever {
+  width: 30px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.handle-escutcheon {
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keyhole {
+  width: 6px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 3px 3px 0 0;
+  position: relative;
+}
+
+.keyhole::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+}
+
+/* Partículas */
+.particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(79, 172, 254, 0.6);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(79, 172, 254, 0.8);
+}
+
+.particle-1 {
+  top: 20%;
+  left: 30%;
+  animation: floatUp 2s ease-out 1s infinite;
+}
+
+.particle-2 {
+  top: 40%;
+  left: 70%;
+  animation: floatUp 2s ease-out 1.2s infinite;
+}
+
+.particle-3 {
+  top: 60%;
+  left: 20%;
+  animation: floatUp 2s ease-out 1.4s infinite;
+}
+
+.particle-4 {
+  top: 80%;
+  left: 60%;
+  animation: floatUp 2s ease-out 1.6s infinite;
+}
+
+.particle-5 {
+  top: 30%;
+  left: 80%;
+  animation: floatUp 2s ease-out 1.8s infinite;
+}
+
+/* Preview del dashboard */
+.dashboard-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.preview-content {
+  text-align: center;
+}
+
+.preview-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.preview-button {
+  width: 200px;
+  height: 60px;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  border-radius: 15px;
+  position: relative;
+  overflow: hidden;
+}
+
+.button-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: buttonGlow 2s ease-in-out infinite;
+}
+
+/* Animaciones de fases */
+.door.opening {
+  animation: doorSlideLeft 2.5s ease-in-out forwards;
+}
+
+.door.revealing .dashboard-preview {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.door.opened {
+  /* La puerta permanece oculta en la pared */
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes doorSlideLeft {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+/* @keyframes doorExit eliminado - la puerta no se cierra */
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes buttonGlow {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .door {
+    width: 200px;
+    height: 400px;
+  }
+  
+  .welcome-message h2 {
+    font-size: 1.5rem;
+  }
+  
+  .welcome-message p {
+    font-size: 1rem;
+  }
+  
+  .preview-button {
+    width: 150px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .door {
+    width: 180px;
+    height: 350px;
+  }
+  
+  .welcome-message h2 {
+    font-size: 1.3rem;
+  }
+  
+  .door-handle {
+    width: 40px;
+    height: 50px;
+    right: 20px;
+  }
+}
