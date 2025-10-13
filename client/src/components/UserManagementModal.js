@@ -27,7 +27,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
 
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
+    email: 'user@taqro.com.mx',
     password: '',
     role: 'user',
     nombre: '',
@@ -110,7 +110,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   const resetForm = () => {
     setFormData({
       username: '',
-      email: '',
+      email: 'user@taqro.com.mx',
       password: '',
       role: 'user',
       nombre: '',
@@ -205,7 +205,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         setEditingUser(userData);
         setFormData({
           username: userData.username,
-          email: userData.email,
+          email: 'user@taqro.com.mx', // Email fijo por defecto
           password: userData.password, // Cargar contraseña actual
           role: userData.role,
           nombre: userData.nombre || '',
@@ -415,7 +415,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         credentials: 'include',
         body: JSON.stringify({
           username: formData.username,
-          email: formData.email,
+          email: 'user@taqro.com.mx', // Email fijo para todos los usuarios
           password: formData.password,
           rol: formData.role,
           nombre: formData.nombre,
@@ -759,18 +759,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="email">Email:</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ingrese el email"
-                  />
-                </div>
 
                 <div className="form-group">
                   <label htmlFor="password">
