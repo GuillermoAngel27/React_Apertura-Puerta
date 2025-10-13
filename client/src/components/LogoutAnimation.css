@@ -60,6 +60,26 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   max-width: 400px;
   margin: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Logo en la animación de logout */
+.logout-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.logout-logo .logo-image {
+  max-width: 100px;
+  max-height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+  animation: logoFadeOut 3s ease-in-out forwards;
 }
 
 .goodbye-icon {
@@ -197,6 +217,24 @@
   }
 }
 
+@keyframes logoFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.1));
+  }
+}
+
 /* Estados de animación */
 .logout-animation-overlay.fading .goodbye-message {
   animation: fadeOut 1s ease-in-out forwards;
@@ -212,6 +250,11 @@
     padding: 30px 20px;
     margin: 0 15px;
     border-radius: 15px;
+  }
+  
+  .logout-logo .logo-image {
+    max-width: 80px;
+    max-height: 55px;
   }
   
   .goodbye-icon {
@@ -238,6 +281,11 @@
   .goodbye-message {
     padding: 25px 15px;
     margin: 0 10px;
+  }
+  
+  .logout-logo .logo-image {
+    max-width: 60px;
+    max-height: 40px;
   }
   
   .goodbye-icon {

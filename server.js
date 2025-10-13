@@ -32,7 +32,6 @@ const broadcastToAll = (message) => {
       client.send(data);
     }
   });
-  console.log(`📡 WebSocket: Mensaje enviado a ${wss.clients.size} clientes:`, message);
 };
 
 // Función para enviar mensaje a usuarios específicos
@@ -40,41 +39,34 @@ const sendToUser = (userId, message) => {
   const connection = wsConnections.get(userId);
   if (connection && connection.readyState === WebSocket.OPEN) {
     connection.send(JSON.stringify(message));
-    console.log(`📡 WebSocket: Mensaje enviado a usuario ${userId}:`, message);
+    
   }
 };
 
 // Manejo de conexiones WebSocket
 wss.on('connection', (ws, req) => {
-  console.log('🔌 WebSocket: Nueva conexión establecida');
   
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
-      console.log('📨 WebSocket: Mensaje recibido:', data);
       
       // Manejar diferentes tipos de mensajes
       if (data.type === 'register') {
         // Registrar conexión por usuario
         wsConnections.set(data.userId, ws);
         ws.userId = data.userId;
-        console.log(`👤 WebSocket: Usuario ${data.userId} registrado`);
       }
     } catch (error) {
-      console.error('❌ WebSocket: Error procesando mensaje:', error);
     }
   });
   
   ws.on('close', () => {
-    console.log('🔌 WebSocket: Conexión cerrada');
     if (ws.userId) {
       wsConnections.delete(ws.userId);
-      console.log(`👤 WebSocket: Usuario ${ws.userId} desconectado`);
     }
   });
   
   ws.on('error', (error) => {
-    console.error('❌ WebSocket: Error en conexión:', error);
   });
 });
 
@@ -85,17 +77,14 @@ const ALGORITHM = 'aes-256-cbc';
 // Función para encriptar contraseñas
 function encryptPassword(password) {
   try {
-    console.log('🔐 Encriptando contraseña...');
     const iv = crypto.randomBytes(16);
     const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
     let encrypted = cipher.update(password, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     const result = iv.toString('hex') + ':' + encrypted;
-    console.log('✅ Contraseña encriptada exitosamente');
     return result;
   } catch (error) {
-    console.error('❌ Error encriptando contraseña:', error);
     throw error; // Re-lanzar el error para que se maneje arriba
   }
 }
@@ -112,7 +101,6 @@ function decryptPassword(encryptedPassword) {
     decrypted += decipher.final('utf8');
     return decrypted;
   } catch (error) {
-    console.error('Error desencriptando contraseña:', error);
     return encryptedPassword; // Fallback sin desencriptar
   }
 }
@@ -149,7 +137,6 @@ const executeQuery = async (query, params = []) => {
     const [rows] = await pool.execute(query, params);
     return rows;
   } catch (error) {
-    console.error('Error en query:', error);
     throw error;
   }
 };
@@ -158,13 +145,76 @@ const executeQuery = async (query, params = []) => {
 // FUNCIONES DE CONFIGURACIÓN DEL SISTEMA
 // ========================================
 
+// Función para crear tabla de sesiones si no existe
+async function createSessionsTable() {
+  try {
+    await executeQuery(`
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        device_fingerprint VARCHAR(16) NOT NULL,
+        ip_address VARCHAR(45) NOT NULL,
+        token_hash VARCHAR(64) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        invalidated_at DATETIME NULL,
+        is_active BOOLEAN DEFAULT TRUE,
+        last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user_device (user_id, device_fingerprint),
+        INDEX idx_token_hash (token_hash),
+        INDEX idx_expires_at (expires_at),
+        INDEX idx_last_activity (last_activity),
+        FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    
+    // Agregar columna last_activity si no existe (para tablas existentes)
+    try {
+      await executeQuery(`
+        ALTER TABLE user_sessions 
+        ADD COLUMN IF NOT EXISTS last_activity DATETIME DEFAULT CURRENT_TIMESTAMP
+      `);
+      
+      await executeQuery(`
+        ALTER TABLE user_sessions 
+        ADD INDEX IF NOT EXISTS idx_last_activity (last_activity)
+      `);
+    } catch (error) {
+      // La columna ya existe o hay otro error, continuar
+    }
+    
+  } catch (error) {
+  }
+}
+
+// Función para crear tabla de notificaciones del sistema (en español)
+async function createSystemNotificationsTable() {
+  try {
+    await executeQuery(`
+      CREATE TABLE IF NOT EXISTS notificaciones_sistema (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tipo ENUM('login_exitoso', 'login_fallido', 'logout') NOT NULL,
+        titulo VARCHAR(255) NOT NULL,
+        mensaje TEXT NOT NULL,
+        nombre_usuario VARCHAR(100) NULL,
+        direccion_ip VARCHAR(45) NULL,
+        severidad ENUM('bajo', 'medio', 'alto', 'critico') DEFAULT 'bajo',
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    
+  } catch (error) {
+  }
+}
+
 // Función para inicializar usuario maestro automáticamente
 async function initializeMasterAdmin() {
   try {
+    
     // Verificar si la funcionalidad está habilitada
     const masterAdminEnabled = process.env.MASTER_ADMIN_ENABLED !== 'false';
+    
     if (!masterAdminEnabled) {
-      console.log('ℹ️ Inicialización de usuario maestro deshabilitada');
       return;
     }
 
@@ -178,92 +228,70 @@ async function initializeMasterAdmin() {
       apellido: 'Sistema'
     };
 
-    console.log('🔍 Verificando existencia de usuarios administradores...');
-
     // Verificar si ya existe algún usuario administrador
     const existingAdmins = await executeQuery(
       'SELECT id, username, email, rol FROM usuarios WHERE rol = ?',
       ['admin']
     );
 
+    
     if (existingAdmins.length > 0) {
-      console.log('ℹ️ Usuario administrador ya existe:');
       existingAdmins.forEach(admin => {
-        console.log(`   - ${admin.username} (${admin.email})`);
       });
       return;
     }
 
+    
     // Verificar si el usuario maestro específico ya existe
     const existingMaster = await executeQuery(
       'SELECT id, username, email FROM usuarios WHERE username = ? OR email = ?',
       [masterAdmin.username, masterAdmin.email]
     );
 
+    
     if (existingMaster.length > 0) {
-      console.log('ℹ️ Usuario maestro ya existe:');
       existingMaster.forEach(user => {
-        console.log(`   - ${user.username} (${user.email})`);
       });
       return;
     }
 
     // Crear usuario maestro
-    console.log('🔧 Creando usuario maestro automáticamente...');
     const encryptedPassword = encryptPassword(masterAdmin.password);
+    
     
     const result = await executeQuery(
       'INSERT INTO usuarios (username, email, password, rol, nombre, apellido, activo, fecha_creado_user) VALUES (?, ?, ?, ?, ?, ?, TRUE, NOW())',
       [masterAdmin.username, masterAdmin.email, encryptedPassword, masterAdmin.rol, masterAdmin.nombre, masterAdmin.apellido]
     );
 
-    console.log('✅ Usuario maestro creado exitosamente:');
-    console.log(`   - ID: ${result.insertId}`);
-    console.log(`   - Usuario: ${masterAdmin.username}`);
-    console.log(`   - Email: ${masterAdmin.email}`);
-    console.log(`   - Rol: ${masterAdmin.rol}`);
-    console.log(`   - Nombre: ${masterAdmin.nombre} ${masterAdmin.apellido}`);
-    console.log('⚠️ IMPORTANTE: Cambiar la contraseña por defecto en producción');
-
+   
   } catch (error) {
-    console.error('❌ Error inicializando usuario maestro:', error.message);
-    console.log('⚠️ El sistema continuará sin usuario maestro automático');
+   
   }
 }
 
 // Obtener configuración específica de la base de datos
 async function getConfig(clave) {
   try {
-    console.log(`🔍 Debug - getConfig buscando clave: ${clave}`);
     const [rows] = await executeQuery(
       'SELECT valor FROM configuracion_sistema WHERE clave = ? AND activo = TRUE',
       [clave]
     );
-    console.log(`🔍 Debug - getConfig resultado para ${clave}:`, rows);
-    console.log(`🔍 Debug - getConfig tipo de resultado:`, typeof rows);
-    console.log(`🔍 Debug - getConfig es array:`, Array.isArray(rows));
     
     if (Array.isArray(rows) && rows.length > 0) {
       // Parsear el JSON si es un string
       const valor = rows[0].valor;
-      console.log(`🔍 Debug - getConfig valor crudo para ${clave}:`, valor);
       const parsedValue = typeof valor === 'string' ? JSON.parse(valor) : valor;
-      console.log(`🔍 Debug - getConfig valor parseado para ${clave}:`, parsedValue);
       return parsedValue;
     } else if (rows && rows.valor) {
       // Si la respuesta no es un array pero tiene la propiedad valor
-      console.log(`🔍 Debug - getConfig respuesta directa para ${clave}:`, rows);
       const valor = rows.valor;
-      console.log(`🔍 Debug - getConfig valor crudo para ${clave}:`, valor);
       const parsedValue = typeof valor === 'string' ? JSON.parse(valor) : valor;
-      console.log(`🔍 Debug - getConfig valor parseado para ${clave}:`, parsedValue);
       return parsedValue;
     }
     
-    console.log(`⚠️ getConfig no encontró configuración para ${clave}`);
     return null;
   } catch (error) {
-    console.error(`Error obteniendo configuración ${clave}:`, error);
     return null;
   }
 }
@@ -280,10 +308,8 @@ async function updateConfig(clave, valor, modificadoPor) {
        fecha_modificacion = CURRENT_TIMESTAMP`,
       [clave, JSON.stringify(valor), modificadoPor]
     );
-    console.log(`✅ Configuración ${clave} actualizada por ${modificadoPor}`);
     return true;
   } catch (error) {
-    console.error(`❌ Error actualizando configuración ${clave}:`, error);
     return false;
   }
 }
@@ -295,10 +321,7 @@ async function loadAllConfig() {
       'SELECT clave, valor FROM configuracion_sistema WHERE activo = TRUE'
     );
     
-    console.log('🔍 Debug - loadAllConfig resultado:', rows);
-    console.log('🔍 Debug - loadAllConfig tipo:', typeof rows);
-    console.log('🔍 Debug - loadAllConfig es array:', Array.isArray(rows));
-    
+  
     const config = {};
     
     // Manejar tanto arrays como objetos directos
@@ -314,28 +337,22 @@ async function loadAllConfig() {
       config[rows.clave] = typeof valor === 'string' ? JSON.parse(valor) : valor;
     }
     
-    console.log('✅ Configuración del sistema cargada desde base de datos');
-    console.log('🔍 Debug - Config cargada:', config);
+    
     return config;
   } catch (error) {
-    console.error('❌ Error cargando configuración desde base de datos:', error);
-    console.log('⚠️ Usando configuración por defecto en memoria');
+ 
     return null;
   }
 }
 
 // Obtener configuración de Node-RED SOLO desde BD (sin fallback)
 async function getNodeRedConfigFromDB() {
-  console.log('🔍 Debug - getNodeRedConfigFromDB iniciada');
   const nodeRedConfig = await getConfig('node_red');
-  console.log('🔍 Debug - nodeRedConfig obtenida:', nodeRedConfig);
   
   if (nodeRedConfig && nodeRedConfig.url) {
-    console.log('🔍 Debug - Usando URL de BD:', nodeRedConfig.url);
     return nodeRedConfig.url;
   }
   
-  console.log('❌ ERROR: No se encontró configuración de Node-RED en BD');
   throw new Error('No se encontró configuración de Node-RED en la base de datos');
 }
 
@@ -344,10 +361,8 @@ async function getNodeRedConfig() {
   try {
     return await getNodeRedConfigFromDB();
   } catch (error) {
-    console.log('⚠️ No se encontró configuración de Node-RED en BD, usando fallback');
     // Solo fallback a variable de entorno si no hay configuración en BD
     const fallbackUrl = process.env.NODE_RED_URL || 'http://localhost:1880/datosRecibidos';
-    console.log('🔍 Debug - URL fallback:', fallbackUrl);
     return fallbackUrl;
   }
 }
@@ -366,12 +381,240 @@ async function getHorariosConfig() {
   };
 }
 
+// Función para validar si un timestamp está dentro de horarios laborales
+function isWithinWorkingHours(timestamp, horariosConfig) {
+  const date = new Date(timestamp);
+  const dayOfWeek = date.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+  const currentTime = date.toTimeString().slice(0, 5); // HH:MM
+  
+  let schedule;
+  
+  // Determinar qué horario aplicar
+  if (dayOfWeek === 0) { // Domingo
+    schedule = horariosConfig.domingos;
+  } else if (dayOfWeek === 6) { // Sábado
+    schedule = horariosConfig.sabados;
+  } else { // Lunes a Viernes
+    schedule = horariosConfig.lunesViernes;
+  }
+  
+  // Si el día no está habilitado, está fuera de horario
+  if (!schedule.habilitado) {
+    return false;
+  }
+  
+  // Verificar si está dentro del rango de horas
+  return currentTime >= schedule.inicio && currentTime <= schedule.fin;
+}
+
+// Función auxiliar para obtener información de horarios laborales
+function getWorkingHoursInfo(timestamp, horariosConfig) {
+  const date = new Date(timestamp);
+  const dayOfWeek = date.getDay();
+  
+  let schedule;
+  let dayName;
+  
+  if (dayOfWeek === 0) {
+    schedule = horariosConfig.domingos;
+    dayName = 'Domingo';
+  } else if (dayOfWeek === 6) {
+    schedule = horariosConfig.sabados;
+    dayName = 'Sábado';
+  } else {
+    schedule = horariosConfig.lunesViernes;
+    dayName = 'Lunes-Viernes';
+  }
+  
+  return {
+    dayName: dayName,
+    isEnabled: schedule.habilitado,
+    workingHours: schedule.habilitado ? `${schedule.inicio} - ${schedule.fin}` : 'No laborable',
+    isWithinHours: isWithinWorkingHours(timestamp, horariosConfig)
+  };
+}
+
 // Configuración del sistema (solo fallback para casos extremos)
 // NOTA: La configuración principal viene de la base de datos
 
-// Middleware de autenticación con tokens permanentes
+// Función para generar fingerprint del dispositivo
+function generateDeviceFingerprint(req) {
+  const acceptLanguage = req.get('Accept-Language') || '';
+  const acceptEncoding = req.get('Accept-Encoding') || '';
+  const connection = req.get('Connection') || '';
+  const ip = req.ip || req.connection.remoteAddress || '';
+  
+  // Crear fingerprint estable (sin User-Agent para permitir cambio PC/móvil)
+  const fingerprint = crypto
+    .createHash('sha256')
+    .update(`${acceptLanguage}-${acceptEncoding}-${connection}-${ip}`)
+    .digest('hex')
+    .substring(0, 16); // Usar solo primeros 16 caracteres
+  
+  return fingerprint;
+}
+
+// Función para validar sesión activa y renovar automáticamente
+async function validateActiveSession(userId, deviceFingerprint, ip) {
+  try {
+    // Verificar si existe una sesión activa para este usuario y IP (más flexible)
+    const sessions = await executeQuery(
+      'SELECT * FROM user_sessions WHERE user_id = ? AND ip_address = ? AND is_active = TRUE AND expires_at > NOW()',
+      [userId, ip]
+    );
+    
+    if (sessions.length > 0) {
+      // Sesión encontrada - Renovar automáticamente la actividad y actualizar fingerprint
+      await executeQuery(
+        'UPDATE user_sessions SET last_activity = NOW(), device_fingerprint = ? WHERE user_id = ? AND ip_address = ? AND is_active = TRUE',
+        [deviceFingerprint, userId, ip]
+      );
+      
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Función para crear nueva sesión
+async function createUserSession(userId, deviceFingerprint, ip, token) {
+  try {
+    // Crear sesión persistente (sin expiración fija)
+    // La sesión se mantiene activa mientras haya actividad del usuario
+    const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 año como máximo
+    
+    await executeQuery(
+      'INSERT INTO user_sessions (user_id, device_fingerprint, ip_address, token_hash, expires_at, created_at, is_active, last_activity) VALUES (?, ?, ?, ?, ?, NOW(), TRUE, NOW())',
+      [userId, deviceFingerprint, ip, crypto.createHash('sha256').update(token).digest('hex'), expiresAt]
+    );
+    
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Función para invalidar sesiones anteriores
+async function invalidatePreviousSessions(userId, currentDeviceFingerprint) {
+  try {
+    // Solo invalidar sesiones de otros dispositivos/IPs, no del mismo usuario
+    await executeQuery(
+      'UPDATE user_sessions SET is_active = FALSE, invalidated_at = NOW() WHERE user_id = ? AND device_fingerprint != ? AND is_active = TRUE',
+      [userId, currentDeviceFingerprint]
+    );
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Función para limpiar sesiones inactivas
+async function cleanupExpiredSessions() {
+  try {
+    // Limpiar sesiones inactivas por más de 30 días
+    const result = await executeQuery(
+      'DELETE FROM user_sessions WHERE (last_activity < DATE_SUB(NOW(), INTERVAL 30 DAY) AND is_active = TRUE) OR is_active = FALSE OR expires_at < NOW()'
+    );
+    return result.affectedRows || 0;
+  } catch (error) {
+    return 0;
+  }
+}
+
+// Función para obtener estadísticas de sesiones
+async function getSessionStats() {
+  try {
+    const stats = await executeQuery(`
+      SELECT 
+        COUNT(*) as total_sessions,
+        COUNT(CASE WHEN is_active = TRUE AND expires_at > NOW() THEN 1 END) as active_sessions,
+        COUNT(CASE WHEN is_active = TRUE AND last_activity > DATE_SUB(NOW(), INTERVAL 1 DAY) THEN 1 END) as recently_active_sessions,
+        COUNT(CASE WHEN is_active = TRUE AND last_activity < DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as inactive_week_sessions,
+        COUNT(CASE WHEN is_active = TRUE AND last_activity < DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as inactive_month_sessions,
+        COUNT(CASE WHEN expires_at < NOW() THEN 1 END) as expired_sessions,
+        COUNT(CASE WHEN is_active = FALSE THEN 1 END) as invalidated_sessions
+      FROM user_sessions
+    `);
+    
+    return stats[0];
+  } catch (error) {
+    return null;
+  }
+}
+
+// Función para registrar eventos de login exitoso
+async function logLoginSuccessEvent(data) {
+  try {
+    const eventData = {
+      tipo: 'login_exitoso',
+      titulo: 'Inició sesión',
+      mensaje: `${data.username} inició sesión desde ${data.ip}`,
+      nombre_usuario: data.username,
+      direccion_ip: data.ip,
+      severidad: 'bajo',
+      fecha_creacion: new Date()
+    };
+    
+    await executeQuery(
+      'INSERT INTO notificaciones_sistema (tipo, titulo, mensaje, nombre_usuario, direccion_ip, severidad, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [eventData.tipo, eventData.titulo, eventData.mensaje, eventData.nombre_usuario, eventData.direccion_ip, eventData.severidad, eventData.fecha_creacion]
+    );
+    
+  } catch (error) {
+  }
+}
+
+// Función para registrar eventos de login fallido
+async function logLoginFailedEvent(data) {
+  try {
+    const eventData = {
+      tipo: 'login_fallido',
+      titulo: 'Intento de login fallido',
+      mensaje: `Intento de login fallido para ${data.attemptedUsername} desde ${data.ip}`,
+      nombre_usuario: data.attemptedUsername,
+      direccion_ip: data.ip,
+      severidad: 'medio',
+      fecha_creacion: new Date()
+    };
+    
+    await executeQuery(
+      'INSERT INTO notificaciones_sistema (tipo, titulo, mensaje, nombre_usuario, direccion_ip, severidad, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [eventData.tipo, eventData.titulo, eventData.mensaje, eventData.nombre_usuario, eventData.direccion_ip, eventData.severidad, eventData.fecha_creacion]
+    );
+    
+  } catch (error) {
+  }
+}
+
+// Función para registrar eventos de logout
+async function logLogoutEvent(data) {
+  try {
+    const eventData = {
+      tipo: 'logout',
+      titulo: 'Cerró sesión',
+      mensaje: `${data.username} cerró sesión`,
+      nombre_usuario: data.username,
+      direccion_ip: data.ip,
+      severidad: 'bajo',
+      fecha_creacion: new Date()
+    };
+    
+    await executeQuery(
+      'INSERT INTO notificaciones_sistema (tipo, titulo, mensaje, nombre_usuario, direccion_ip, severidad, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [eventData.tipo, eventData.titulo, eventData.mensaje, eventData.nombre_usuario, eventData.direccion_ip, eventData.severidad, eventData.fecha_creacion]
+    );
+    
+  } catch (error) {
+  }
+}
+
+// Middleware de autenticación con tokens permanentes y validación de sesión
 const authenticateToken = async (req, res, next) => {
   const token = req.cookies.token;
+
 
   if (!token) {
     return res.status(401).json({ 
@@ -382,15 +625,20 @@ const authenticateToken = async (req, res, next) => {
   }
 
   try {
-    // Buscar usuario por token en la base de datos
+    // Generar fingerprint del dispositivo actual
+    const deviceFingerprint = generateDeviceFingerprint(req);
+    const clientIP = req.ip || req.connection.remoteAddress || '';
+    
+    // Desencriptar token de cookies para comparar con BD
+    const decryptedToken = decryptPassword(token);
+    
+    // Buscar usuario por token en texto plano en la base de datos
     const users = await executeQuery(
       'SELECT * FROM usuarios WHERE token = ? AND activo = TRUE',
-      [token]
+      [decryptedToken]
     );
 
     if (users.length === 0) {
-      console.log(`🚨 TOKEN INVÁLIDO MIDDLEWARE - Token en cookies no encontrado en BD: ${token.substring(0, 10)}...`);
-      console.log(`🔍 MIDDLEWARE DEBUG - Posible causa: Admin hizo refresh token y usuario sigue usando token anterior`);
       return res.status(403).json({ 
         message: 'Token inválido o usuario inactivo',
         tokenInvalid: true,
@@ -399,18 +647,38 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    const user = users[0];
+    const validUser = users[0];
+    
+    // VALIDACIÓN DE SEGURIDAD: Verificar sesión activa
+    const hasValidSession = await validateActiveSession(validUser.id, deviceFingerprint, clientIP);
+    
+    if (!hasValidSession) {
+          
+      return res.status(403).json({ 
+        message: 'Sesión inválida. Token posiblemente inyectado desde otro dispositivo.',
+        tokenInvalid: true,
+        autoLogout: true,
+        securityAlert: true,
+        possibleAttack: 'Token injection detected'
+      });
+    }
+
     req.user = {
-      id: user.id,
-      username: user.username,
-      role: user.rol,
-      nombre: user.nombre,
-      apellido: user.apellido,
-      email: user.email
+      id: validUser.id,
+      username: validUser.username,
+      role: validUser.rol,
+      nombre: validUser.nombre,
+      apellido: validUser.apellido,
+      email: validUser.email
     };
+    
+    
+    
+    req.deviceFingerprint = deviceFingerprint;
+    req.clientIP = clientIP;
+    
     next();
   } catch (error) {
-    console.error('Error en autenticación:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -441,44 +709,50 @@ const isValidTime = (time) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log('🍪 TODAS LAS COOKIES RECIBIDAS:', req.cookies);
     const cookieToken = req.cookies.token;
 
     // PASO 1: Verificar si existe token válido en cookies (LOGIN AUTOMÁTICO)
     if (cookieToken) {
-      console.log('📋 Token encontrado en cookies, verificando validez...');
       
-      const usersWithToken = await executeQuery(
+      // Desencriptar token de cookies para comparar con BD
+      const decryptedCookieToken = decryptPassword(cookieToken);
+      
+      // Buscar usuario por token en texto plano en la base de datos
+      const users = await executeQuery(
         'SELECT * FROM usuarios WHERE token = ? AND activo = TRUE',
-        [cookieToken]
+        [decryptedCookieToken]
       );
 
-      if (usersWithToken.length > 0) {
-        const user = usersWithToken[0];
+      const user = users.length > 0 ? users[0] : null;
+
+      if (user) {
         
         // CORRECCIÓN CRÍTICA: Verificar que el token pertenece al usuario solicitado
         if (user.username !== username) {
-          console.log(`🚨 SEGURIDAD: Token en cookies pertenece a ${user.username}, pero solicita login ${username}`);
-          console.log(`❌ IGNORANDO token - No corresponde al usuario solicitado`);
-          // Continuar con validación normal por credenciales (NO hacer return aquí)
+          
         } else if (!user.token_activo) {
-          console.log(`⚠️ Token del usuario ${username} encontrado pero NO activado`);
           return res.status(403).json({ 
             message: 'Token encontrado pero no activado. Debe activar el token antes de iniciar sesión.',
             hasToken: true,
             tokenNotActivated: true
           });
         } else {
-          console.log(`✅ Token válido encontrado para ${username} - Validando contraseña antes de login automático`);
           
           // IMPORTANTE: Siempre validar contraseña, incluso con token válido
           const decryptedPassword = decryptPassword(user.password);
           if (password !== decryptedPassword) {
-            console.log(`❌ Contraseña incorrecta para ${username} - Token válido pero credenciales incorrectas`);
+            
+            // Registrar evento de login fallido
+            await logLoginFailedEvent({
+              attemptedUsername: username,
+              reason: 'invalid_password',
+              ip: req.ip || req.connection.remoteAddress || '',
+              userAgent: req.get('User-Agent')
+            });
+            
             return res.status(401).json({ message: 'Credenciales inválidas' });
           }
           
-          console.log(`✅ Contraseña válida para ${username} - Procediendo con login automático`);
         
           // Renovar cookie por 1 año
           res.cookie('token', cookieToken, {
@@ -498,7 +772,26 @@ app.post('/api/login', async (req, res) => {
             path: '/'
           });
           
-          console.log(`🍪 Login automático - Establecida cookie de sesión para ${user.username}`);
+
+          // Crear sesión de usuario para el dispositivo actual
+          const deviceFingerprint = generateDeviceFingerprint(req);
+          const clientIP = req.ip || req.connection.remoteAddress || '';
+          
+          // Invalidar sesiones anteriores del mismo usuario
+          await invalidatePreviousSessions(user.id, deviceFingerprint);
+          
+          // Crear nueva sesión
+          await createUserSession(user.id, deviceFingerprint, clientIP, decryptedCookieToken);
+
+          // Registrar evento de login exitoso
+          await logLoginSuccessEvent({
+            username: user.username,
+            userId: user.id,
+            role: user.rol,
+            ip: clientIP,
+            userAgent: req.get('User-Agent'),
+            deviceFingerprint: deviceFingerprint
+          });
 
           return res.json({
             success: true,
@@ -516,7 +809,6 @@ app.post('/api/login', async (req, res) => {
     }
 
     // PASO 2: Validación normal por credenciales
-    console.log(`🔍 Validando credenciales para: ${username}`);
     
     const users = await executeQuery(
       'SELECT * FROM usuarios WHERE username = ? AND activo = TRUE',
@@ -524,6 +816,14 @@ app.post('/api/login', async (req, res) => {
     );
 
     if (users.length === 0) {
+      // Registrar evento de login fallido
+      await logLoginFailedEvent({
+        attemptedUsername: username,
+        reason: 'user_not_found',
+        ip: req.ip || req.connection.remoteAddress || '',
+        userAgent: req.get('User-Agent')
+      });
+      
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
@@ -532,6 +832,14 @@ app.post('/api/login', async (req, res) => {
     // Verificar contraseña con sistema bidireccional
     const decryptedPassword = decryptPassword(user.password);
     if (password !== decryptedPassword) {
+      // Registrar evento de login fallido
+      await logLoginFailedEvent({
+        attemptedUsername: username,
+        reason: 'invalid_password',
+        ip: req.ip || req.connection.remoteAddress || '',
+        userAgent: req.get('User-Agent')
+      });
+      
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
@@ -539,7 +847,6 @@ app.post('/api/login', async (req, res) => {
     if (user.token) {
       // Verificar si el token está activado (token_activo = 1)
       if (!user.token_activo) {
-        console.log(`⚠️ Usuario ${username} tiene token pero NO está activado`);
         return res.status(403).json({ 
           message: '❌ Token asignado pero no activado. Debe activar el token antes de iniciar sesión.',
           hasToken: true,
@@ -549,25 +856,33 @@ app.post('/api/login', async (req, res) => {
 
       // Token está activado - Verificar si este dispositivo ya tiene el token activado
       const cookieToken = req.cookies.token;
-      console.log('🔍 COMPARACIÓN DE TOKENS:');
-      console.log('  🍪 Cookie token:', cookieToken);
-      console.log('  🗄️ DB token:', user.token);
-      console.log('  ✅ Coinciden:', cookieToken === user.token);
+   
+      // Desencriptar token de cookies para comparar con BD
+      const decryptedCookieToken = decryptPassword(cookieToken);
       
-      if (cookieToken === user.token) {
+      if (decryptedCookieToken === user.token) {
         // Token ya activado en este dispositivo - Validar contraseña antes de login directo
-        console.log(`✅ Token coincidente para ${username} - Validando contraseña antes de login automático`);
         
         // IMPORTANTE: Siempre validar contraseña, incluso con token coincidente
         const decryptedPassword = decryptPassword(user.password);
         if (password !== decryptedPassword) {
-          console.log(`❌ Contraseña incorrecta para ${username} - Token válido pero credenciales incorrectas`);
+          
+          // Registrar evento de login fallido
+          await logLoginFailedEvent({
+            attemptedUsername: username,
+            reason: 'invalid_password',
+            ip: req.ip || req.connection.remoteAddress || '',
+            userAgent: req.get('User-Agent')
+          });
+          
           return res.status(401).json({ message: 'Credenciales inválidas' });
         }
         
-        console.log(`✅ Contraseña válida para ${username} - Procediendo con login automático`);
         
-        res.cookie('token', user.token, {
+        // Encriptar token antes de guardarlo en cookies para seguridad en el navegador
+        const encryptedCookieToken = encryptPassword(user.token);
+        
+        res.cookie('token', encryptedCookieToken, {
           httpOnly: false, // Cambio clave: Permitir acceso desde JS
           secure: false,
           sameSite: 'lax',
@@ -583,9 +898,7 @@ app.post('/api/login', async (req, res) => {
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
           path: '/'
         });
-        
-        console.log('🍪 LOGIN-AUTO - Cookie establecida:', user.token);
-        console.log(`🍪 LOGIN-AUTO - Establecida cookie de sesión para ${username}`);
+       
         
         return res.json({
           success: true,
@@ -600,7 +913,6 @@ app.post('/api/login', async (req, res) => {
         });
       } else {
         // Token existe y está activado pero no en este dispositivo
-        console.log(`⚠️ Usuario ${username} tiene token activado pero dispositivo no autorizado`);
         return res.status(403).json({ 
           message: '❌ Este dispositivo no tiene autorización. Contacte al administrador.',
           hasToken: true 
@@ -612,17 +924,12 @@ app.post('/api/login', async (req, res) => {
     // CONDICIONES CRÍTICAS DE SEGURIDAD:
     // - token DEBE ser NULL (autorizado por admin para nuevo token)
     // - token_activo DEBE ser 0 (autorizado por admin para activación)
-    console.log(`🔍 VERIFICACIÓN DE SEGURIDAD para ${username}:`);
-    console.log(`  📊 Token actual: ${user.token ? 'EXISTE' : 'NULL'}`);
-    console.log(`  📊 Estado activo: ${user.token_activo}`);
+ 
     
     let generatedToken = null; // Variable para almacenar el token generado
     
     if (user.token !== null) {
-      // Usuario tiene token existente - NO autorizado para nueva generación
-      console.log(`🚨 SEGURIDAD: Usuario ${username} tiene token ${user.token} - NO autorizado para nueva activación`);
-      console.log(`❌ BLOQUEO: Token existente requiere autorización admin para refresh`);
-      
+
       return res.status(403).json({
         success: false,
         message: 'Token existente no autorizado para nueva activación. Contacte al administrador.',
@@ -631,18 +938,19 @@ app.post('/api/login', async (req, res) => {
         requiresAdminRefresh: true
       });
     } else if (user.token === null && user.token_activo === 0) {
-      // Usuario tiene autorización admin explícita - Proceder con nueva generación
-      console.log(`✅ AUTORIZACIÓN ADMIN CONFIRMADA: Usuario ${username} autorizado para nueva activación`);
-      console.log(`🆕 Generando nuevo token autorizado para: ${username}`);
-      
+    
       generatedToken = crypto.randomBytes(4).toString('hex'); // Token de 8 caracteres (4 bytes = 8 hex chars)
 
+      // Guardar token en texto plano en BD para consultas eficientes
       await executeQuery(
-        'UPDATE usuarios SET token = ?, fecha_token = NOW(), token_activo = 0 WHERE id = ?',
+        'UPDATE usuarios SET token = ?, fecha_token = NOW(), token_activo = 1, ultima_activacion = NOW() WHERE id = ?',
         [generatedToken, user.id]
       );
 
-      res.cookie('token', generatedToken, {
+      // Encriptar token antes de guardarlo en cookies para seguridad en el navegador
+      const encryptedCookieToken = encryptPassword(generatedToken);
+      
+      res.cookie('token', encryptedCookieToken, {
         httpOnly: false,
         secure: false,
         sameSite: 'lax',
@@ -650,15 +958,8 @@ app.post('/api/login', async (req, res) => {
         path: '/'
       });
 
-      console.log(`✅ Token generado y autorizado para ${user.username}: ${generatedToken}`);
-      console.log(`🍪 Cookie establecida con nuevo token autorizado: ${generatedToken}`);
-      console.log(`🔐 ACTIVACIÓN DISPONIBLE: Usuario ${username} puede activar token en dispositivo`);
-    } else {
-      // Estado inconsistente - Requiere intervención admin
-      console.log(`🚨 ESTADO INCONSISTENTE para ${username}:`);
-      console.log(`  📊 Token: ${user.token ? user.token : 'NULL'} (expectativa: NULL)`);
-      console.log(`  📊 Activo: ${user.token_activo} (expectativa: 0)`);
-      
+     } else {
+ 
       return res.status(403).json({
         success: false,
         message: 'Estado de token inconsistente. Contacte al administrador.',
@@ -670,10 +971,6 @@ app.post('/api/login', async (req, res) => {
 
     // Solo enviar respuesta si se generó un token válido
     if (generatedToken) {
-      console.log(`📤 ENVIANDO RESPUESTA - Token generado: ${generatedToken.substring(0, 10)}...`);
-      
-      // Disparar evento global para notificar que se generó un token
-      console.log(`🔄 BACKEND: Disparando evento tokenGenerated para ${user.username}`);
       
       // Enviar notificación via WebSocket a todos los admins conectados
       broadcastToAll({
@@ -686,9 +983,29 @@ app.post('/api/login', async (req, res) => {
         }
       });
 
+    // Crear sesión de usuario para el dispositivo actual
+    const deviceFingerprint = generateDeviceFingerprint(req);
+    const clientIP = req.ip || req.connection.remoteAddress || '';
+    
+    // Invalidar sesiones anteriores del mismo usuario
+    await invalidatePreviousSessions(user.id, deviceFingerprint);
+    
+    // Crear nueva sesión
+    await createUserSession(user.id, deviceFingerprint, clientIP, generatedToken);
+
+    // Registrar evento de login exitoso
+    await logLoginSuccessEvent({
+      username: user.username,
+      userId: user.id,
+      role: user.rol,
+      ip: clientIP,
+      userAgent: req.get('User-Agent'),
+      deviceFingerprint: deviceFingerprint
+      });
+
     res.json({
         success: true,
-        message: 'Token asignado exitosamente. Dispositivo autorizado.',
+        message: 'Dispositivo activado automáticamente. Acceso autorizado.',
       user: {
         id: user.id,
         username: user.username,
@@ -696,17 +1013,14 @@ app.post('/api/login', async (req, res) => {
           nombre: user.nombre,
           apellido: user.apellido
         },
-        tokenGenerated: true,
-        token: generatedToken
+        autoActivated: true
       });
     } else {
-      console.log(`❌ ERROR CRÍTICO: Ningún token generado pero llegó al final del proceso`);
       return res.status(500).json({
         message: 'Error: No se pudo generar token. Contacte al administrador.'
       });
     }
   } catch (error) {
-    console.error('Error en login:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -747,7 +1061,6 @@ app.post('/api/register', authenticateToken, requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error en registro:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -769,13 +1082,11 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
       datosPuerta.lat = req.body.location.lat;
       datosPuerta.lon = req.body.location.lon;
       datosPuerta.precision = req.body.location.accuracy;
-      console.log('Coordenadas recibidas (usuario):', {
-        lat: datosPuerta.lat,
-        lon: datosPuerta.lon,
-        precision: datosPuerta.precision
-      });
+      //   lat: datosPuerta.lat,
+      //   lon: datosPuerta.lon,
+      //   precision: datosPuerta.precision
+      // });
     } else {
-      console.log('Usuario admin/jefe - sin coordenadas (no requeridas)');
     }
 
     // URL del webhook de Node-RED (usar configuración dinámica SOLO desde BD)
@@ -791,7 +1102,6 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
       `, [req.user.id]);
 
       if (duplicateCheck[0].count > 0) {
-        console.log('⚠️ DUPLICADO DETECTADO - Evitando inserción duplicada para usuario:', req.user.username);
         return res.json({
           message: 'Solicitud duplicada - Espera antes de intentar nuevamente',
           status: 'duplicate',
@@ -801,7 +1111,6 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
         });
       }
     } catch (duplicateError) {
-      console.error('❌ Error verificando duplicados:', duplicateError);
       // Continuar con el proceso si hay error en la verificación
     }
 
@@ -820,13 +1129,6 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
         timeout: 5000 // 5 segundos de timeout
       });
 
-      console.log('📤 Datos enviados a Node-RED:', datosPuerta);
-      console.log('📥 Respuesta de Node-RED:', response.data);
-      console.log('🔍 Status de respuesta HTTP:', response.status);
-      console.log('🔍 Headers de respuesta:', response.headers);
-      console.log('🔍 Tipo de respuesta:', typeof response.data);
-      console.log('🔍 Es objeto:', typeof response.data === 'object');
-      console.log('🔍 Claves del objeto:', Object.keys(response.data || {}));
 
       // Procesar la respuesta de Node-RED
       const nodeRedResponse = response.data;
@@ -834,60 +1136,45 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
       let responseStatus = 'success';
       let canOpenDoor = false;
 
-      // Verificar si la respuesta contiene información de ubicación
-      console.log('🔍 Node-RED respuesta completa:', nodeRedResponse);
-      console.log('🔍 Tipo de respuesta:', typeof nodeRedResponse);
-      console.log('🔍 Es objeto:', typeof nodeRedResponse === 'object');
-      console.log('🔍 Es string:', typeof nodeRedResponse === 'string');
       
       // MANEJAR TANTO OBJETOS COMO STRINGS
       if (typeof nodeRedResponse === 'string') {
         // Node-RED devolvió un string directo
-        console.log('🔍 Node-RED devolvió STRING:', nodeRedResponse);
         
         if (nodeRedResponse === 'NoActiva') {
           responseMessage = 'Usuario fuera de la ubicación autorizada - Puerta no activada';
           responseStatus = 'fuera_de_area';
           canOpenDoor = false;
-          console.log('🔴 STRING: "NoActiva" → DENEGAR');
-          console.log('🔴 DECISIÓN: canOpenDoor = false, status = fuera_de_area');
+
         } else if (nodeRedResponse === 'Activa') {
           responseMessage = 'Usuario autorizado - Puerta abierta exitosamente';
           responseStatus = 'correcto';
           canOpenDoor = true;
-          console.log('🟢 STRING: "Activa" → AUTORIZAR');
-          console.log('🟢 DECISIÓN: canOpenDoor = true, status = correcto');
+
         } else {
           // String no reconocido
           responseMessage = 'Node-RED devolvió respuesta no reconocida - Procesando como exitosa';
           responseStatus = 'advertencia';
           canOpenDoor = true;
-          console.log('🟡 STRING no reconocido:', nodeRedResponse);
         }
       } else if (nodeRedResponse && typeof nodeRedResponse === 'object') {
         // Node-RED devolvió un objeto
-        console.log('🔍 Node-RED devolvió OBJETO:', nodeRedResponse);
-        console.log('🔍 Claves del objeto:', Object.keys(nodeRedResponse));
-        
+
         // Buscar el estado de activación en 'mensaje' (prioridad) o 'payload' (fallback)
         const activationStatus = nodeRedResponse.mensaje || nodeRedResponse.payload;
-        console.log('🔍 activationStatus:', activationStatus);
         
         if (activationStatus === 'NoActiva') {
           responseMessage = 'Usuario fuera de la ubicación autorizada - Puerta no activada';
           responseStatus = 'fuera_de_area';
           canOpenDoor = false;
-          console.log('🔴 OBJETO: mensaje/payload = "NoActiva" → DENEGAR');
-          console.log('🔴 DECISIÓN: canOpenDoor = false, status = fuera_de_area');
+          
         } else if (activationStatus === 'Activa') {
           responseMessage = 'Usuario autorizado - Puerta abierta exitosamente';
           responseStatus = 'correcto';
           canOpenDoor = true;
-          console.log('🟢 OBJETO: mensaje/payload = "Activa" → AUTORIZAR');
-          console.log('🟢 DECISIÓN: canOpenDoor = true, status = correcto');
+          
         } else {
           // TEMPORAL: Si Node-RED no procesa, hacer validación básica en backend
-          console.log('🟡 Node-RED no procesó la validación, haciendo validación temporal en backend');
           
           // Validación temporal: verificar si tiene coordenadas
           if (datosPuerta.lat && datosPuerta.lon) {
@@ -896,12 +1183,10 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
             responseMessage = 'Node-RED no procesó - Validación temporal: Usuario autorizado';
             responseStatus = 'advertencia';
             canOpenDoor = true;
-            console.log('🟡 Validación temporal: Usuario con coordenadas autorizado');
           } else {
             responseMessage = 'Node-RED no procesó - Sin coordenadas: Acceso denegado';
             responseStatus = 'advertencia';
             canOpenDoor = false;
-            console.log('🟡 Validación temporal: Usuario sin coordenadas denegado');
           }
         }
       } else {
@@ -909,7 +1194,6 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
         responseMessage = 'Node-RED no devolvió información de ubicación - Procesando como exitosa';
         responseStatus = 'advertencia';
         canOpenDoor = true;
-        console.log('🟡 Node-RED: Sin respuesta de ubicación, procesando como exitosa');
       }
 
       // Actualizar variables finales con los valores procesados
@@ -918,8 +1202,6 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
       finalCanOpenDoor = canOpenDoor;
       finalNodeRedResponse = nodeRedResponse;
     } catch (nodeRedError) {
-      console.error('❌ Error al comunicarse con Node-RED:', nodeRedError.message);
-      console.error('📍 URL intentada:', nodeRedUrl);
       
       // Determinar el tipo de error
       let errorType = 'Error de conexión';
@@ -939,8 +1221,7 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
         errorMessage = 'Node-RED no respondió en el tiempo esperado';
       }
       
-      console.error(`🔍 Tipo de error: ${errorType}`);
-      console.error(`💡 Sugerencia: ${errorMessage}`);
+
       
       // Establecer variables finales para el caso de error
       finalResponseStatus = 'incorrecto';
@@ -976,7 +1257,6 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
       ];
       
       const eventResult = await executeQuery(insertQuery, insertParams);
-      console.log(`📊 HISTORIAL - Evento registrado con ID: ${eventResult.insertId}`);
       
       // Emitir evento WebSocket para notificaciones en tiempo real
       if (wss) {
@@ -1003,11 +1283,10 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
           }
         });
         
-        console.log('📡 HISTORIAL - Notificación WebSocket enviada');
+
       }
       
     } catch (historyError) {
-      console.error('❌ HISTORIAL - Error al registrar evento:', historyError);
       // No fallar la respuesta principal por error en historial
     }
 
@@ -1021,15 +1300,9 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
       timestamp: new Date().toISOString()
     };
     
-    console.log('📤 RESPUESTA FINAL AL FRONTEND:', finalResponse);
-    console.log('📤 canOpenDoor:', finalResponse.canOpenDoor);
-    console.log('📤 status:', finalResponse.status);
-    console.log('📤 message:', finalResponse.message);
-    
     res.json(finalResponse);
     
   } catch (error) {
-    console.error('Error al abrir puerta:', error);
     res.status(500).json({ 
       message: '❌ Error interno del servidor - No se pudo procesar la solicitud',
       status: 'server_error',
@@ -1045,34 +1318,30 @@ app.get('/api/verify-token', async (req, res) => {
     const token = req.cookies.token;
     const userLoggedIn = req.cookies.user_logged_in;
     
-    console.log('🔍 VERIFY-TOKEN - Cookies recibidas:', req.cookies);
-    console.log('🔍 VERIFY-TOKEN - Token encontrado:', token);
-    console.log('🔍 VERIFY-TOKEN - Usuario logueado:', userLoggedIn);
 
     if (!token) {
-      console.log('❌ VERIFY-TOKEN - No hay token en cookies');
       return res.status(401).json({ message: 'No hay token en cookies' });
     }
     
     // Si no hay cookie de sesión, no permitir login automático
     if (!userLoggedIn) {
-      console.log('❌ VERIFY-TOKEN - No hay sesión activa (logout manual detectado)');
       return res.status(401).json({ 
         message: 'Sesión cerrada. Ingrese sus credenciales para continuar.',
         sessionClosed: true
       });
     }
 
-    // Buscar usuario por token
+    // Desencriptar token de cookies para comparar con BD
+    const decryptedToken = decryptPassword(token);
+    
+    // Buscar usuario por token en texto plano en la base de datos
     const users = await executeQuery(
       'SELECT * FROM usuarios WHERE token = ? AND activo = TRUE',
-      [token]
+      [decryptedToken]
     );
 
-    console.log('🔍 VERIFY-TOKEN - Usuarios encontrados:', users.length);
 
     if (users.length === 0) {
-      console.log('❌ VERIFY-TOKEN - Token no válido en BD');
       return res.status(401).json({ message: 'Token inválido' });
     }
 
@@ -1080,14 +1349,12 @@ app.get('/api/verify-token', async (req, res) => {
     
     // CORRECCIÓN CRÍTICA: Verificar si token está activado
     if (!user.token_activo) {
-      console.log(`⚠️ VERIFY-TOKEN - Token encontrado pero NO ACTIVADO para ${user.username}`);
       return res.status(403).json({ 
         message: 'Token encontrado pero no activado',
         tokenNotActivated: true
       });
     }
 
-    console.log('✅ VERIFY-TOKEN - Token válido y ACTIVADO para:', user.username);
 
     res.json({
       valid: true,
@@ -1100,7 +1367,6 @@ app.get('/api/verify-token', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('💥 VERIFY-TOKEN ERROR:', error);
     res.status(401).json({ message: 'Token inválido' });
   }
 });
@@ -1123,14 +1389,59 @@ app.get('/api/verify-auth-token', authenticateToken, (req, res) => {
 // Ruta para obtener lista de usuarios (solo admin)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const users = await executeQuery(
-      'SELECT id, username, email, rol, nombre, apellido, telefono, activo, fecha_creado_user, token, fecha_token FROM usuarios ORDER BY id'
-    );
     
-  const userList = users.map(user => ({
-    id: user.id,
-    username: user.username,
-    email: user.email,
+    const { page = 1, limit = 50, search = '' } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Consulta optimizada con paginación y búsqueda
+    let query = `
+      SELECT 
+        id, username, email, rol, nombre, apellido, telefono, activo, 
+        fecha_creado_user, token, fecha_token 
+      FROM usuarios 
+    `;
+    
+    const params = [];
+    
+    // Agregar filtro de búsqueda si existe
+    if (search && search.trim() !== '') {
+      query += ` WHERE (
+        LOWER(username) LIKE LOWER(?) OR
+        LOWER(email) LIKE LOWER(?) OR
+        LOWER(nombre) LIKE LOWER(?) OR
+        LOWER(apellido) LIKE LOWER(?)
+      )`;
+      const searchTerm = `%${search.trim()}%`;
+      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+    
+    query += ` ORDER BY id DESC LIMIT ? OFFSET ?`;
+    params.push(parseInt(limit), offset);
+    
+    const users = await executeQuery(query, params);
+    
+    // Obtener total para paginación
+    let countQuery = `SELECT COUNT(*) as total FROM usuarios`;
+    const countParams = [];
+    
+    if (search && search.trim() !== '') {
+      countQuery += ` WHERE (
+        LOWER(username) LIKE LOWER(?) OR
+        LOWER(email) LIKE LOWER(?) OR
+        LOWER(nombre) LIKE LOWER(?) OR
+        LOWER(apellido) LIKE LOWER(?)
+      )`;
+      const searchTerm = `%${search.trim()}%`;
+      countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+    
+    const countResult = await executeQuery(countQuery, countParams);
+    const total = countResult[0]?.total || 0;
+    
+    const userList = users.map(user => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
       role: user.rol,
       nombre: user.nombre,
       apellido: user.apellido,
@@ -1139,11 +1450,18 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
       fecha_creado_user: user.fecha_creado_user,
       hasToken: !!user.token,
       fecha_token: user.fecha_token
-  }));
-  
-  res.json(userList);
+    }));
+    
+    res.json({ 
+      users: userList,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    });
   } catch (error) {
-    console.error('Error obteniendo usuarios:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -1179,7 +1497,6 @@ app.get('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
       fecha_token: user.fecha_token
     });
   } catch (error) {
-    console.error('Error obteniendo usuario:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -1189,18 +1506,6 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
     const { username, email, password, rol, nombre, apellido, telefono } = req.body;
-
-    console.log('🔄 ACTUALIZANDO USUARIO:', {
-      userId,
-      username,
-      email,
-      hasPassword: !!password,
-      passwordLength: password ? password.length : 0,
-      rol,
-      nombre,
-      apellido,
-      telefono
-    });
 
     // Verificar si el usuario existe
     const existingUsers = await executeQuery(
@@ -1228,34 +1533,24 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     // Actualizar contraseña si se proporciona
     if (password && password.length >= 6) {
-      console.log('🔐 Encriptando nueva contraseña...');
       try {
         const encryptedPassword = encryptPassword(password);
-        console.log('✅ Contraseña encriptada exitosamente');
         updateFields.push('password = ?');
         updateValues.push(encryptedPassword);
       } catch (encryptError) {
-        console.error('❌ Error encriptando contraseña:', encryptError);
         return res.status(500).json({ message: 'Error encriptando contraseña' });
       }
     } else if (password && password.length < 6) {
-      console.log('❌ Contraseña muy corta:', password.length);
       return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
     updateValues.push(userId);
 
-    console.log('📝 Ejecutando query de actualización:', {
-      fields: updateFields,
-      valuesCount: updateValues.length
-    });
 
     await executeQuery(
       `UPDATE usuarios SET ${updateFields.join(', ')} WHERE id = ?`,
       updateValues
     );
-
-    console.log('✅ Usuario actualizado exitosamente:', userId);
 
     res.json({
       message: 'Usuario actualizado exitosamente',
@@ -1269,8 +1564,7 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('💥 Error actualizando usuario:', error);
-    console.error('💥 Stack trace:', error.stack);
+
     res.status(500).json({ 
       message: 'Error interno del servidor',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -1315,7 +1609,6 @@ app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =
       message: 'Usuario eliminado exitosamente'
     });
   } catch (error) {
-    console.error('Error eliminando usuario:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -1325,44 +1618,23 @@ app.get('/api/config', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const nodeRedConfig = await getConfig('node_red');
     const horariosConfig = await getConfig('horarios');
-    
-    console.log('🔍 Debug - nodeRedConfig:', nodeRedConfig);
-    console.log('🔍 Debug - horariosConfig:', horariosConfig);
-    
+
     // Construir respuesta SOLO con configuración de base de datos
     const config = {
       nodeRedUrl: nodeRedConfig?.url || null,
       horarios: horariosConfig || null
     };
     
-    console.log('🔍 Debug - config final:', config);
-    
+   
     res.json({
       success: true,
       config: config
     });
   } catch (error) {
-    console.error('Error obteniendo configuración:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
 
-// Ruta para obtener notificaciones de tokens no activados (solo admin)
-app.get('/api/notifications', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const tokensNoActivados = await executeQuery(
-      'SELECT id, username, email, nombre, apellido, fecha_token, token FROM usuarios WHERE token IS NOT NULL AND token_activo = 0 AND activo = TRUE ORDER BY fecha_token DESC'
-    );
-    
-    res.json({
-      notifications: tokensNoActivados,
-      unreadCount: tokensNoActivados.length
-    });
-  } catch (error) {
-    console.error('Error obteniendo notificaciones:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
-  }
-});
 
 app.put('/api/config', authenticateToken, requireAdmin, async (req, res) => {
   try {
@@ -1433,7 +1705,6 @@ app.put('/api/config', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(500).json({ message: 'Error al actualizar la configuración en base de datos' });
     }
 
-    console.log(`✅ Configuración actualizada por ${modificadoPor} en base de datos`);
 
     res.json({
       success: true,
@@ -1444,7 +1715,6 @@ app.put('/api/config', authenticateToken, requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error actualizando configuración:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -1456,8 +1726,7 @@ app.get('/api/test', (req, res) => {
 
 // Ruta temporal para debuggear cookies
 app.get('/api/debug-cookies', (req, res) => {
-  console.log('🍪 DEBUG COOKIES - Headers:', req.headers.cookie);
-  console.log('🍪 DEBUG COOKIES - Cookies parseadas:', req.cookies);
+
   
   // Establecer una cookie de prueba SIMPLE
   res.cookie('test-cookie', 'valor-prueba', {
@@ -1480,7 +1749,6 @@ app.get('/api/debug-cookies', (req, res) => {
 app.post('/api/activate-token', async (req, res) => {
   try {
     const { token, username } = req.body;
-    console.log(`🔐 ACTIVANDO TOKEN: ${token} para usuario: ${username}`);
 
     if (!token) {
       return res.status(400).json({ message: 'Token requerido' });
@@ -1490,14 +1758,13 @@ app.post('/api/activate-token', async (req, res) => {
       return res.status(400).json({ message: 'Usuario requerido para validación de seguridad' });
     }
 
-    // Buscar usuario por token y verificar que no esté activo
+    // Buscar usuario por token en texto plano en la base de datos
     const users = await executeQuery(
       'SELECT * FROM usuarios WHERE token = ? AND activo = TRUE',
       [token]
     );
 
     if (users.length === 0) {
-      console.log(`❌ SEGURIDAD: Token ${token} no encontrado o usuario inactivo`);
       return res.status(401).json({ message: 'Token inválido o usuario inactivo' });
     }
 
@@ -1505,8 +1772,7 @@ app.post('/api/activate-token', async (req, res) => {
     
     // VALIDACIÓN CRÍTICA DE SEGURIDAD: Verificar que el token pertenece al usuario correcto
     if (user.username !== username) {
-      console.log(`🚨 SEGURIDAD: Token ${token} pertenece a ${user.username}, pero se intenta activar para ${username}`);
-      console.log(`❌ SEGURIDAD: Activación DENEGADA - Token no corresponde al usuario`);
+      
       return res.status(403).json({ 
         message: 'Token no corresponde al usuario especificado. Contacte al administrador.',
         securityError: true,
@@ -1515,19 +1781,22 @@ app.post('/api/activate-token', async (req, res) => {
       });
     }
 
-    console.log(`✅ SEGURIDAD: Token ${token} validado correctamente para usuario ${username}`);
 
     // Verificar si el token ya está activo en otro dispositivo
     const cookieToken = req.cookies.token;
-    if (cookieToken && cookieToken === token) {
+    if (cookieToken) {
+      // Desencriptar token de cookies para comparar
+      const decryptedCookieToken = decryptPassword(cookieToken);
+      if (decryptedCookieToken === token) {
       // Token ya activo en este dispositivo - VERIFICAR que esté realmente activado en BD
-      console.log(`✅ Token ya activo para ${user.username} - Verificando estado en BD`);
       
       if (user.token_activo) {
         // Confirmar que está realmente activado y establecer cookie fresca
-        console.log(`✅ Token confirmado como ACTIVADO en BD para ${user.username}`);
         
-        res.cookie('token', token, {
+          // Encriptar token antes de guardarlo en cookies para seguridad en el navegador
+          const encryptedCookieToken = encryptPassword(token);
+          
+          res.cookie('token', encryptedCookieToken, {
           httpOnly: false, // CORREGIDO: Permitir acceso desde JS
           secure: false, // Cambiado a false para desarrollo
           sameSite: 'lax', // Cambiado a 'lax' para desarrollo
@@ -1535,7 +1804,6 @@ app.post('/api/activate-token', async (req, res) => {
           path: '/'
         });
         
-        console.log(`🍪 Cookie re-establecida para token activado: ${token}`);
         
         return res.json({
           success: true,
@@ -1550,14 +1818,14 @@ app.post('/api/activate-token', async (req, res) => {
         });
       } else {
         // Token en cookie pero no activado en BD - proceder con activación
-        console.log(`⚠️ Token en cookie pero NO ACTIVADO en BD para ${user.username} - Procediendo con activación`);
+        }
       }
     }
 
     // Verificar si hay otro dispositivo con este token activo
     const activeUsers = await executeQuery(
       'SELECT COUNT(*) as count FROM usuarios WHERE token = ? AND token_activo = 1',
-      [token]
+      [user.token] // Usar el token en texto plano de la BD
     );
 
     if (activeUsers[0].count > 0) {
@@ -1566,27 +1834,22 @@ app.post('/api/activate-token', async (req, res) => {
       });
     }
 
-    // Activar token en este dispositivo
-    console.log(`🔄 ACTIVANDO TOKEN en BD: ${token}`);
-    console.log(`🔄 Query: UPDATE usuarios SET token_activo = 1, ultima_activacion = NOW() WHERE token = ?`);
-    
     const updateResult = await executeQuery(
       'UPDATE usuarios SET token_activo = 1, ultima_activacion = NOW() WHERE token = ?',
-      [token]
+      [user.token] // Usar el token en texto plano de la BD
     );
-    
-    console.log(`📊 RESULTADO UPDATE:`, updateResult);
-    console.log(`✅ TOKEN ACTIVADO en BD para: ${user.username}`);
     
     // Verificar que se actualizó correctamente
     const verification = await executeQuery(
       'SELECT token_activo, ultima_activacion FROM usuarios WHERE token = ?',
-      [token]
+      [user.token] // Usar el token en texto plano de la BD
     );
     
-    console.log(`🔍 VERIFICACIÓN ACTIVACIÓN:`, verification[0]);
 
-    res.cookie('token', token, {
+    // Encriptar token antes de guardarlo en cookies para seguridad en el navegador
+    const encryptedCookieToken = encryptPassword(token);
+    
+    res.cookie('token', encryptedCookieToken, {
       httpOnly: false, // CORREGIDO: Permitir acceso desde JS
       secure: false, // Cambiado a false para desarrollo
       sameSite: 'lax', // Cambiado a 'lax' para desarrollo
@@ -1594,16 +1857,16 @@ app.post('/api/activate-token', async (req, res) => {
       path: '/'
     });
 
-    console.log(`✅ Token activado exitosamente para ${user.username}`);
-    console.log(`🍪 Cookie establecida con token: ${token}`);
-    console.log(`🔧 Configuración cookie - httpOnly: false, path: /, maxAge: 1 año`);
-    console.log(`🍪 ACTIVATE-TOKEN - Configuración completa:`);
-    console.log(`  ✅ httpOnly: false`);
-    console.log(`  ✅ secure: false`);
-    console.log(`  ✅ sameSite: lax`);
-    console.log(`  ✅ maxAge: ${365 * 24 * 60 * 60 * 1000}`);
-    console.log(`  ✅ path: /`);
-    console.log(`🍪 ACTIVATE-TOKEN - Cookie DEBERÍA ser visible desde JS`);
+  
+    // Crear sesión de usuario para el dispositivo actual
+    const deviceFingerprint = generateDeviceFingerprint(req);
+    const clientIP = req.ip || req.connection.remoteAddress || '';
+    
+    // Invalidar sesiones anteriores del mismo usuario
+    await invalidatePreviousSessions(user.id, deviceFingerprint);
+    
+    // Crear nueva sesión
+    await createUserSession(user.id, deviceFingerprint, clientIP, token);
 
     // Enviar notificación via WebSocket de token activado
     broadcastToAll({
@@ -1627,7 +1890,6 @@ app.post('/api/activate-token', async (req, res) => {
         }
     });
   } catch (error) {
-    console.error('Error activando token:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1636,10 +1898,8 @@ app.post('/api/activate-token', async (req, res) => {
 app.post('/api/clear-tokens', async (req, res) => {
   try {
     await executeQuery('UPDATE usuarios SET token = NULL, fecha_token = NULL, token_activo = FALSE');
-    console.log('🧹 Todos los tokens limpiados de la base de datos');
     res.json({ message: 'Tokens limpiados exitosamente' });
   } catch (error) {
-    console.error('❌ Error limpiando tokens:', error);
     res.status(500).json({ message: 'Error limpiando tokens' });
   }
 });
@@ -1650,14 +1910,11 @@ app.post('/api/reset-admin', async (req, res) => {
     await executeQuery(
       'UPDATE usuarios SET token = NULL, fecha_token = NULL, token_activo = FALSE WHERE username = "admin"'
     );
-    console.log('🧹 Token del admin limpiado correctamente');
     // Limpiar cookie del navegador también
     res.clearCookie('token', { path: '/' });
-    console.log('🧹 Cookie del navegador limpiada');
     
     res.json({ message: 'Usuario admin reseteado exitosamente' });
   } catch (error) {
-    console.error('❌ Error reseteando admin:', error);
     res.status(500).json({ message: 'Error resetendo admin' });
   }
 });
@@ -1671,7 +1928,6 @@ app.get('/api/pending-tokens', authenticateToken, requireAdmin, async (req, res)
     
     res.json(users);
   } catch (error) {
-    console.error('Error obteniendo tokens pendientes:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -1686,14 +1942,12 @@ app.post('/api/revoke-token', authenticateToken, async (req, res) => {
       [userId]
     );
     
-    console.log(`🚫 Token revocado para usuario ${req.user.username} (ID: ${userId})`);
     
     res.json({
       success: true,
       message: 'Token del dispositivo revocado exitosamente'
     });
   } catch (error) {
-    console.error('Error revocando token del dispositivo:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -1712,7 +1966,6 @@ app.post('/api/revoke-token/:id', authenticateToken, requireAdmin, async (req, r
       message: 'Token revocado exitosamente'
     });
   } catch (error) {
-    console.error('Error revocando token:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -1722,29 +1975,21 @@ app.post('/api/refresh-token/:id', authenticateToken, requireAdmin, async (req, 
   try {
     const userId = parseInt(req.params.id);
     
-    console.log(`🔄 ADMIN REFRESH TOKEN - Solicitado para usuario ID: ${userId}`);
-    console.log(`🔄 ADMIN REFRESH TOKEN - Ejecutado por admin: ${req.user.username}`);
-    
+   
     // Obtener datos del usuario para verificación y logs
     const userInfo = await executeQuery('SELECT username, token, token_activo FROM usuarios WHERE id = ?', [userId]);
     
     if (userInfo.length === 0) {
-      console.log(`❌ ADMIN REFRESH TOKEN - Usuario ID ${userId} no encontrado`);
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
     
     const user = userInfo[0];
-    console.log(`🔄 ADMIN REFRESH TOKEN - Estado anterior usuario ${user.username}: token=${user.token ? 'SET' : 'NULL'}, activo=${user.token_activo}`);
     
     // CRÍTICO: Limpiar token existente para autorizar nueva activación
     const updateResult = await executeQuery(
       'UPDATE usuarios SET token = NULL, fecha_token = NULL, token_activo = 0 WHERE id = ?',
       [userId]
     );
-    
-    console.log(`✅ ADMIN REFRESH TOKEN - Agregado exitosamente para usuario ${user.username} (ID: ${userId})`);
-    console.log(`📊 ADMIN REFRESH TOKEN - Resultado UPDATE:`, updateResult);
-    console.log(`🔐 ADMIN REFRESH TOKEN - Usuario ${user.username} ahora autorizado para nueva activación`);
     
     // Enviar notificación via WebSocket de token refrescado
     broadcastToAll({
@@ -1766,26 +2011,40 @@ app.post('/api/refresh-token/:id', authenticateToken, requireAdmin, async (req, 
       newStatus: 'authorized_for_activation'
     });
   } catch (error) {
-    console.error('Error refrescando token:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
 
 // Ruta para logout
-app.post('/api/logout', (req, res) => {
-  // Limpiar solo la cookie de sesión, NO el token del dispositivo
-  res.clearCookie('user_logged_in', {
-    httpOnly: false,
-    secure: false,
-    sameSite: 'lax',
-    path: '/'
-  });
-  
-  console.log('🚪 LOGOUT - Cookie de sesión eliminada, token del dispositivo mantenido');
-  
-  res.json({
-    message: 'Logout exitoso - Token del dispositivo mantenido'
-  });
+app.post('/api/logout', authenticateToken, async (req, res) => {
+  try {
+    // Obtener información del usuario y IP para el log
+    const clientIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || '';
+    
+    // Registrar evento de logout
+    await logLogoutEvent({
+      username: req.user.username,
+      userId: req.user.id,
+      role: req.user.role,
+      ip: clientIP,
+      userAgent: req.get('User-Agent')
+    });
+    
+    // Limpiar solo la cookie de sesión, NO el token del dispositivo
+    res.clearCookie('user_logged_in', {
+      httpOnly: false,
+      secure: false,
+      sameSite: 'lax',
+      path: '/'
+    });
+    
+   
+    res.json({
+      message: 'Logout exitoso - Token del dispositivo mantenido'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
 });
 
 // Ruta para registrar evento de apertura de puerta
@@ -1799,13 +2058,7 @@ app.post('/api/register-door-event', authenticateToken, async (req, res) => {
     
     const userId = req.user.id;
     
-    console.log('🚪 DOOR EVENT - Registrando evento:', {
-      userId,
-      status,
-      message,
-      location: location ? `${location.lat}, ${location.lon}` : 'No location'
-    });
-    
+     
     // Validar datos requeridos
     if (!status || !['correcto', 'incorrecto', 'fuera_de_area', 'advertencia'].includes(status)) {
       return res.status(400).json({
@@ -1842,7 +2095,6 @@ app.post('/api/register-door-event', authenticateToken, async (req, res) => {
     
     const result = await executeQuery(insertQuery, insertParams);
     
-    console.log(`✅ DOOR EVENT - Evento registrado con ID: ${result.insertId}`);
     
     // Emitir evento WebSocket para notificaciones en tiempo real
     if (wss) {
@@ -1865,7 +2117,6 @@ app.post('/api/register-door-event', authenticateToken, async (req, res) => {
         }
       });
       
-      console.log('📡 DOOR EVENT - Notificación WebSocket enviada');
     }
     
     res.json({
@@ -1875,7 +2126,6 @@ app.post('/api/register-door-event', authenticateToken, async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ DOOR EVENT - Error:', error);
     res.status(500).json({
       success: false,
       error: 'Error al registrar evento de apertura'
@@ -1886,7 +2136,6 @@ app.post('/api/register-door-event', authenticateToken, async (req, res) => {
 // Ruta de prueba para verificar la tabla historial_aperturas
 app.get('/api/history-test', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    console.log('🧪 HISTORY-TEST - Verificando tabla historial_aperturas...');
     
     // Verificar que la tabla existe
     const tableCheck = await executeQuery(`
@@ -1896,7 +2145,6 @@ app.get('/api/history-test', authenticateToken, requireAdmin, async (req, res) =
       AND table_name = 'historial_aperturas'
     `);
     
-    console.log('🧪 HISTORY-TEST - Tabla existe:', tableCheck[0]?.table_exists > 0);
     
     if (tableCheck[0]?.table_exists === 0) {
       return res.status(404).json({
@@ -1908,11 +2156,9 @@ app.get('/api/history-test', authenticateToken, requireAdmin, async (req, res) =
     
     // Verificar estructura de la tabla
     const structure = await executeQuery(`DESCRIBE historial_aperturas`);
-    console.log('🧪 HISTORY-TEST - Estructura de tabla:', structure);
     
     // Verificar datos en la tabla
     const count = await executeQuery(`SELECT COUNT(*) as total FROM historial_aperturas`);
-    console.log('🧪 HISTORY-TEST - Total de registros:', count[0]?.total);
     
     // Obtener algunos registros de ejemplo
     const sample = await executeQuery(`
@@ -1922,7 +2168,6 @@ app.get('/api/history-test', authenticateToken, requireAdmin, async (req, res) =
       LIMIT 3
     `);
     
-    console.log('🧪 HISTORY-TEST - Registros de ejemplo:', sample);
     
     res.json({
       success: true,
@@ -1933,7 +2178,6 @@ app.get('/api/history-test', authenticateToken, requireAdmin, async (req, res) =
     });
     
   } catch (error) {
-    console.error('❌ HISTORY-TEST - Error:', error);
     res.status(500).json({
       success: false,
       error: error.message,
@@ -1942,12 +2186,185 @@ app.get('/api/history-test', authenticateToken, requireAdmin, async (req, res) =
   }
 });
 
+// Ruta para obtener estadísticas de sesiones (solo admin)
+app.get('/api/session-stats', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const stats = await getSessionStats();
+    
+    if (!stats) {
+      return res.status(500).json({ message: 'Error obteniendo estadísticas de sesiones' });
+    }
+    
+    res.json({
+      success: true,
+      stats: {
+        totalSessions: stats.total_sessions,
+        activeSessions: stats.active_sessions,
+        recentlyActiveSessions: stats.recently_active_sessions,
+        inactiveWeekSessions: stats.inactive_week_sessions,
+        inactiveMonthSessions: stats.inactive_month_sessions,
+        expiredSessions: stats.expired_sessions,
+        invalidatedSessions: stats.invalidated_sessions
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ruta para obtener sesiones activas con detalles (solo admin)
+app.get('/api/active-sessions', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const sessions = await executeQuery(`
+      SELECT 
+        us.id,
+        us.user_id,
+        us.device_fingerprint,
+        us.ip_address,
+        us.last_activity,
+        us.created_at,
+        u.username,
+        u.nombre,
+        u.apellido,
+        u.rol
+      FROM user_sessions us
+      JOIN usuarios u ON us.user_id = u.id
+      WHERE us.is_active = TRUE AND us.expires_at > NOW()
+      ORDER BY us.last_activity DESC
+      LIMIT 50
+    `);
+    
+    res.json({
+      success: true,
+      sessions: sessions.map(session => ({
+        id: session.id,
+        userId: session.user_id,
+        username: session.username,
+        nombre: session.nombre,
+        apellido: session.apellido,
+        rol: session.rol,
+        deviceFingerprint: session.device_fingerprint,
+        ipAddress: session.ip_address,
+        lastActivity: session.last_activity,
+        createdAt: session.created_at,
+        daysSinceActivity: Math.floor((new Date() - new Date(session.last_activity)) / (1000 * 60 * 60 * 24))
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint específico para notificaciones de login/logout - OPTIMIZADO
+app.get('/api/login-notifications', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { type, limit = 50, offset = 0, hours = 24, user, dateFrom, dateTo } = req.query;
+    
+    // Consulta optimizada con índices
+    let query = `
+      SELECT 
+        id, 
+        tipo, 
+        titulo, 
+        mensaje, 
+        nombre_usuario, 
+        direccion_ip, 
+        severidad, 
+        fecha_creacion 
+      FROM notificaciones_sistema 
+      WHERE tipo IN ('login_exitoso', 'login_fallido', 'logout')
+    `;
+    const params = [];
+    
+    // Filtro por horas (solo si se especifica explícitamente)
+    if (req.query.forceHours === 'true' && !dateFrom && !dateTo) {
+      query += ' AND fecha_creacion > DATE_SUB(NOW(), INTERVAL ? HOUR)';
+      params.push(parseInt(hours));
+    }
+    
+    // Filtro por tipo de notificación
+    if (type) {
+      // Mapear tipos del frontend a tipos de la BD
+      const typeMapping = {
+        'login_success': 'login_exitoso',
+        'login_failed': 'login_fallido',
+        'logout': 'logout'
+      };
+      const dbType = typeMapping[type] || type;
+      query += ' AND tipo = ?';
+      params.push(dbType);
+    }
+    
+    // Filtro por usuario (búsqueda en nombre_usuario)
+    if (user && user.trim() !== '') {
+      query += ' AND LOWER(nombre_usuario) LIKE LOWER(?)';
+      params.push(`%${user.trim()}%`);
+    }
+    
+    // Filtro por rango de fechas
+    if (dateFrom && dateFrom.trim() !== '') {
+      query += ' AND DATE(fecha_creacion) >= ?';
+      params.push(dateFrom);
+    }
+    
+    if (dateTo && dateTo.trim() !== '') {
+      query += ' AND DATE(fecha_creacion) <= ?';
+      params.push(dateTo);
+    }
+    
+    query += ' ORDER BY fecha_creacion DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), parseInt(offset));
+    
+    const notifications = await executeQuery(query, params);
+    
+    // Estadísticas optimizadas - solo si se solicitan
+    let stats = [];
+    if (req.query.includeStats === 'true') {
+      stats = await executeQuery(`
+        SELECT 
+          tipo,
+          COUNT(*) as count,
+          DATE(fecha_creacion) as date
+        FROM notificaciones_sistema 
+        WHERE tipo IN ('login_exitoso', 'login_fallido', 'logout')
+        AND fecha_creacion > DATE_SUB(NOW(), INTERVAL 7 DAY)
+        GROUP BY tipo, DATE(fecha_creacion)
+        ORDER BY date DESC
+        LIMIT 30
+      `);
+    }
+    
+    res.json({
+      success: true,
+      notifications: notifications,
+      stats: stats,
+      total: notifications.length
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ruta para limpiar sesiones expiradas (solo admin)
+app.post('/api/cleanup-sessions', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const cleanedCount = await cleanupExpiredSessions();
+    
+    res.json({
+      success: true,
+      message: `Sesiones limpiadas: ${cleanedCount}`,
+      cleanedCount: cleanedCount
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Ruta para obtener historial de aperturas con filtros avanzados (solo admin)
 app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { status, dateFrom, dateTo, user, page = 1, limit = 10 } = req.query;
     
-    console.log('📊 HISTORY - Filtros recibidos:', { status, dateFrom, dateTo, user, page, limit });
     
     // Construir query base
     let query = `
@@ -2008,8 +2425,6 @@ app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
     query += ` LIMIT ? OFFSET ?`;
     params.push(parseInt(limit), offset);
     
-    console.log('📊 HISTORY - Query ejecutado:', query);
-    console.log('📊 HISTORY - Parámetros:', params);
     
     const history = await executeQuery(query, params);
     
@@ -2053,6 +2468,9 @@ app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
     const totalRecords = parseInt(countResult[0]?.total || 0);
     const totalPages = Math.ceil(totalRecords / parseInt(limit));
     
+    // Obtener configuración de horarios para validación
+    const horariosConfig = await getHorariosConfig();
+    
     // Formatear datos para el frontend
     const formattedHistory = history.map(record => ({
       id: record.id,
@@ -2068,10 +2486,12 @@ app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
       email: record.email,
       nombre: record.nombre,
       apellido: record.apellido,
-      role: record.rol
+      role: record.rol,
+      // Agregar validación de horarios laborales
+      isWithinWorkingHours: isWithinWorkingHours(record.timestamp, horariosConfig),
+      workingHoursInfo: getWorkingHoursInfo(record.timestamp, horariosConfig)
     }));
     
-    console.log(`✅ HISTORY - ${formattedHistory.length} registros encontrados de ${totalRecords} total`);
     
     res.json({
       success: true,
@@ -2091,10 +2511,7 @@ app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ HISTORY - Error completo:', error);
-    console.error('❌ HISTORY - Stack trace:', error.stack);
-    console.error('❌ HISTORY - Error message:', error.message);
-    console.error('❌ HISTORY - Error code:', error.code);
+
     
     res.status(500).json({
       success: false,
@@ -2107,14 +2524,17 @@ app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
 
 // Iniciar servidor
 server.listen(PORT, async () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-  console.log(`🌐 API disponible en http://localhost:${PORT}/api`);
-  console.log(`🔌 WebSocket disponible en ws://localhost:${PORT}/ws`);
+
   
   // Verificar conexión a base de datos
   try {
     await executeQuery('SELECT 1');
-    console.log('✅ Conexión a base de datos MySQL establecida');
+    
+    // Crear tabla de sesiones
+    await createSessionsTable();
+    
+    // Crear tabla de notificaciones del sistema
+    await createSystemNotificationsTable();
     
     // Inicializar usuario maestro automáticamente
     await initializeMasterAdmin();
@@ -2122,34 +2542,22 @@ server.listen(PORT, async () => {
     // Cargar configuración del sistema desde base de datos
     const configCargada = await loadAllConfig();
     if (configCargada) {
-      console.log('📋 Configuración del sistema cargada desde base de datos');
-      console.log(`   - Node-RED: ${configCargada.node_red?.url || 'No configurado'}`);
-      console.log(`   - Horarios: ${Object.keys(configCargada.horarios || {}).length} períodos configurados`);
+     
     } else {
-      console.log('⚠️ Usando configuración por defecto (tabla configuracion_sistema no encontrada)');
     }
+    
+    // Configurar limpieza automática de sesiones expiradas cada hora
+    setInterval(async () => {
+      try {
+        await cleanupExpiredSessions();
+      } catch (error) {
+      }
+    }, 60 * 60 * 1000); // Cada hora
+    
+    
   } catch (error) {
-    console.error('❌ Error conectando a base de datos:', error.message);
-    console.log('Asegúrate de que MySQL esté ejecutándose y la base de datos exista');
-    console.log('⚠️ Usando configuración por defecto en memoria');
+    
   }
   
-  console.log('\n📡 Endpoints disponibles:');
-  console.log('- POST /api/login');
-  console.log('- POST /api/register (admin only)');
-  console.log('- POST /api/verify-token');
-  console.log('- POST /api/abrir-puerta');
-  console.log('- POST /api/register-door-event');
-  console.log('- GET /api/verify-token');
-  console.log('- POST /api/logout');
-  console.log('- GET /api/users (admin only)');
-  console.log('- PUT /api/users/:id (admin only)');
-  console.log('- DELETE /api/users/:id (admin only)');
-  console.log('- GET /api/pending-tokens (admin only)');
-  console.log('- POST /api/revoke-token (usuario actual)');
-  console.log('- POST /api/revoke-token/:id (admin only)');
-  console.log('- GET /api/config (admin only)');
-  console.log('- PUT /api/config (admin only)');
-  console.log('- GET /api/notifications (admin only)');
-  console.log('- GET /api/history (admin only)');
+  
 });

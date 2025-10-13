@@ -65,7 +65,6 @@ const RegisterModal = ({ onClose, onSuccess }) => {
         setError(data.message || 'Error al registrar usuario');
       }
     } catch (error) {
-      console.error('Error en registro:', error);
       setError('Error de conexión. Verifique que el servidor esté ejecutándose.');
     } finally {
       setLoading(false);

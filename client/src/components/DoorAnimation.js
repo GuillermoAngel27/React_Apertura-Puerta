@@ -23,9 +23,12 @@ const DoorAnimation = ({ onComplete, username }) => {
   return (
     <div className="door-animation-overlay">
       <div className="door-animation-container">
-        {/* Mensaje de bienvenida */}
+        {/* Logo y mensaje de bienvenida */}
         {showWelcome && (
           <div className="welcome-message">
+            <div className="door-logo">
+              <img src="/logotaq02.png" alt="Logo TAQ" className="logo-image" />
+            </div>
             <h2>¡Bienvenido, {username}!</h2>
             <p>Accediendo al sistema...</p>
           </div>

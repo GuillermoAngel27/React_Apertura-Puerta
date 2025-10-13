@@ -22,14 +22,11 @@ function App() {
   };
 
   const verifyToken = async () => {
-    console.log('🔍 VERIFICANDO TOKEN EN COOKIES...');
     
     // Primero verificar si tenemos cookie local
     const cookieToken = getCookie('token');
-    console.log('🍪 Cookie token encontrada localmente:', cookieToken ? 'SÍ' : 'NO');
     
     if (!cookieToken) {
-      console.log('❌ NO hay token en cookie local');
       setUser(null);
       setIsAuthenticated(false);
       setLoading(false);
@@ -41,22 +38,18 @@ function App() {
         credentials: 'include'
       });
 
-      console.log('📡 TOKEN VERIFY STATUS:', response.status);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ TOKEN VÁLIDO - Usuario:', data.user);
         setUser(data.user);
         setIsAuthenticated(true);
       } else {
         const errorData = await response.json();
-        console.log('❌ TOKEN INVÁLIDO:', errorData.message);
         // NOTA: NO limpiar cookie - podría ser usuario diferente en mismo dispositivo
         setUser(null);
         setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('💥 ERROR VERIFICANDO TOKEN:', error);
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -69,11 +62,9 @@ function App() {
     setIsAuthenticated(true);
     // Marcar tiempo de login para detectar logout automático
     window.lastLoginTime = Date.now();
-    console.log('✅ LOGIN COMPLETO - Tiempo marcado para detectar logout automático');
   };
 
   const handleLogout = async () => {
-    console.log('🚪 HANDLELOGOUT LLAMADO');
     
     // SOLUCIÓN FINAL: No limpiar cookies en logout - son permanentes del dispositivo
     try {
@@ -81,14 +72,11 @@ function App() {
         method: 'POST',
         credentials: 'include'
       });
-      console.log('✅ Sesión cerrada - Token del dispositivo MANTENIDO');
     } catch (error) {
-      console.error('Error en logout:', error);
     } finally {
       // Solo limpiar estado de sesión, NO la cookie
       setUser(null);
       setIsAuthenticated(false);
-      console.log('🔄 Usuario deslogueado - Token disponible para futuros logins');
     }
   };
 

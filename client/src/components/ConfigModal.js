@@ -45,10 +45,7 @@ const ConfigModal = ({ onClose, onSuccess }) => {
 
       if (response.ok) {
         const data = await response.json();
-        
-        console.log('🔍 Debug Frontend - Respuesta completa:', data);
-        console.log('🔍 Debug Frontend - data.config:', data.config);
-        console.log('🔍 Debug Frontend - data.config.nodeRedUrl:', data.config?.nodeRedUrl);
+    
         
         // Verificar si hay configuración válida
         if (data.config && (data.config.nodeRedUrl || data.config.horarios)) {
@@ -58,7 +55,6 @@ const ConfigModal = ({ onClose, onSuccess }) => {
             if (data.config.nodeRedUrl) {
               const url = new URL(data.config.nodeRedUrl);
               nodeRedIp = url.hostname;
-              console.log('🔍 Debug Frontend - IP extraída:', nodeRedIp);
             }
             
             setConfig({
@@ -72,7 +68,6 @@ const ConfigModal = ({ onClose, onSuccess }) => {
             setConfigLoaded(true);
           } catch (urlError) {
             // Si hay error al parsear la URL, usar configuración por defecto
-            console.warn('Error al parsear URL de Node-RED:', urlError);
             setConfig({
               nodeRedIp: '',
               horarios: data.config.horarios || {
@@ -93,7 +88,6 @@ const ConfigModal = ({ onClose, onSuccess }) => {
         setConfigLoaded(true);
       }
     } catch (error) {
-      console.error('Error cargando configuración:', error);
       setError('Error de conexión al cargar configuración');
       setConfigLoaded(true);
     } finally {
@@ -159,7 +153,6 @@ const ConfigModal = ({ onClose, onSuccess }) => {
         setError(data.message || 'Error al actualizar configuración');
       }
     } catch (error) {
-      console.error('Error actualizando configuración:', error);
       setError('Error de conexión. Verifique que el servidor esté ejecutándose.');
     } finally {
       setLoading(false);

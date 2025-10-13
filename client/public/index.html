@@ -51,13 +51,10 @@
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
             .then((registration) => {
-              console.log('✅ Service Worker registrado:', registration.scope);
               
               // NO forzar actualizaciones automáticas para evitar bucles
-              console.log('🔄 Service Worker: Modo desarrollo - sin actualizaciones automáticas');
             })
             .catch((error) => {
-              console.error('❌ Error registrando Service Worker:', error);
             });
         });
       }
@@ -66,7 +63,6 @@
       let deferredPrompt;
       
       window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('📱 PWA: Evento beforeinstallprompt');
         e.preventDefault();
         deferredPrompt = e;
         
@@ -100,7 +96,6 @@
           if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            console.log('📱 PWA: Resultado de instalación:', outcome);
             deferredPrompt = null;
             installButton.remove();
           }
@@ -118,7 +113,6 @@
       
       // Detectar si la app está instalada
       window.addEventListener('appinstalled', () => {
-        console.log('✅ PWA instalada exitosamente');
         deferredPrompt = null;
       });
     </script>

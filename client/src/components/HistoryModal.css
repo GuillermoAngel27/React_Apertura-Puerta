@@ -16,6 +16,42 @@
   flex-direction: column;
 }
 
+/* Estilos para indicadores de horarios laborales */
+.working-hours-badge {
+  margin-left: 8px;
+  font-size: 1.1rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+}
+
+.working-hours-info {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid #FF9800;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.working-hours-info strong {
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+.working-hours-info span {
+  font-weight: 500;
+}
+
 .history-modal .modal-header {
   padding: 25px 30px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -809,6 +845,19 @@
     flex-direction: column;
     gap: 10px;
     align-items: flex-start;
+  }
+  
+  /* Responsive para indicadores de horarios */
+  .working-hours-badge {
+    font-size: 1rem;
+    margin-left: 4px;
+    min-width: 20px;
+    height: 20px;
+  }
+  
+  .working-hours-info {
+    font-size: 0.8rem;
+    padding: 6px;
   }
   
   /* Mobile pagination adjustments */

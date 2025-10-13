@@ -1,129 +1,82 @@
 import React, { useState, useEffect } from 'react';
 import './NotificationsModal.css';
 
-const NotificationsModal = ({ onClose, refreshTrigger = 0 }) => {
-  const [notifications, setNotifications] = useState([]);
+const NotificationsModal = ({ onClose }) => {
+  const [loginNotifications, setLoginNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [stats, setStats] = useState({});
+  
+  // Estados para filtros
+  const [searchUser, setSearchUser] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  
   // Modal siempre está abierto cuando se renderiza
-  // Removido: visibleTokens ya no se necesita
 
   useEffect(() => {
-    loadNotifications();
+    // Solo cargar datos cuando el modal se abre por primera vez
+    loadLoginNotifications();
   }, []);
 
-  // Efecto para refrescar cuando cambie el trigger (desde Dashboard)
+  // useEffect para filtros en tiempo real
   useEffect(() => {
-    if (refreshTrigger > 0) {
-      console.log('🔄 NotificationsModal: Trigger recibido desde Dashboard, refrescando...');
-      setIsAutoRefreshing(true);
-      loadNotifications();
-      
-      // Ocultar indicador después de 2 segundos
-      setTimeout(() => {
-        setIsAutoRefreshing(false);
-      }, 2000);
-    }
-  }, [refreshTrigger]);
+    const timeoutId = setTimeout(() => {
+      if (searchUser.trim() || dateFrom || dateTo) {
+        loadLoginNotifications();
+      }
+    }, 500); // Debounce de 500ms para evitar demasiadas consultas
 
-  // Efecto para escuchar eventos globales directamente
-  useEffect(() => {
-    const handleTokenGenerated = (event) => {
-      console.log('🔄 NotificationsModal: Evento tokenGenerated recibido directamente:', event.detail);
-      setIsAutoRefreshing(true);
-      setRefreshMessage('🆕 Nuevo token solicitado');
-      loadNotifications();
-      
-      // Ocultar indicador después de 2 segundos
-      setTimeout(() => {
-        setIsAutoRefreshing(false);
-        setRefreshMessage('');
-      }, 2000);
-    };
+    return () => clearTimeout(timeoutId);
+  }, [searchUser, dateFrom, dateTo]);
 
-    const handleTokenActivated = (event) => {
-      console.log('🔄 NotificationsModal: Evento tokenActivated recibido directamente:', event.detail);
-      setIsAutoRefreshing(true);
-      setRefreshMessage('✅ Token activado');
-      loadNotifications();
-      
-      // Ocultar indicador después de 2 segundos
-      setTimeout(() => {
-        setIsAutoRefreshing(false);
-        setRefreshMessage('');
-      }, 2000);
-    };
 
-    // Registrar listeners globales
-    window.addEventListener('tokenGenerated', handleTokenGenerated);
-    window.addEventListener('tokenActivated', handleTokenActivated);
 
-    // Cleanup
-    return () => {
-      window.removeEventListener('tokenGenerated', handleTokenGenerated);
-      window.removeEventListener('tokenActivated', handleTokenActivated);
-    };
-  }, []);
 
-  // Removido: Polling ya no es necesario, se usa sistema de eventos
 
-  // Mostrar indicador cuando se refresca automáticamente
-  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
-  const [refreshMessage, setRefreshMessage] = useState('');
 
-  // WebSocket temporalmente deshabilitado
-
-  const loadNotifications = async () => {
+  const loadLoginNotifications = async () => {
     try {
       setLoading(true);
       setError('');
       
-      console.log('🔄 NotificationsModal: Cargando notificaciones...');
+      // Construir parámetros de consulta
+      const params = new URLSearchParams({
+        limit: 1000, // Aumentar límite para mostrar más registros
+        includeStats: false
+      });
       
-      const response = await fetch('http://localhost:5000/api/notifications', {
+      // Agregar filtros si están presentes
+      if (searchUser.trim()) {
+        params.append('user', searchUser.trim());
+      }
+      if (dateFrom) {
+        params.append('dateFrom', dateFrom);
+      }
+      if (dateTo) {
+        params.append('dateTo', dateTo);
+      }
+      
+      // No usar filtro de horas por defecto - mostrar todos los registros
+      
+      const response = await fetch(`http://localhost:5000/api/login-notifications?${params}`, {
         credentials: 'include'
       });
 
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data.notifications || []);
-        console.log(`✅ NotificationsModal: ${data.notifications?.length || 0} notificaciones cargadas`);
+        setLoginNotifications(data.notifications || []);
+        setStats(data.stats || []);
       } else {
-        setError('Error al cargar las notificaciones');
+        setError('Error al cargar notificaciones');
       }
     } catch (error) {
-      console.error('Error cargando notificaciones:', error);
       setError('Error de conexión al cargar notificaciones');
     } finally {
       setLoading(false);
     }
   };
 
-  // Función para copiar token al portapapeles
-  const copyToken = async (token) => {
-    try {
-      await navigator.clipboard.writeText(token);
-      console.log('Token copiado al portapapeles:', token);
-      // Aquí podrías agregar una notificación visual de éxito
-    } catch (error) {
-      console.error('Error copiando token:', error);
-      // Fallback para navegadores que no soportan clipboard API
-      const textArea = document.createElement('textarea');
-      textArea.value = token;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-    }
-  };
-
-  // Función para enviar token (abrir cliente de email)
-  const sendToken = (token, username) => {
-    const subject = `Token de activación para ${username}`;
-    const body = `Hola,\n\nTu token de activación es: ${token}\n\nPor favor, ingresa este token en el sistema para activar tu dispositivo.\n\nSaludos.`;
-    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoLink);
-  };
 
   const formatDate = (dateString) => {
     try {
@@ -140,13 +93,20 @@ const NotificationsModal = ({ onClose, refreshTrigger = 0 }) => {
     }
   };
 
+  // Función para limpiar filtros
+  const handleClearFilters = () => {
+    setSearchUser('');
+    setDateFrom('');
+    setDateTo('');
+  };
+
   // Función maskToken removida - no se utiliza
 
   return (
     <div className="modal-overlay">
       <div className="modal-content notifications-modal">
         <div className="modal-header">
-          <h2>🔔 Notificaciones de Tokens</h2>
+          <h2>🔐 Actividad de Login/Logout</h2>
           <button className="close-button" onClick={onClose}>
             ✕
           </button>
@@ -154,20 +114,53 @@ const NotificationsModal = ({ onClose, refreshTrigger = 0 }) => {
 
         <div className="notifications-content">
           <div className="notifications-top-bar">
+            <div className="filters-section">
+              <div className="inline-filters">
+                <input
+                  type="text"
+                  value={searchUser}
+                  onChange={(e) => setSearchUser(e.target.value)}
+                  placeholder="👤 Usuario..."
+                  className="inline-filter-input"
+                />
+                
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="inline-filter-input"
+                  title="Fecha inicio"
+                />
+                
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="inline-filter-input"
+                  title="Fecha fin"
+                />
+                
+                <button 
+                  className="clear-filters-button inline"
+                  onClick={handleClearFilters}
+                  disabled={loading}
+                  title="Limpiar filtros"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+            
             <button 
               className="refresh-icon-button"
-              onClick={loadNotifications}
+              onClick={() => {
+                loadLoginNotifications();
+              }}
               disabled={loading}
-              title="Actualizar notificaciones"
+              title="Actualizar notificaciones de login/logout"
             >
               🔄
             </button>
-            
-            {isAutoRefreshing && (
-              <div className="auto-refresh-indicator">
-                {refreshMessage || '🔄 Actualizando automáticamente...'}
-              </div>
-            )}
           </div>
 
           {loading && (
@@ -181,55 +174,35 @@ const NotificationsModal = ({ onClose, refreshTrigger = 0 }) => {
             <div className="error-message">{error}</div>
           )}
 
-          {!loading && !error && notifications.length === 0 && (
+          {!loading && !error && loginNotifications.length === 0 && (
             <div className="empty-state">
-              <div className="empty-icon">✅</div>
-              <h3>No hay notificaciones</h3>
-              <p>Todos los tokens están activados correctamente</p>
+              <div className="empty-icon">🔐</div>
+              <h3>No hay actividad de login/logout</h3>
+              <p>No se han registrado eventos de login o logout en las últimas 24 horas</p>
             </div>
           )}
 
-          {!loading && !error && notifications.length > 0 && (
+          {!loading && !error && loginNotifications.length > 0 && (
             <div className="notifications-list">
-              {notifications.map((notification) => (
-                <div key={notification.id} className="notification-item">
+              {loginNotifications.map((notification) => (
+                <div key={notification.id} className={`notification-item login-notification ${notification.tipo}`}>
                   <div className="notification-header">
-                    <div className="user-info">
-                      <div className="user-name">
-                        {notification.nombre && notification.apellido 
-                          ? `${notification.nombre} ${notification.apellido}`
-                          : notification.username
-                        }
+                    <div className="notification-icon">
+                      {notification.tipo === 'login_exitoso' && '✅'}
+                      {notification.tipo === 'login_fallido' && '❌'}
+                      {notification.tipo === 'logout' && '👋'}
+                    </div>
+                    <div className="notification-info">
+                      <div className="notification-title">{notification.titulo}</div>
+                      <div className="notification-message">{notification.mensaje}</div>
+                      <div className="notification-details">
+                        <span className="username">👤 {notification.nombre_usuario}</span>
+                        <span className="ip">🌐 {notification.direccion_ip}</span>
+                        <span className="severity">⚡ {notification.severidad}</span>
                       </div>
-                      <div className="user-email">{notification.email}</div>
                     </div>
                     <div className="notification-date">
-                      {formatDate(notification.fecha_token)}
-                    </div>
-                  </div>
-                  
-                  <div className="token-section">
-                    <div className="token-label">Token:</div>
-                    <div className="token-display">
-                      <span className="token-value">
-                        {notification.token}
-                      </span>
-                      <div className="token-buttons">
-                        <button 
-                          className="copy-token-btn"
-                          onClick={() => copyToken(notification.token)}
-                          title="Copiar token"
-                        >
-                          📋 Copiar
-                        </button>
-                        <button 
-                          className="send-token-btn"
-                          onClick={() => sendToken(notification.token, notification.username)}
-                          title="Enviar por email"
-                        >
-                          📧 Enviar
-                        </button>
-                      </div>
+                      {formatDate(notification.fecha_creacion)}
                     </div>
                   </div>
                 </div>

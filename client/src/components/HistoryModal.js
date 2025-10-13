@@ -9,20 +9,20 @@ const HistoryModal = ({ onClose }) => {
   const [dateFrom, setDateFrom] = useState(''); // fecha desde
   const [dateTo, setDateTo] = useState(''); // fecha hasta
   const [userSearch, setUserSearch] = useState(''); // búsqueda por usuario
+  const [workingHoursFilter, setWorkingHoursFilter] = useState('all'); // all, within, outside
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
     loadHistory();
-  }, [statusFilter, dateFrom, dateTo, userSearch, currentPage]);
+  }, [statusFilter, dateFrom, dateTo, userSearch, currentPage, workingHoursFilter]);
 
   const loadHistory = async () => {
     try {
       setLoading(true);
       setError('');
       
-      console.log('🔄 HistoryModal: Cargando historial...');
       
       const params = new URLSearchParams({
         status: statusFilter,
@@ -30,7 +30,8 @@ const HistoryModal = ({ onClose }) => {
         dateTo: dateTo,
         user: userSearch,
         page: currentPage,
-        limit: itemsPerPage
+        limit: itemsPerPage,
+        workingHours: workingHoursFilter
       });
 
       const response = await fetch(`http://localhost:5000/api/history?${params}`, {
@@ -41,12 +42,10 @@ const HistoryModal = ({ onClose }) => {
         const data = await response.json();
         setHistory(data.history || []);
         setTotalPages(data.pagination?.totalPages || 1);
-        console.log(`✅ HistoryModal: ${data.history?.length || 0} registros cargados`);
       } else {
         setError('Error al cargar el historial');
       }
     } catch (error) {
-      console.error('Error cargando historial:', error);
       setError('Error de conexión al cargar historial');
     } finally {
       setLoading(false);
@@ -114,6 +113,30 @@ const HistoryModal = ({ onClose }) => {
     }
   };
 
+  // Funciones para horarios laborales
+  const getWorkingHoursIcon = (isWithinHours, workingHoursInfo) => {
+    if (!workingHoursInfo.isEnabled) {
+      return '🚫'; // Día no laborable
+    }
+    return isWithinHours ? '✅' : '⏰'; // Dentro/Fuera de horario
+  };
+
+  const getWorkingHoursText = (isWithinHours, workingHoursInfo) => {
+    if (!workingHoursInfo.isEnabled) {
+      return `Día no laborable (${workingHoursInfo.dayName})`;
+    }
+    return isWithinHours 
+      ? `Dentro de horario (${workingHoursInfo.workingHours})`
+      : `Fuera de horario (${workingHoursInfo.workingHours})`;
+  };
+
+  const getWorkingHoursColor = (isWithinHours, workingHoursInfo) => {
+    if (!workingHoursInfo.isEnabled) {
+      return '#9E9E9E'; // Gris para días no laborables
+    }
+    return isWithinHours ? '#4CAF50' : '#FF9800'; // Verde/Naranja
+  };
+
   const handleStatusFilterChange = (newStatus) => {
     setStatusFilter(newStatus);
     setCurrentPage(1);
@@ -143,6 +166,7 @@ const HistoryModal = ({ onClose }) => {
     setDateFrom('');
     setDateTo('');
     setUserSearch('');
+    setWorkingHoursFilter('all');
     setCurrentPage(1);
   };
 
@@ -218,6 +242,24 @@ const HistoryModal = ({ onClose }) => {
               </div>
             </div>
 
+            {/* Filtro por Horarios Laborales */}
+            <div className="filter-group">
+              <label htmlFor="workingHoursFilter" className="filter-label">⏰ Horarios:</label>
+              <select
+                id="workingHoursFilter"
+                className="status-dropdown"
+                value={workingHoursFilter}
+                onChange={(e) => {
+                  setWorkingHoursFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="all">📋 Todos los horarios</option>
+                <option value="within">✅ Dentro de horario</option>
+                <option value="outside">⏰ Fuera de horario</option>
+              </select>
+            </div>
+
             {/* Botón Limpiar Filtros */}
             <div className="filter-group">
               <button 
@@ -276,6 +318,14 @@ const HistoryModal = ({ onClose }) => {
                         >
                           {getStatusIcon(record.status)} {getStatusText(record.status)}
                         </span>
+                        {/* Indicador de horarios laborales */}
+                        <span 
+                          className="working-hours-badge"
+                          style={{ color: getWorkingHoursColor(record.isWithinWorkingHours, record.workingHoursInfo) }}
+                          title={getWorkingHoursText(record.isWithinWorkingHours, record.workingHoursInfo)}
+                        >
+                          {getWorkingHoursIcon(record.isWithinWorkingHours, record.workingHoursInfo)}
+                        </span>
                       </div>
                     </div>
                     
@@ -303,6 +353,14 @@ const HistoryModal = ({ onClose }) => {
                           <strong>Mensaje:</strong> {record.message}
                         </div>
                       )}
+                      
+                      {/* Información de horarios laborales */}
+                      <div className="working-hours-info">
+                        <strong>Horario laboral:</strong> 
+                        <span style={{ color: getWorkingHoursColor(record.isWithinWorkingHours, record.workingHoursInfo) }}>
+                          {getWorkingHoursText(record.isWithinWorkingHours, record.workingHoursInfo)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -45,6 +45,9 @@ const LogoutAnimation = ({ onComplete, userName }) => {
         {/* Mensaje de despedida */}
         {showGoodbye && (
           <div className="goodbye-message">
+            <div className="logout-logo">
+              <img src="/logotaq02.png" alt="Logo TAQ" className="logo-image" />
+            </div>
             <div className="goodbye-icon">👋</div>
             <h2 className="goodbye-title">¡Hasta pronto!</h2>
             <p className="goodbye-text">

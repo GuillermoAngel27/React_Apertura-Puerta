@@ -6,7 +6,6 @@ import MessageContainer from './MessageContainer';
 
 const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -23,6 +22,8 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(5);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -40,41 +41,62 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [currentPage, searchTerm]);
 
-  // Filter users based on search term
+  // Reset page when search term changes
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredUsers(users);
-    } else {
-      const filtered = users.filter(user => 
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.role.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredUsers(filtered);
+    if (searchTerm !== '') {
+      setCurrentPage(1);
     }
-    setCurrentPage(1); // Reset to first page when searching
-  }, [searchTerm, users]);
+  }, [searchTerm]);
 
   const loadUsers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/users', {
+      setLoading(true);
+      setError('');
+      
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: usersPerPage,
+        search: searchTerm
+      });
+
+      const response = await fetch(`http://localhost:5000/api/users?${params}`, {
         credentials: 'include'
       });
 
       if (response.ok) {
         const data = await response.json();
-        setUsers(data);
-        setFilteredUsers(data);
+        
+        // Manejar nueva estructura con paginación
+        if (data.users && data.pagination) {
+          setUsers(data.users);
+          setTotalPages(data.pagination.totalPages);
+          setTotalUsers(data.pagination.totalItems);
+          
+          // Validar que currentPage no exceda totalPages
+          if (currentPage > data.pagination.totalPages && data.pagination.totalPages > 0) {
+            setCurrentPage(data.pagination.totalPages);
+          }
+        } else {
+          // Fallback para estructura antigua
+          setUsers(data);
+          const calculatedTotalPages = Math.ceil(data.length / usersPerPage);
+          setTotalPages(calculatedTotalPages);
+          setTotalUsers(data.length);
+          
+          // Validar que currentPage no exceda totalPages calculadas
+          if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+            setCurrentPage(calculatedTotalPages);
+          }
+        }
       } else {
         setError('Error al cargar usuarios');
       }
     } catch (error) {
-      console.error('Error cargando usuarios:', error);
       setError('Error de conexión al cargar usuarios');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -139,23 +161,21 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       setSuccess('Contraseña copiada al portapapeles');
       setTimeout(() => setSuccess(''), 2000);
     } catch (error) {
-      console.error('Error copiando al portapapeles:', error);
       setError('Error al copiar al portapapeles');
     }
   };
 
-  // Pagination functions
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  // Los usuarios ya vienen paginados del backend, no necesitamos paginación adicional
+  const currentUsers = users;
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
   const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
   };
 
   const handlePreviousPage = () => {
@@ -165,7 +185,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   };
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
+    if (currentPage < totalPages && totalPages > 0) {
       setCurrentPage(currentPage + 1);
     }
   };
@@ -199,7 +219,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         setError('Error al cargar datos del usuario');
       }
     } catch (error) {
-      console.error('Error cargando usuario:', error);
       setError('Error de conexión al cargar usuario');
     } finally {
       setLoading(false);
@@ -216,7 +235,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       },
       () => {
         // Función de cancelación - no hacer nada
-        console.log('🗑️ Eliminación cancelada por el usuario');
       },
       {
         confirmText: 'Eliminar',
@@ -265,7 +283,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         setTimeout(() => setUserSpecificMessage(null), 5000);
       }
     } catch (error) {
-      console.error('Error eliminando usuario:', error);
       setError('Error de conexión al eliminar usuario');
       
       // Mensaje específico para móvil (error de conexión)
@@ -292,7 +309,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       },
       () => {
         // Función de cancelación - no hacer nada
-        console.log('🔄 Refresh token cancelado por el usuario');
       },
       {
         confirmText: 'Refrescar',
@@ -308,7 +324,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       setError('');
       setSuccess('');
       
-      console.log(`🔄 ADMIN REFRESH TOKEN - Iniciando refresh para usuario ${username} (ID: ${userId})`);
       
       const response = await fetch(`http://localhost:5000/api/refresh-token/${userId}`, {
         method: 'POST',
@@ -317,9 +332,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ ADMIN REFRESH TOKEN - Éxito para ${username}:`)
-        console.log('📄 Response:', data);
-        
+              
         setSuccess(`✅ Token refrescado exitosamente para ${username}. El usuario puede hacer login nuevamente.`);
         setTimeout(() => setSuccess(''), 5000);
         
@@ -343,7 +356,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         }
       } else {
         const errorData = await response.json();
-        console.error(`❌ ADMIN REFRESH TOKEN - Error para ${username}:`, errorData);
         setError(`❌ Error al refrescar token de ${username}: ${errorData.message || 'Error desconocido'}`);
         
         // Mensaje específico para móvil (error)
@@ -358,7 +370,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         setTimeout(() => setUserSpecificMessage(null), 5000);
       }
     } catch (error) {
-      console.error('💥 ADMIN REFRESH TOKEN - Error de conexión:', error);
       setError(`❌ Error de conexión al refrescar token de ${username}`);
       
       // Mensaje específico para móvil (error de conexión)
@@ -450,7 +461,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         }
       }
     } catch (error) {
-      console.error('Error procesando usuario:', error);
       setError('Error de conexión. Verifique que el servidor esté ejecutándose.');
       
       // Mensaje específico para móvil (error de conexión)
@@ -527,6 +537,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
 
               {error && <div className="error-message desktop-only-message">{error}</div>}
               {success && <div className="success-message desktop-only-message">{success}</div>}
+              {loading && <div className="loading-message desktop-only-message">⏳ Cargando usuarios...</div>}
 
               <div className="table-wrapper">
                 <table className="users-table">
@@ -670,20 +681,24 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                     <button 
                       className="pagination-button"
                       onClick={handlePreviousPage}
-                      disabled={currentPage === 1}
+                      disabled={currentPage === 1 || loading}
                       title="Página anterior"
                     >
                       ◀
                     </button>
                     
                     <div className="pagination-info">
-                      Página {currentPage} de {totalPages}
+                      {loading ? (
+                        <span>⏳ Cargando...</span>
+                      ) : (
+                        `Página ${currentPage} de ${totalPages}`
+                      )}
                     </div>
                     
                     <button 
                       className="pagination-button"
                       onClick={handleNextPage}
-                      disabled={currentPage === totalPages}
+                      disabled={currentPage === totalPages || loading}
                       title="Página siguiente"
                     >
                       ▶

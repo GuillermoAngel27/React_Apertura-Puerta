@@ -31,6 +31,26 @@
 .welcome-message {
   text-align: center;
   animation: slideDown 0.5s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Logo en la animación de puerta */
+.door-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.door-logo .logo-image {
+  max-width: 120px;
+  max-height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+  animation: logoGlow 2s ease-in-out infinite alternate;
 }
 
 .welcome-message h2 {
@@ -428,6 +448,15 @@
   }
 }
 
+@keyframes logoGlow {
+  from {
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+  }
+  to {
+    filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.6));
+  }
+}
+
 @keyframes doorSlideLeft {
   0% {
     transform: translateX(0);
@@ -474,6 +503,11 @@
     height: 400px;
   }
   
+  .door-logo .logo-image {
+    max-width: 100px;
+    max-height: 65px;
+  }
+  
   .welcome-message h2 {
     font-size: 1.5rem;
   }
@@ -492,6 +526,11 @@
   .door {
     width: 180px;
     height: 350px;
+  }
+  
+  .door-logo .logo-image {
+    max-width: 80px;
+    max-height: 55px;
   }
   
   .welcome-message h2 {
