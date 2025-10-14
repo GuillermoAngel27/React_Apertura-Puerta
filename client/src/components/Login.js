@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DoorAnimation from './DoorAnimation';
 import './Login.css';
+import { apiGet, apiPost } from '../utils/api';
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -29,9 +30,7 @@ const Login = ({ onLogin }) => {
             return;
           }
           retryCount++;
-          const response = await fetch('http://localhost:5000/api/verify-token', {
-            credentials: 'include'
-          });
+          const response = await apiGet('/api/verify-token');
           
           if (response.ok) {
             const data = await response.json();
@@ -96,14 +95,7 @@ const Login = ({ onLogin }) => {
 
 
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-        credentials: 'include'
-      });
+      const response = await apiPost('/api/login', formData);
 
       
       const data = await response.json();

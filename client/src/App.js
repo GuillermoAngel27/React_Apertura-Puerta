@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import './App.css';
+import { apiGet, apiPost } from './utils/api';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,9 +35,7 @@ function App() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/verify-token', {
-        credentials: 'include'
-      });
+      const response = await apiGet('/api/verify-token');
 
 
       if (response.ok) {
@@ -68,10 +67,7 @@ function App() {
     
     // SOLUCIÓN FINAL: No limpiar cookies en logout - son permanentes del dispositivo
     try {
-      await fetch('http://localhost:5000/api/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      await apiPost('/api/logout');
     } catch (error) {
     } finally {
       // Solo limpiar estado de sesión, NO la cookie

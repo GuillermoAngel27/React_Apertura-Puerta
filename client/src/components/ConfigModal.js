@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ConfigModal.css';
+import { apiGet, apiPut } from '../utils/api';
 
 const ConfigModal = ({ onClose, onSuccess }) => {
   const [config, setConfig] = useState({
@@ -39,9 +40,7 @@ const ConfigModal = ({ onClose, onSuccess }) => {
       setNoConfigMessage('');
       
       // Token se maneja automáticamente con cookies
-      const response = await fetch('http://localhost:5000/api/config', {
-        credentials: 'include'
-      });
+      const response = await apiGet('/api/config');
 
       if (response.ok) {
         const data = await response.json();
@@ -133,14 +132,7 @@ const ConfigModal = ({ onClose, onSuccess }) => {
         horarios: config.horarios
       };
 
-      const response = await fetch('http://localhost:5000/api/config', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(configToSend),
-      });
+      const response = await apiPut('/api/config', configToSend);
 
       const data = await response.json();
 

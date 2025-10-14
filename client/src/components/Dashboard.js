@@ -7,6 +7,7 @@ import MessageContainer from './MessageContainer';
 import LogoutAnimation from './LogoutAnimation';
 import useAnimatedMessages from '../hooks/useAnimatedMessages';
 import './Dashboard.css';
+import { apiPost } from '../utils/api';
 
 const Dashboard = ({ user, onLogout }) => {
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -217,14 +218,7 @@ const Dashboard = ({ user, onLogout }) => {
         };
       }
 
-        const response = await fetch('http://localhost:5000/api/abrir-puerta', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(requestBody)
-        });
+        const response = await apiPost('/api/abrir-puerta', requestBody);
 
       const data = await response.json();
 

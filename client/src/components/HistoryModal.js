@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './HistoryModal.css';
+import { apiGet } from '../utils/api';
 
 const HistoryModal = ({ onClose }) => {
   const [history, setHistory] = useState([]);
@@ -34,9 +35,7 @@ const HistoryModal = ({ onClose }) => {
         workingHours: workingHoursFilter
       });
 
-      const response = await fetch(`http://localhost:5000/api/history?${params}`, {
-        credentials: 'include'
-      });
+      const response = await apiGet(`/api/history?${params}`);
 
       if (response.ok) {
         const data = await response.json();

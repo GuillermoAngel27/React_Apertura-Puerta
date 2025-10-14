@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import './UserManagementModal.css';
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
 import useAnimatedMessages from '../hooks/useAnimatedMessages';
 import MessageContainer from './MessageContainer';
 
@@ -61,9 +62,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         search: searchTerm
       });
 
-      const response = await fetch(`http://localhost:5000/api/users?${params}`, {
-        credentials: 'include'
-      });
+      const response = await apiGet(`/api/users?${params}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -196,9 +195,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       setError('');
       
       // Obtener datos completos del usuario incluyendo contraseña
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
-        credentials: 'include'
-      });
+      const response = await apiGet(`/api/users/${user.id}`);
       
       if (response.ok) {
         const userData = await response.json();
@@ -246,10 +243,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   // Función separada para ejecutar la eliminación
   const executeDelete = async (userId, username) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
+      const response = await apiDelete(`/api/users/${userId}`);
 
       if (response.ok) {
         setSuccess(`✅ Usuario ${username} eliminado exitosamente`);
@@ -325,10 +319,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       setSuccess('');
       
       
-      const response = await fetch(`http://localhost:5000/api/refresh-token/${userId}`, {
-        method: 'POST',
-        credentials: 'include'
-      });
+      const response = await apiPost(`/api/refresh-token/${userId}`);
 
       if (response.ok) {
         const data = await response.json();

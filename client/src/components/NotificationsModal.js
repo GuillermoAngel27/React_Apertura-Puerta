@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './NotificationsModal.css';
+import { apiGet } from '../utils/api';
 
 const NotificationsModal = ({ onClose }) => {
   const [loginNotifications, setLoginNotifications] = useState([]);
@@ -59,9 +60,7 @@ const NotificationsModal = ({ onClose }) => {
       
       // No usar filtro de horas por defecto - mostrar todos los registros
       
-      const response = await fetch(`http://localhost:5000/api/login-notifications?${params}`, {
-        credentials: 'include'
-      });
+      const response = await apiGet(`/api/login-notifications?${params}`);
 
       if (response.ok) {
         const data = await response.json();

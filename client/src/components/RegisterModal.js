@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './RegisterModal.css';
+import { apiPost } from '../utils/api';
 
 const RegisterModal = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({

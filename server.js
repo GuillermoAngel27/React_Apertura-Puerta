@@ -105,9 +105,28 @@ function decryptPassword(encryptedPassword) {
   }
 }
 
+// Configurar trust proxy para Passenger/cPanel
+app.set('trust proxy', 1);
+
+// Configuración CORS dinámico para producción
+const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+if (allowedOrigins.length === 0) {
+  // Fallback para desarrollo
+  allowedOrigins.push('http://localhost:3000');
+}
+
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Permitir requests sin origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -756,9 +775,10 @@ app.post('/api/login', async (req, res) => {
         
           // Renovar cookie por 1 año
           res.cookie('token', cookieToken, {
-            httpOnly: false, // CORREGIDO: Permitir acceso desde JS
-            secure: false,
-            sameSite: 'lax',
+            httpOnly: false, // Permitir acceso desde JS
+            secure: process.env.NODE_ENV === 'production', // HTTPS en producción
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            domain: process.env.COOKIE_DOMAIN || undefined,
             maxAge: 365 * 24 * 60 * 60 * 1000,
             path: '/'
           });
@@ -766,8 +786,9 @@ app.post('/api/login', async (req, res) => {
           // Establecer cookie de sesión para indicar que el usuario está logueado
           res.cookie('user_logged_in', 'true', {
             httpOnly: false,
-            secure: false,
-            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            domain: process.env.COOKIE_DOMAIN || undefined,
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
             path: '/'
           });
@@ -883,9 +904,10 @@ app.post('/api/login', async (req, res) => {
         const encryptedCookieToken = encryptPassword(user.token);
         
         res.cookie('token', encryptedCookieToken, {
-          httpOnly: false, // Cambio clave: Permitir acceso desde JS
-          secure: false,
-          sameSite: 'lax',
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          domain: process.env.COOKIE_DOMAIN || undefined,
           maxAge: 365 * 24 * 60 * 60 * 1000,
           path: '/'
         });
@@ -893,8 +915,9 @@ app.post('/api/login', async (req, res) => {
         // Establecer cookie de sesión para indicar que el usuario está logueado
         res.cookie('user_logged_in', 'true', {
           httpOnly: false,
-          secure: false,
-          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          domain: process.env.COOKIE_DOMAIN || undefined,
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
           path: '/'
         });
@@ -952,8 +975,9 @@ app.post('/api/login', async (req, res) => {
       
       res.cookie('token', encryptedCookieToken, {
         httpOnly: false,
-        secure: false,
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        domain: process.env.COOKIE_DOMAIN || undefined,
         maxAge: 365 * 24 * 60 * 60 * 1000,
         path: '/'
       });
@@ -1731,8 +1755,9 @@ app.get('/api/debug-cookies', (req, res) => {
   // Establecer una cookie de prueba SIMPLE
   res.cookie('test-cookie', 'valor-prueba', {
     httpOnly: false, // Permitir acceso desde JS para debug
-    secure: false,
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    domain: process.env.COOKIE_DOMAIN || undefined,
     maxAge: 60000, // 1 minuto
     path: '/'
   });
@@ -1850,9 +1875,10 @@ app.post('/api/activate-token', async (req, res) => {
     const encryptedCookieToken = encryptPassword(token);
     
     res.cookie('token', encryptedCookieToken, {
-      httpOnly: false, // CORREGIDO: Permitir acceso desde JS
-      secure: false, // Cambiado a false para desarrollo
-      sameSite: 'lax', // Cambiado a 'lax' para desarrollo
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.COOKIE_DOMAIN || undefined,
       maxAge: 365 * 24 * 60 * 60 * 1000,
       path: '/'
     });
@@ -2033,8 +2059,9 @@ app.post('/api/logout', authenticateToken, async (req, res) => {
     // Limpiar solo la cookie de sesión, NO el token del dispositivo
     res.clearCookie('user_logged_in', {
       httpOnly: false,
-      secure: false,
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.COOKIE_DOMAIN || undefined,
       path: '/'
     });
     
