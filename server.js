@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 const http = require('http');
 const WebSocket = require('ws');
-require('dotenv').config({ path: './config.env' });
+require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
@@ -115,18 +115,9 @@ if (allowedOrigins.length === 0) {
   allowedOrigins.push('http://localhost:3000');
 }
 
-// Middleware
+// Middleware CORS - Configuración permisiva para producción
 app.use(cors({
-  origin: (origin, callback) => {
-    // Permitir requests sin origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Permitir todos los orígenes
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -153,9 +144,10 @@ const pool = mysql.createPool(dbConfig);
 // Función para ejecutar queries
 const executeQuery = async (query, params = []) => {
   try {
-    const [rows] = await pool.execute(query, params);
+    const [rows] = await pool.query(query, params);
     return rows;
   } catch (error) {
+
     throw error;
   }
 };
@@ -461,12 +453,13 @@ function generateDeviceFingerprint(req) {
   const acceptLanguage = req.get('Accept-Language') || '';
   const acceptEncoding = req.get('Accept-Encoding') || '';
   const connection = req.get('Connection') || '';
-  const ip = req.ip || req.connection.remoteAddress || '';
+  const userAgent = req.get('User-Agent') || '';
   
-  // Crear fingerprint estable (sin User-Agent para permitir cambio PC/móvil)
+  // Crear fingerprint estable basado en características del navegador
+  // NO incluir IP para permitir cambio de red (WiFi ↔ Datos móviles)
   const fingerprint = crypto
     .createHash('sha256')
-    .update(`${acceptLanguage}-${acceptEncoding}-${connection}-${ip}`)
+    .update(`${acceptLanguage}-${acceptEncoding}-${connection}-${userAgent}`)
     .digest('hex')
     .substring(0, 16); // Usar solo primeros 16 caracteres
   
@@ -476,17 +469,18 @@ function generateDeviceFingerprint(req) {
 // Función para validar sesión activa y renovar automáticamente
 async function validateActiveSession(userId, deviceFingerprint, ip) {
   try {
-    // Verificar si existe una sesión activa para este usuario y IP (más flexible)
+    // Verificar si existe una sesión activa para este usuario y device fingerprint
+    // NO usar IP porque cambia al cambiar de red (WiFi ↔ Datos móviles)
     const sessions = await executeQuery(
-      'SELECT * FROM user_sessions WHERE user_id = ? AND ip_address = ? AND is_active = TRUE AND expires_at > NOW()',
-      [userId, ip]
+      'SELECT * FROM user_sessions WHERE user_id = ? AND device_fingerprint = ? AND is_active = TRUE AND expires_at > NOW()',
+      [userId, deviceFingerprint]
     );
     
     if (sessions.length > 0) {
-      // Sesión encontrada - Renovar automáticamente la actividad y actualizar fingerprint
+      // Sesión encontrada - Renovar automáticamente la actividad y actualizar IP
       await executeQuery(
-        'UPDATE user_sessions SET last_activity = NOW(), device_fingerprint = ? WHERE user_id = ? AND ip_address = ? AND is_active = TRUE',
-        [deviceFingerprint, userId, ip]
+        'UPDATE user_sessions SET last_activity = NOW(), ip_address = ? WHERE user_id = ? AND device_fingerprint = ? AND is_active = TRUE',
+        [ip, userId, deviceFingerprint]
       );
       
       return true;
@@ -519,7 +513,8 @@ async function createUserSession(userId, deviceFingerprint, ip, token) {
 // Función para invalidar sesiones anteriores
 async function invalidatePreviousSessions(userId, currentDeviceFingerprint) {
   try {
-    // Solo invalidar sesiones de otros dispositivos/IPs, no del mismo usuario
+    // Solo invalidar sesiones de otros dispositivos, no del mismo dispositivo
+    // Esto permite que el mismo dispositivo mantenga la sesión al cambiar de red
     await executeQuery(
       'UPDATE user_sessions SET is_active = FALSE, invalidated_at = NOW() WHERE user_id = ? AND device_fingerprint != ? AND is_active = TRUE',
       [userId, currentDeviceFingerprint]
@@ -634,7 +629,6 @@ async function logLogoutEvent(data) {
 const authenticateToken = async (req, res, next) => {
   const token = req.cookies.token;
 
-
   if (!token) {
     return res.status(401).json({ 
       message: 'Token no encontrado',
@@ -672,7 +666,6 @@ const authenticateToken = async (req, res, next) => {
     const hasValidSession = await validateActiveSession(validUser.id, deviceFingerprint, clientIP);
     
     if (!hasValidSession) {
-          
       return res.status(403).json({ 
         message: 'Sesión inválida. Token posiblemente inyectado desde otro dispositivo.',
         tokenInvalid: true,
@@ -690,7 +683,6 @@ const authenticateToken = async (req, res, next) => {
       apellido: validUser.apellido,
       email: validUser.email
     };
-    
     
     
     req.deviceFingerprint = deviceFingerprint;
@@ -1052,16 +1044,22 @@ app.post('/api/login', async (req, res) => {
 // Ruta para registrar nuevos usuarios (solo admin)
 app.post('/api/register', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { username, email, password, rol, nombre, apellido, telefono } = req.body;
+    
+    const { username, email, password, rol, nombre, apellido, telefono, jefe_id } = req.body;
 
-    // Verificar si el usuario ya existe
+    // Verificar si el username ya existe (solo username, no email)
     const existingUsers = await executeQuery(
-      'SELECT * FROM usuarios WHERE username = ? OR email = ?',
-      [username, email]
+      'SELECT * FROM usuarios WHERE username = ?',
+      [username]
     );
 
     if (existingUsers.length > 0) {
-      return res.status(400).json({ message: 'El usuario o email ya existe' });
+      return res.status(400).json({ message: 'El usuario ya existe' });
+    }
+
+    // Validación: usuarios deben tener jefe asignado
+    if (rol === 'user' && !jefe_id) {
+      return res.status(400).json({ message: 'Los usuarios deben tener un jefe asignado' });
     }
 
     // Encriptar contraseña con sistema bidireccional
@@ -1069,9 +1067,10 @@ app.post('/api/register', authenticateToken, requireAdmin, async (req, res) => {
 
     // Crear nuevo usuario
     const result = await executeQuery(
-      'INSERT INTO usuarios (username, email, password, rol, nombre, apellido, telefono, activo, fecha_creado_user) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, NOW())',
-      [username, email, encryptedPassword, rol || 'user', nombre || '', apellido || '', telefono || null]
+      'INSERT INTO usuarios (username, email, password, rol, nombre, apellido, telefono, activo, fecha_creado_user, jefe_id) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, NOW(), ?)',
+      [username, email, encryptedPassword, rol || 'user', nombre || '', apellido || '', telefono || null, jefe_id || null]
     );
+
 
     res.status(201).json({
       message: 'Usuario registrado exitosamente',
@@ -1085,14 +1084,15 @@ app.post('/api/register', authenticateToken, requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error interno del servidor' });
+    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
   }
 });
 
-// Ruta para abrir puerta
+// Ruta para abrir puerta (con respuesta inmediata y procesamiento asíncrono)
 app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
   try {
-    // Datos para enviar a Node-RED
+    
+    // Preparar datos para Node-RED
     const datosPuerta = {
       accion: "Activa",
       timestamp: req.body.timestamp || new Date().toISOString(),
@@ -1101,234 +1101,85 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
       rol: req.user.role
     };
 
-    // Agregar datos de geolocalización directamente al nivel raíz si están disponibles
+    // Agregar datos de geolocalización si están disponibles
     if (req.body.location) {
       datosPuerta.lat = req.body.location.lat;
       datosPuerta.lon = req.body.location.lon;
       datosPuerta.precision = req.body.location.accuracy;
-      //   lat: datosPuerta.lat,
-      //   lon: datosPuerta.lon,
-      //   precision: datosPuerta.precision
-      // });
     } else {
     }
 
-    // URL del webhook de Node-RED (usar configuración dinámica SOLO desde BD)
-    const nodeRedUrl = await getNodeRedConfigFromDB();
-
     // VALIDACIÓN DE DUPLICADOS: Verificar si ya existe un registro para este usuario en los últimos 5 segundos
-    try {
-      const duplicateCheck = await executeQuery(`
-        SELECT COUNT(*) as count 
-        FROM historial_aperturas 
-        WHERE usuario_id = ? 
-        AND timestamp > DATE_SUB(NOW(), INTERVAL 5 SECOND)
-      `, [req.user.id]);
+    const duplicateCheck = await executeQuery(
+      'SELECT COUNT(*) as count FROM historial_aperturas WHERE usuario_id = ? AND timestamp > DATE_SUB(NOW(), INTERVAL 5 SECOND)',
+      [req.user.id]
+    );
 
       if (duplicateCheck[0].count > 0) {
         return res.json({
           message: 'Solicitud duplicada - Espera antes de intentar nuevamente',
           status: 'duplicate',
           canOpenDoor: false,
-          datos: datosPuerta,
           timestamp: new Date().toISOString()
         });
-      }
-    } catch (duplicateError) {
-      // Continuar con el proceso si hay error en la verificación
     }
 
-    // Variables para usar después del try-catch de Node-RED
-    let finalResponseStatus = 'incorrecto'; // Valor por defecto
-    let finalResponseMessage = 'Error interno del servidor';
-    let finalCanOpenDoor = false;
-    let finalNodeRedResponse = null;
-
-    try {
-      // Enviar datos a Node-RED
-      const response = await axios.post(nodeRedUrl, datosPuerta, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        timeout: 5000 // 5 segundos de timeout
+    // 🆕 VALIDACIÓN DE PERMISOS DE ACCESO
+    const validacionPermisos = await validarPermisoAcceso(req.user.id);
+    
+    if (!validacionPermisos.permite) {
+      
+      // Registrar intento denegado en historial_aperturas
+      await executeQuery(
+        'INSERT INTO historial_aperturas (usuario_id, status, message, location_lat, location_lon, location_accuracy) VALUES (?, ?, ?, ?, ?, ?)',
+        [
+          req.user.id,
+          'denegado_horario',
+          validacionPermisos.mensaje,
+          req.body.location?.lat || null,
+          req.body.location?.lon || null,
+          req.body.location?.accuracy || null
+        ]
+      );
+      
+      return res.json({
+        success: false,
+        message: validacionPermisos.mensaje,
+        status: 'denegado_horario',
+        canOpenDoor: false,
+        timestamp: new Date().toISOString()
       });
-
-
-      // Procesar la respuesta de Node-RED
-      const nodeRedResponse = response.data;
-      let responseMessage = '';
-      let responseStatus = 'success';
-      let canOpenDoor = false;
-
-      
-      // MANEJAR TANTO OBJETOS COMO STRINGS
-      if (typeof nodeRedResponse === 'string') {
-        // Node-RED devolvió un string directo
-        
-        if (nodeRedResponse === 'NoActiva') {
-          responseMessage = 'Usuario fuera de la ubicación autorizada - Puerta no activada';
-          responseStatus = 'fuera_de_area';
-          canOpenDoor = false;
-
-        } else if (nodeRedResponse === 'Activa') {
-          responseMessage = 'Usuario autorizado - Puerta abierta exitosamente';
-          responseStatus = 'correcto';
-          canOpenDoor = true;
-
-        } else {
-          // String no reconocido
-          responseMessage = 'Node-RED devolvió respuesta no reconocida - Procesando como exitosa';
-          responseStatus = 'advertencia';
-          canOpenDoor = true;
-        }
-      } else if (nodeRedResponse && typeof nodeRedResponse === 'object') {
-        // Node-RED devolvió un objeto
-
-        // Buscar el estado de activación en 'mensaje' (prioridad) o 'payload' (fallback)
-        const activationStatus = nodeRedResponse.mensaje || nodeRedResponse.payload;
-        
-        if (activationStatus === 'NoActiva') {
-          responseMessage = 'Usuario fuera de la ubicación autorizada - Puerta no activada';
-          responseStatus = 'fuera_de_area';
-          canOpenDoor = false;
-          
-        } else if (activationStatus === 'Activa') {
-          responseMessage = 'Usuario autorizado - Puerta abierta exitosamente';
-          responseStatus = 'correcto';
-          canOpenDoor = true;
-          
-        } else {
-          // TEMPORAL: Si Node-RED no procesa, hacer validación básica en backend
-          
-          // Validación temporal: verificar si tiene coordenadas
-          if (datosPuerta.lat && datosPuerta.lon) {
-            // Aquí puedes agregar tu lógica de validación de coordenadas
-            // Por ahora, asumimos que si tiene coordenadas, está autorizado
-            responseMessage = 'Node-RED no procesó - Validación temporal: Usuario autorizado';
-            responseStatus = 'advertencia';
-            canOpenDoor = true;
-          } else {
-            responseMessage = 'Node-RED no procesó - Sin coordenadas: Acceso denegado';
-            responseStatus = 'advertencia';
-            canOpenDoor = false;
-          }
-        }
-      } else {
-        // Respuesta vacía o no válida
-        responseMessage = 'Node-RED no devolvió información de ubicación - Procesando como exitosa';
-        responseStatus = 'advertencia';
-        canOpenDoor = true;
-      }
-
-      // Actualizar variables finales con los valores procesados
-      finalResponseStatus = responseStatus;
-      finalResponseMessage = responseMessage;
-      finalCanOpenDoor = canOpenDoor;
-      finalNodeRedResponse = nodeRedResponse;
-    } catch (nodeRedError) {
-      
-      // Determinar el tipo de error
-      let errorType = 'Error de conexión';
-      let errorMessage = 'Node-RED no está disponible';
-      
-      if (nodeRedError.code === 'ECONNREFUSED') {
-        errorType = 'Conexión rechazada';
-        errorMessage = 'Node-RED no está ejecutándose o la IP es incorrecta';
-      } else if (nodeRedError.response?.status === 404) {
-        errorType = 'Endpoint no encontrado';
-        errorMessage = 'La URL de Node-RED no es correcta (404)';
-      } else if (nodeRedError.code === 'ENOTFOUND') {
-        errorType = 'IP no encontrada';
-        errorMessage = 'La IP de Node-RED no es accesible';
-      } else if (nodeRedError.code === 'ETIMEDOUT') {
-        errorType = 'Timeout';
-        errorMessage = 'Node-RED no respondió en el tiempo esperado';
-      }
-      
-
-      
-      // Establecer variables finales para el caso de error
-      finalResponseStatus = 'incorrecto';
-      finalResponseMessage = `Error de conexión: ${errorMessage}`;
-      finalCanOpenDoor = false;
-      finalNodeRedResponse = null;
     }
+    
 
-    // UN SOLO PUNTO DE INSERCIÓN EN HISTORIAL - Se ejecuta siempre, independientemente del resultado de Node-RED
-    try {
-      const eventData = {
-        usuario_id: req.user.id,
-        status: finalResponseStatus,
-        message: finalResponseMessage,
-        location_lat: datosPuerta.lat || null,
-        location_lon: datosPuerta.lon || null,
-        location_accuracy: datosPuerta.precision || null
-      };
-      
-      const insertQuery = `
-        INSERT INTO historial_aperturas 
-        (usuario_id, status, message, location_lat, location_lon, location_accuracy)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
-      
-      const insertParams = [
-        eventData.usuario_id,
-        eventData.status,
-        eventData.message,
-        eventData.location_lat,
-        eventData.location_lon,
-        eventData.location_accuracy
-      ];
-      
-      const eventResult = await executeQuery(insertQuery, insertParams);
-      
-      // Emitir evento WebSocket para notificaciones en tiempo real
-      if (wss) {
-        const eventNotification = {
-          type: 'door_event',
-          data: {
-            id: eventResult.insertId,
-            userId: req.user.id,
-            username: req.user.username,
-            status: finalResponseStatus,
-            message: finalResponseMessage,
-            location: datosPuerta.lat && datosPuerta.lon ? {
-              lat: datosPuerta.lat,
-              lon: datosPuerta.lon,
-              accuracy: datosPuerta.precision
-            } : null,
-            timestamp: new Date().toISOString()
-          }
-        };
-        
-        wss.clients.forEach(client => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(eventNotification));
-          }
-        });
-        
+    // 1. GUARDAR INMEDIATAMENTE EN BD CON STATUS 'PROCESSING'
+    const result = await executeQuery(
+      'INSERT INTO historial_aperturas (usuario_id, status, message, location_lat, location_lon, location_accuracy) VALUES (?, ?, ?, ?, ?, ?)',
+      [
+        req.user.id,
+        'processing',
+        'Solicitud enviada a Node-RED',
+        datosPuerta.lat || null,
+        datosPuerta.lon || null,
+        datosPuerta.precision || null
+      ]
+    );
 
-      }
-      
-    } catch (historyError) {
-      // No fallar la respuesta principal por error en historial
-    }
+    const eventId = result.insertId;
 
-    // Respuesta final al frontend
-    const finalResponse = {
-      message: finalResponseMessage,
-      status: finalResponseStatus,
-      canOpenDoor: finalCanOpenDoor,
-      datos: datosPuerta,
-      nodeRedResponse: finalNodeRedResponse,
+    // 2. RESPONDER INMEDIATAMENTE AL FRONTEND (NO ESPERAR A NODE-RED)
+    res.json({
+      message: 'Solicitud de apertura enviada - Procesando...',
+      status: 'processing',
+      eventId: eventId,
+      canOpenDoor: null, // Aún no se sabe
       timestamp: new Date().toISOString()
-    };
-    
-    res.json(finalResponse);
-    
+    });
+
+
   } catch (error) {
     res.status(500).json({ 
-      message: '❌ Error interno del servidor - No se pudo procesar la solicitud',
+      message: 'Error interno del servidor',
       status: 'server_error',
       canOpenDoor: false,
       timestamp: new Date().toISOString()
@@ -1413,48 +1264,38 @@ app.get('/api/verify-auth-token', authenticateToken, (req, res) => {
 // Ruta para obtener lista de usuarios (solo admin)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    
+   
     const { page = 1, limit = 50, search = '' } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     
-    // Consulta optimizada con paginación y búsqueda
-    let query = `
-      SELECT 
-        id, username, email, rol, nombre, apellido, telefono, activo, 
-        fecha_creado_user, token, fecha_token 
-      FROM usuarios 
-    `;
+    // Consulta optimizada con paginación y búsqueda incluyendo información del jefe
+    let query = `SELECT 
+      u.id, u.username, u.email, u.rol, u.nombre, u.apellido, u.telefono, 
+      u.activo, u.fecha_creado_user, u.token, u.fecha_token, u.jefe_id,
+      j.nombre as jefe_nombre, j.apellido as jefe_apellido, j.username as jefe_username
+    FROM usuarios u 
+    LEFT JOIN usuarios j ON u.jefe_id = j.id`;
     
     const params = [];
     
     // Agregar filtro de búsqueda si existe
     if (search && search.trim() !== '') {
-      query += ` WHERE (
-        LOWER(username) LIKE LOWER(?) OR
-        LOWER(email) LIKE LOWER(?) OR
-        LOWER(nombre) LIKE LOWER(?) OR
-        LOWER(apellido) LIKE LOWER(?)
-      )`;
+      query += ' WHERE (LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?) OR LOWER(u.nombre) LIKE LOWER(?) OR LOWER(u.apellido) LIKE LOWER(?))';
       const searchTerm = `%${search.trim()}%`;
       params.push(searchTerm, searchTerm, searchTerm, searchTerm);
     }
     
-    query += ` ORDER BY id DESC LIMIT ? OFFSET ?`;
+    query += ' ORDER BY u.id DESC LIMIT ? OFFSET ?';
     params.push(parseInt(limit), offset);
     
     const users = await executeQuery(query, params);
     
     // Obtener total para paginación
-    let countQuery = `SELECT COUNT(*) as total FROM usuarios`;
+    let countQuery = 'SELECT COUNT(*) as total FROM usuarios u';
     const countParams = [];
     
     if (search && search.trim() !== '') {
-      countQuery += ` WHERE (
-        LOWER(username) LIKE LOWER(?) OR
-        LOWER(email) LIKE LOWER(?) OR
-        LOWER(nombre) LIKE LOWER(?) OR
-        LOWER(apellido) LIKE LOWER(?)
-      )`;
+      countQuery += ' WHERE (LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?) OR LOWER(u.nombre) LIKE LOWER(?) OR LOWER(u.apellido) LIKE LOWER(?))';
       const searchTerm = `%${search.trim()}%`;
       countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
     }
@@ -1473,7 +1314,11 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
       activo: user.activo,
       fecha_creado_user: user.fecha_creado_user,
       hasToken: !!user.token,
-      fecha_token: user.fecha_token
+      fecha_token: user.fecha_token,
+      jefe_id: user.jefe_id,
+      jefe_nombre: user.jefe_nombre,
+      jefe_apellido: user.jefe_apellido,
+      jefe_username: user.jefe_username
     }));
     
     res.json({ 
@@ -1486,7 +1331,7 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error interno del servidor' });
+    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
   }
 });
 
@@ -1496,7 +1341,7 @@ app.get('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     const userId = parseInt(req.params.id);
     
     const users = await executeQuery(
-      'SELECT id, username, email, password, rol, nombre, apellido, telefono, activo, fecha_creado_user, token, fecha_token FROM usuarios WHERE id = ?',
+      'SELECT id, username, email, password, rol, nombre, apellido, telefono, activo, fecha_creado_user, token, fecha_token, jefe_id FROM usuarios WHERE id = ?',
       [userId]
     );
     
@@ -1518,18 +1363,267 @@ app.get('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
       activo: user.activo,
       fecha_creado_user: user.fecha_creado_user,
       hasToken: !!user.token,
-      fecha_token: user.fecha_token
+      fecha_token: user.fecha_token,
+      jefe_id: user.jefe_id
     });
   } catch (error) {
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
 
+// Endpoint para obtener lista de jefes
+app.get('/api/jefes', authenticateToken, async (req, res) => {
+  try {
+    
+    // Retornar solo usuarios activos con rol 'jefe'
+    const jefes = await executeQuery(
+      'SELECT id, username, nombre, apellido FROM usuarios WHERE rol = ? AND activo = 1 ORDER BY nombre, apellido',
+      ['jefe']
+    );
+    
+    res.json(jefes);
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ========================================
+// ENDPOINTS PARA GESTIÓN DE PERMISOS ESPECIALES
+// ========================================
+
+// Endpoint para obtener usuarios asignados a un jefe (solo jefes)
+app.get('/api/permisos-especiales/usuarios-asignados', authenticateToken, async (req, res) => {
+  try {
+    // Verificar que el usuario sea jefe
+    if (req.user.role !== 'jefe') {
+      return res.status(403).json({ error: 'Solo los jefes pueden acceder a esta función' });
+    }
+
+    
+    // Obtener usuarios asignados al jefe con información de permisos
+    const usuarios = await executeQuery(`
+      SELECT 
+        u.id, u.username, u.nombre, u.apellido, u.activo,
+        COUNT(p.id) as permisos_activos,
+        MAX(h.timestamp) as ultimo_acceso
+      FROM usuarios u
+      LEFT JOIN permisos_entrada p ON u.id = p.usuario_id AND p.activo = TRUE
+      LEFT JOIN historial_aperturas h ON u.id = h.usuario_id
+      WHERE u.jefe_id = ? AND u.activo = 1
+      GROUP BY u.id, u.username, u.nombre, u.apellido, u.activo
+      ORDER BY u.nombre, u.apellido
+    `, [req.user.id]);
+    
+    res.json(usuarios);
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para obtener permisos de un usuario específico
+app.get('/api/permisos-especiales/usuario/:id', authenticateToken, async (req, res) => {
+  try {
+    // Verificar que el usuario sea jefe
+    if (req.user.role !== 'jefe') {
+      return res.status(403).json({ error: 'Solo los jefes pueden acceder a esta función' });
+    }
+
+    const usuarioId = parseInt(req.params.id);
+    
+    // Verificar que el usuario pertenezca al jefe
+    const usuarioValido = await executeQuery(
+      'SELECT id, username, nombre, apellido FROM usuarios WHERE id = ? AND jefe_id = ? AND activo = 1',
+      [usuarioId, req.user.id]
+    );
+    
+    if (usuarioValido.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado o no asignado a este jefe' });
+    }
+    
+    // Obtener permisos del usuario
+    const permisos = await executeQuery(`
+      SELECT * FROM permisos_entrada 
+      WHERE usuario_id = ? 
+      ORDER BY fecha_creado DESC
+    `, [usuarioId]);
+    
+    
+    res.json({
+      usuario: usuarioValido[0],
+      permisos: permisos
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para crear nuevo permiso especial
+app.post('/api/permisos-especiales', authenticateToken, async (req, res) => {
+  try {
+    // Verificar que el usuario sea jefe
+    if (req.user.role !== 'jefe') {
+      return res.status(403).json({ error: 'Solo los jefes pueden crear permisos especiales' });
+    }
+
+    const { usuario_id, tipo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, observaciones } = req.body;
+    
+    
+    // Verificar que el usuario pertenezca al jefe
+    const usuarioValido = await executeQuery(
+      'SELECT id FROM usuarios WHERE id = ? AND jefe_id = ? AND activo = 1',
+      [usuario_id, req.user.id]
+    );
+    
+    if (usuarioValido.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado o no asignado a este jefe' });
+    }
+    
+    // Validaciones básicas
+    if (!tipo || !['horario_especial', 'dia_adicional', 'restriccion'].includes(tipo)) {
+      return res.status(400).json({ error: 'Tipo de permiso inválido' });
+    }
+    
+    // Crear el permiso
+    const result = await executeQuery(`
+      INSERT INTO permisos_entrada 
+      (usuario_id, jefe_id, tipo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, observaciones) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [usuario_id, req.user.id, tipo, fecha_inicio || null, fecha_fin || null, hora_inicio || null, hora_fin || null, dias_semana || null, observaciones || null]);
+    
+    
+    res.status(201).json({
+      message: 'Permiso especial creado exitosamente',
+      permiso: {
+        id: result.insertId,
+        usuario_id,
+        tipo,
+        fecha_inicio,
+        fecha_fin,
+        hora_inicio,
+        hora_fin,
+        dias_semana,
+        observaciones
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para actualizar permiso especial
+app.put('/api/permisos-especiales/:id', authenticateToken, async (req, res) => {
+  try {
+    console.log('🔄 Actualizando permiso especial:', req.params.id);
+    console.log('📋 Datos recibidos:', req.body);
+    
+    // Verificar que el usuario sea jefe
+    if (req.user.role !== 'jefe') {
+      console.log('❌ Usuario no es jefe:', req.user.role);
+      return res.status(403).json({ error: 'Solo los jefes pueden modificar permisos especiales' });
+    }
+
+    const permisoId = parseInt(req.params.id);
+    const { tipo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, observaciones, activo } = req.body;
+    
+    console.log('📋 Datos procesados:', {
+      permisoId,
+      tipo,
+      fecha_inicio,
+      fecha_fin,
+      hora_inicio,
+      hora_fin,
+      dias_semana,
+      observaciones,
+      activo
+    });
+        
+    // Verificar que el permiso pertenezca al jefe
+    const permisoValido = await executeQuery(
+      'SELECT * FROM permisos_entrada WHERE id = ? AND jefe_id = ?',
+      [permisoId, req.user.id]
+    );
+    
+    if (permisoValido.length === 0) {
+      console.log('❌ Permiso no encontrado o no pertenece al jefe');
+      return res.status(404).json({ error: 'Permiso no encontrado o no pertenece a este jefe' });
+    }
+    
+    console.log('✅ Permiso válido encontrado, procediendo con actualización');
+    
+    // Actualizar el permiso
+    const result = await executeQuery(`
+      UPDATE permisos_entrada 
+      SET tipo = ?, fecha_inicio = ?, fecha_fin = ?, hora_inicio = ?, hora_fin = ?, 
+          dias_semana = ?, observaciones = ?, activo = ?
+      WHERE id = ? AND jefe_id = ?
+    `, [tipo, fecha_inicio || null, fecha_fin || null, hora_inicio || null, hora_fin || null, 
+        dias_semana || null, observaciones || null, activo !== undefined ? activo : true, permisoId, req.user.id]);
+    
+    console.log('✅ Permiso actualizado exitosamente');
+        
+    res.json({
+      message: 'Permiso especial actualizado exitosamente',
+      permiso: {
+        id: permisoId,
+        tipo,
+        fecha_inicio,
+        fecha_fin,
+        hora_inicio,
+        hora_fin,
+        dias_semana,
+        observaciones,
+        activo
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error actualizando permiso especial:', error);
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      details: error.message 
+    });
+  }
+});
+
+// Endpoint para eliminar permiso especial
+app.delete('/api/permisos-especiales/:id', authenticateToken, async (req, res) => {
+  try {
+    // Verificar que el usuario sea jefe
+    if (req.user.role !== 'jefe') {
+      return res.status(403).json({ error: 'Solo los jefes pueden eliminar permisos especiales' });
+    }
+
+    const permisoId = parseInt(req.params.id);
+        
+    // Verificar que el permiso pertenezca al jefe
+    const permisoValido = await executeQuery(
+      'SELECT * FROM permisos_entrada WHERE id = ? AND jefe_id = ?',
+      [permisoId, req.user.id]
+    );
+    
+    if (permisoValido.length === 0) {
+      return res.status(404).json({ error: 'Permiso no encontrado o no pertenece a este jefe' });
+    }
+    
+    // Eliminar el permiso
+    await executeQuery(
+      'DELETE FROM permisos_entrada WHERE id = ? AND jefe_id = ?',
+      [permisoId, req.user.id]
+    );
+        
+    res.json({
+      message: 'Permiso especial eliminado exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 // Ruta para actualizar usuario (solo admin)
 app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    
     const userId = parseInt(req.params.id);
-    const { username, email, password, rol, nombre, apellido, telefono } = req.body;
+    const { username, email, password, rol, nombre, apellido, telefono, jefe_id } = req.body;
 
     // Verificar si el usuario existe
     const existingUsers = await executeQuery(
@@ -1541,19 +1635,42 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Verificar si el nuevo username/email ya existe en otro usuario
+    // Verificar si el nuevo username ya existe en otro usuario (solo username, no email)
     const duplicateUsers = await executeQuery(
-      'SELECT * FROM usuarios WHERE id != ? AND (username = ? OR email = ?)',
-      [userId, username, email]
+      'SELECT * FROM usuarios WHERE id != ? AND username = ?',
+      [userId, username]
     );
 
     if (duplicateUsers.length > 0) {
-      return res.status(400).json({ message: 'El usuario o email ya existe' });
+      return res.status(400).json({ message: 'El usuario ya existe' });
+    }
+
+    // Obtener rol anterior para manejar cambio de jefe
+    const rolAnterior = existingUsers[0].rol;
+
+    // Si cambia de jefe a otro rol, limpiar jefe_id de usuarios asignados
+    if (rolAnterior === 'jefe' && rol !== 'jefe') {
+      const usuariosAfectados = await executeQuery(
+        'SELECT COUNT(*) as count FROM usuarios WHERE jefe_id = ?',
+        [userId]
+      );
+      
+      if (usuariosAfectados[0].count > 0) {
+        await executeQuery(
+          'UPDATE usuarios SET jefe_id = NULL WHERE jefe_id = ?',
+          [userId]
+        );
+      }
+    }
+
+    // Validación: usuarios deben tener jefe asignado
+    if (rol === 'user' && !jefe_id) {
+      return res.status(400).json({ message: 'Los usuarios deben tener un jefe asignado' });
     }
 
     // Construir query de actualización
-    let updateFields = ['username = ?', 'email = ?', 'rol = ?', 'nombre = ?', 'apellido = ?', 'telefono = ?'];
-    let updateValues = [username, email, rol, nombre, apellido, telefono || null];
+    let updateFields = ['username = ?', 'email = ?', 'rol = ?', 'nombre = ?', 'apellido = ?', 'telefono = ?', 'jefe_id = ?'];
+    let updateValues = [username, email, rol, nombre, apellido, telefono || null, jefe_id || null];
 
     // Actualizar contraseña si se proporciona
     if (password && password.length >= 6) {
@@ -1570,14 +1687,31 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     updateValues.push(userId);
 
-
     await executeQuery(
       `UPDATE usuarios SET ${updateFields.join(', ')} WHERE id = ?`,
       updateValues
     );
 
+    // Preparar mensaje de respuesta
+    let responseMessage = 'Usuario actualizado exitosamente';
+    let usuariosAfectados = 0;
+    
+    // Si cambió de jefe a otro rol, informar sobre usuarios afectados
+    if (rolAnterior === 'jefe' && rol !== 'jefe') {
+      const usuariosSinJefe = await executeQuery(
+        'SELECT COUNT(*) as count FROM usuarios WHERE jefe_id IS NULL AND rol = ?',
+        ['user']
+      );
+      usuariosAfectados = usuariosSinJefe[0].count;
+      
+      if (usuariosAfectados > 0) {
+        responseMessage += `. ${usuariosAfectados} usuarios quedaron sin jefe asignado.`;
+      }
+    }
+
     res.json({
-      message: 'Usuario actualizado exitosamente',
+      message: responseMessage,
+      usuariosAfectados: usuariosAfectados,
       user: {
         id: userId,
         username,
@@ -1588,10 +1722,9 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-
     res.status(500).json({ 
       message: 'Error interno del servidor',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: error.message
     });
   }
 });
@@ -1740,6 +1873,219 @@ app.put('/api/config', authenticateToken, requireAdmin, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Función para limpiar solicitudes expiradas (más de 2 segundos)
+async function limpiarSolicitudesExpiradas() {
+  try {
+    const result = await executeQuery(
+      `UPDATE historial_aperturas 
+       SET status = 'timeout', message = 'Solicitud expirada - No procesada por Node-RED'
+       WHERE status = 'processing' 
+       AND timestamp < DATE_SUB(NOW(), INTERVAL 2 SECOND)`,
+      []
+    );
+    
+    if (result.affectedRows > 0) {
+    }
+  } catch (error) {
+  }
+}
+
+// Endpoint para que Node-RED consulte solicitudes pendientes (polling)
+app.get('/api/solicitudes-pendientes', async (req, res) => {
+  try {
+    
+    // Limpiar solicitudes expiradas antes de buscar nuevas
+    await limpiarSolicitudesExpiradas();
+    
+    // Buscar la solicitud más antigua con status 'processing' de los últimos 2 segundos
+    // Esto asegura que Node-RED (que consulta cada segundo) pueda leer la solicitud antes de que expire
+    const solicitudesPendientes = await executeQuery(
+      `SELECT 
+        h.id, 
+        h.usuario_id, 
+        h.status, 
+        h.message, 
+        h.location_lat, 
+        h.location_lon, 
+        h.location_accuracy, 
+        h.timestamp,
+        u.username,
+        u.rol
+       FROM historial_aperturas h
+       LEFT JOIN usuarios u ON h.usuario_id = u.id
+       WHERE h.status = 'processing' 
+       AND h.timestamp > DATE_SUB(NOW(), INTERVAL 2 SECOND)
+       ORDER BY h.timestamp ASC 
+       LIMIT 1`,
+      []
+    );
+
+    if (solicitudesPendientes.length > 0) {
+      const solicitud = solicitudesPendientes[0];
+      
+
+      // Responder con los datos de la solicitud
+      res.json({
+        haySolicitud: true,
+        accion: "Activa",
+        eventId: solicitud.id,
+        usuario: solicitud.username,
+        id_usuario: solicitud.usuario_id,
+        rol: solicitud.rol,
+        lat: solicitud.location_lat,
+        lon: solicitud.location_lon,
+        precision: solicitud.location_accuracy,
+        timestamp: solicitud.timestamp,
+        callbackUrl: `${process.env.BACKEND_URL || 'https://api-puerta.taqro.com.mx'}/api/node-red-callback`
+      });
+    } else {
+      // No hay solicitudes pendientes
+      res.json({
+        haySolicitud: false
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ 
+      haySolicitud: false,
+      error: 'Error al consultar solicitudes' 
+    });
+  }
+});
+
+// Ruta para callback de Node-RED (sin autenticación, validación por eventId)
+app.post('/api/node-red-callback', async (req, res) => {
+  try {
+    const { eventId, status, message, result } = req.body;
+
+
+    // 1. VALIDAR QUE SE PROPORCIONE eventId Y status
+    if (!eventId || !status) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'eventId y status son requeridos' 
+      });
+    }
+
+    // 2. VERIFICAR QUE EL eventId EXISTA EN LA BD
+    const existingEvent = await executeQuery(
+      'SELECT id, status, timestamp FROM historial_aperturas WHERE id = ?',
+      [eventId]
+    );
+
+    if (existingEvent.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Evento no encontrado' 
+      });
+    }
+
+    // 3. VALIDAR QUE EL EVENTO ESTÉ EN ESTADO 'PROCESSING'
+    if (existingEvent[0].status !== 'processing') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Evento ya fue procesado anteriormente' 
+      });
+    }
+
+    // 4. VALIDAR QUE EL EVENTO SEA RECIENTE (últimos 5 minutos)
+    const eventTime = new Date(existingEvent[0].timestamp);
+    const now = new Date();
+    const diffMinutes = (now - eventTime) / 1000 / 60;
+
+    if (diffMinutes > 5) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Evento expirado (más de 5 minutos)' 
+      });
+    }
+
+    // 5. VALIDAR QUE EL status SEA VÁLIDO
+    const validStatuses = ['correcto', 'fuera_de_area', 'incorrecto', 'advertencia'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Status inválido. Debe ser: correcto, fuera_de_area, incorrecto o advertencia' 
+      });
+    }
+
+    // 6. ACTUALIZAR EL REGISTRO EN BD
+    await executeQuery(
+      'UPDATE historial_aperturas SET status = ?, message = ? WHERE id = ?',
+      [status, message || 'Procesado por Node-RED', eventId]
+    );
+
+
+    // 7. EMITIR WEBSOCKET PARA NOTIFICAR AL FRONTEND EN TIEMPO REAL
+    if (wss) {
+      const notification = {
+        type: 'door_response',
+        data: {
+          eventId: eventId,
+          status: status,
+          message: message || 'Procesado',
+          result: result,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(notification));
+        }
+      });
+
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Callback procesado correctamente',
+      eventId: eventId,
+      status: status
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al procesar callback de Node-RED' 
+    });
+  }
+});
+
+// Endpoint para consultar el estado de una solicitud de puerta
+app.get('/api/door-status/:eventId', authenticateToken, async (req, res) => {
+  try {
+    const { eventId } = req.params;
+        
+    const result = await executeQuery(
+      'SELECT id, status, message, timestamp FROM historial_aperturas WHERE id = ?',
+      [eventId]
+    );
+    
+    if (result.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Solicitud no encontrada' 
+      });
+    }
+    
+    const solicitud = result[0];
+    
+    res.json({
+      success: true,
+      eventId: solicitud.id,
+      status: solicitud.status,
+      message: solicitud.message,
+      timestamp: solicitud.timestamp
+    });
+    
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al consultar estado de la solicitud' 
+    });
   }
 });
 
@@ -2285,22 +2631,11 @@ app.get('/api/active-sessions', authenticateToken, requireAdmin, async (req, res
 // Endpoint específico para notificaciones de login/logout - OPTIMIZADO
 app.get('/api/login-notifications', authenticateToken, requireAdmin, async (req, res) => {
   try {
+      
     const { type, limit = 50, offset = 0, hours = 24, user, dateFrom, dateTo } = req.query;
     
     // Consulta optimizada con índices
-    let query = `
-      SELECT 
-        id, 
-        tipo, 
-        titulo, 
-        mensaje, 
-        nombre_usuario, 
-        direccion_ip, 
-        severidad, 
-        fecha_creacion 
-      FROM notificaciones_sistema 
-      WHERE tipo IN ('login_exitoso', 'login_fallido', 'logout')
-    `;
+    let query = "SELECT id, tipo, titulo, mensaje, nombre_usuario, direccion_ip, severidad, fecha_creacion FROM notificaciones_sistema WHERE tipo IN ('login_exitoso', 'login_fallido', 'logout')";
     const params = [];
     
     // Filtro por horas (solo si se especifica explícitamente)
@@ -2390,104 +2725,73 @@ app.post('/api/cleanup-sessions', authenticateToken, requireAdmin, async (req, r
 // Ruta para obtener historial de aperturas con filtros avanzados (solo admin)
 app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
   try {
+
+    
     const { status, dateFrom, dateTo, user, page = 1, limit = 10 } = req.query;
     
     
     // Construir query base
-    let query = `
-      SELECT 
-        h.id,
-        h.usuario_id,
-        h.timestamp,
-        h.status,
-        h.message,
-        h.location_lat,
-        h.location_lon,
-        h.location_accuracy,
-        u.username,
-        u.email,
-        u.nombre,
-        u.apellido,
-        u.rol
-      FROM historial_aperturas h
-      LEFT JOIN usuarios u ON h.usuario_id = u.id
-      WHERE 1=1
-    `;
+    let query = 'SELECT h.id, h.usuario_id, h.timestamp, h.status, h.message, h.location_lat, h.location_lon, h.location_accuracy, u.username, u.email, u.nombre, u.apellido, u.rol FROM historial_aperturas h LEFT JOIN usuarios u ON h.usuario_id = u.id WHERE 1=1';
     
     const params = [];
     
     // Filtro por estado
     if (status && status !== 'all') {
-      query += ` AND h.status = ?`;
+      query += ' AND h.status = ?';
       params.push(status);
     }
     
     // Filtro por rango de fechas
     if (dateFrom && dateFrom.trim() !== '') {
-      query += ` AND DATE(h.timestamp) >= ?`;
+      query += ' AND DATE(h.timestamp) >= ?';
       params.push(dateFrom);
     }
     
     if (dateTo && dateTo.trim() !== '') {
-      query += ` AND DATE(h.timestamp) <= ?`;
+      query += ' AND DATE(h.timestamp) <= ?';
       params.push(dateTo);
     }
     
     // Filtro por usuario (búsqueda en nombre, apellido, username, email)
     if (user && user.trim() !== '') {
-      query += ` AND (
-        LOWER(u.nombre) LIKE LOWER(?) OR
-        LOWER(u.apellido) LIKE LOWER(?) OR
-        LOWER(u.username) LIKE LOWER(?) OR
-        LOWER(u.email) LIKE LOWER(?)
-      )`;
+      query += ' AND (LOWER(u.nombre) LIKE LOWER(?) OR LOWER(u.apellido) LIKE LOWER(?) OR LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?))';
       params.push(`%${user.trim()}%`, `%${user.trim()}%`, `%${user.trim()}%`, `%${user.trim()}%`);
     }
     
     // Ordenar por fecha descendente
-    query += ` ORDER BY h.timestamp DESC`;
+    query += ' ORDER BY h.timestamp DESC';
     
     // Paginación
     const offset = (parseInt(page) - 1) * parseInt(limit);
-    query += ` LIMIT ? OFFSET ?`;
+    query += ' LIMIT ? OFFSET ?';
     params.push(parseInt(limit), offset);
     
     
     const history = await executeQuery(query, params);
     
     // Contar total de registros para paginación
-    let countQuery = `
-      SELECT COUNT(*) as total
-      FROM historial_aperturas h
-      LEFT JOIN usuarios u ON h.usuario_id = u.id
-      WHERE 1=1
-    `;
+    let countQuery = 'SELECT COUNT(*) as total FROM historial_aperturas h LEFT JOIN usuarios u ON h.usuario_id = u.id WHERE 1=1';
     
     const countParams = [];
     
     // Aplicar los mismos filtros para el conteo
     if (status && status !== 'all') {
-      countQuery += ` AND h.status = ?`;
+      countQuery += ' AND h.status = ?';
       countParams.push(status);
     }
     
     if (dateFrom && dateFrom.trim() !== '') {
-      countQuery += ` AND DATE(h.timestamp) >= ?`;
+      countQuery += ' AND DATE(h.timestamp) >= ?';
       countParams.push(dateFrom);
     }
     
     if (dateTo && dateTo.trim() !== '') {
-      countQuery += ` AND DATE(h.timestamp) <= ?`;
+      countQuery += ' AND DATE(h.timestamp) <= ?';
       countParams.push(dateTo);
     }
     
     if (user && user.trim() !== '') {
-      countQuery += ` AND (
-        LOWER(u.nombre) LIKE LOWER(?) OR
-        LOWER(u.apellido) LIKE LOWER(?) OR
-        LOWER(u.username) LIKE LOWER(?) OR
-        LOWER(u.email) LIKE LOWER(?)
-      )`;
+      countQuery += ' AND (LOWER(u.nombre) LIKE LOWER(?) OR LOWER(u.apellido) LIKE LOWER(?) OR LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?))';
       countParams.push(`%${user.trim()}%`, `%${user.trim()}%`, `%${user.trim()}%`, `%${user.trim()}%`);
     }
     
@@ -2519,7 +2823,6 @@ app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
       workingHoursInfo: getWorkingHoursInfo(record.timestamp, horariosConfig)
     }));
     
-    
     res.json({
       success: true,
       history: formattedHistory,
@@ -2538,7 +2841,6 @@ app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
     });
     
   } catch (error) {
-
     
     res.status(500).json({
       success: false,
@@ -2548,6 +2850,243 @@ app.get('/api/history', authenticateToken, requireAdmin, async (req, res) => {
     });
   }
 });
+
+// ========================================
+// FUNCIONES DE VALIDACIÓN DE PERMISOS
+// ========================================
+
+// Función principal para validar permisos de acceso
+async function validarPermisoAcceso(usuarioId) {
+  try {
+    const ahora = new Date();
+    const fecha = ahora.toISOString().split('T')[0]; // YYYY-MM-DD
+    const hora = ahora.toTimeString().split(' ')[0]; // HH:MM:SS
+    const diaSemana = ahora.getDay(); // 0=Domingo, 1=Lunes, etc.
+    
+    // 0. PRIMERO: Verificar el rol del usuario
+    const usuarioInfo = await executeQuery(
+      'SELECT rol FROM usuarios WHERE id = ? AND activo = 1',
+      [usuarioId]
+    );
+    
+    if (usuarioInfo.length === 0) {
+      return { permite: false, mensaje: 'Usuario no encontrado o inactivo' };
+    }
+    
+    const rolUsuario = usuarioInfo[0].rol;
+    
+    // 🚀 ADMIN Y JEFE: Acceso libre sin restricciones de horario
+    if (rolUsuario === 'admin' || rolUsuario === 'jefe') {
+      console.log(`✅ Acceso libre para ${rolUsuario} - Sin restricciones de horario`);
+      return { 
+        permite: true, 
+        mensaje: `Acceso permitido (${rolUsuario} - sin restricciones de horario)` 
+      };
+    }
+    
+    // 👤 USUARIO: Aplicar validaciones de horarios y permisos especiales
+    console.log(`🔐 Validando permisos para usuario con rol: ${rolUsuario}`);
+    
+    // 1. Verificar si tiene permisos especiales (sobrescriben configuración global)
+    const permisosEspeciales = await executeQuery(`
+      SELECT * FROM permisos_entrada 
+      WHERE usuario_id = ? 
+      AND activo = TRUE 
+      AND (fecha_inicio IS NULL OR fecha_inicio <= ?)
+      AND (fecha_fin IS NULL OR fecha_fin >= ?)
+    `, [usuarioId, fecha, fecha]);
+    
+    console.log(`📋 Encontrados ${permisosEspeciales.length} permisos especiales para el usuario`);
+    
+    // Si tiene permisos especiales, validar contra ellos
+    if (permisosEspeciales.length > 0) {
+      console.log('🎯 Validando permisos especiales...');
+      const resultadoPermisos = await validarPermisosEspeciales(permisosEspeciales, diaSemana, hora);
+      console.log('🎯 Resultado de permisos especiales:', resultadoPermisos);
+      return resultadoPermisos;
+    }
+    
+    // 2. Si no tiene permisos especiales, usar configuración global
+    console.log('🌍 Validando contra configuración global de horarios');
+    return await validarHorariosGlobales(diaSemana, hora);
+    
+  } catch (error) {
+    console.error('❌ Error validando permisos:', error);
+    return {
+      permite: false,
+      mensaje: 'Error validando permisos de acceso'
+    };
+  }
+}
+
+// Validar contra configuración global de horarios
+async function validarHorariosGlobales(diaSemana, hora) {
+  try {
+    // Obtener configuración de horarios
+    const config = await executeQuery(
+      'SELECT valor FROM configuracion_sistema WHERE clave = ? AND activo = 1',
+      ['horarios']
+    );
+    
+    if (config.length === 0) {
+      console.log('⚠️ No se encontró configuración de horarios en la base de datos');
+      return { permite: false, mensaje: 'Configuración de horarios no encontrada' };
+    }
+    
+    console.log('📅 Configuración de horarios encontrada:', config[0].valor);
+    console.log('📅 Tipo de dato:', typeof config[0].valor);
+    
+    let horarios;
+    
+    // Verificar si ya es un objeto o si necesita ser parseado
+    if (typeof config[0].valor === 'object') {
+      console.log('📅 La configuración ya es un objeto, usando directamente');
+      horarios = config[0].valor;
+    } else if (typeof config[0].valor === 'string') {
+      console.log('📅 La configuración es un string, parseando JSON');
+      try {
+        horarios = JSON.parse(config[0].valor);
+        console.log('📅 Horarios parseados exitosamente:', horarios);
+      } catch (parseError) {
+        console.error('❌ Error parseando JSON:', parseError.message);
+        console.error('❌ JSON problemático:', config[0].valor);
+        return { permite: false, mensaje: 'Error en configuración de horarios - JSON inválido' };
+      }
+    } else {
+      console.error('❌ Tipo de dato inesperado:', typeof config[0].valor);
+      return { permite: false, mensaje: 'Error en configuración de horarios - Tipo de dato inválido' };
+    }
+    
+    // Validar estructura de horarios
+    if (!horarios.lunesViernes || !horarios.sabados || !horarios.domingos) {
+      console.error('❌ Estructura de horarios incompleta:', horarios);
+      return { permite: false, mensaje: 'Error en configuración de horarios - Estructura incompleta' };
+    }
+    
+    console.log('📅 Estructura de horarios validada correctamente');
+    console.log(`📅 Validando día: ${diaSemana} (0=Domingo, 1=Lunes, etc.), Hora: ${hora}`);
+    
+    // Lunes a Viernes (1-5)
+    if (diaSemana >= 1 && diaSemana <= 5) {
+      console.log('📅 Procesando día laboral (Lunes-Viernes)');
+      if (horarios.lunesViernes.habilitado) {
+        const inicio = horarios.lunesViernes.inicio;
+        const fin = horarios.lunesViernes.fin;
+        if (hora >= inicio && hora <= fin) {
+          return { permite: true, mensaje: 'Acceso permitido (horario laboral)' };
+        } else {
+          return { 
+            permite: false, 
+            mensaje: `Acceso denegado. Horario laboral: ${inicio} - ${fin}` 
+          };
+        }
+      } else {
+        return { permite: false, mensaje: 'Acceso denegado. Días laborales deshabilitados' };
+      }
+    }
+    
+    // Sábado (6)
+    if (diaSemana === 6) {
+      console.log('📅 Procesando sábado');
+      if (horarios.sabados.habilitado) {
+        const inicio = horarios.sabados.inicio;
+        const fin = horarios.sabados.fin;
+        if (hora >= inicio && hora <= fin) {
+          return { permite: true, mensaje: 'Acceso permitido (sábado)' };
+        } else {
+          return { 
+            permite: false, 
+            mensaje: `Acceso denegado. Horario sábado: ${inicio} - ${fin}` 
+          };
+        }
+      } else {
+        return { permite: false, mensaje: 'Acceso denegado. Sábados deshabilitados' };
+      }
+    }
+    
+    // Domingo (0)
+    if (diaSemana === 0) {
+      console.log('📅 Procesando domingo');
+      if (horarios.domingos.habilitado) {
+        const inicio = horarios.domingos.inicio;
+        const fin = horarios.domingos.fin;
+        if (hora >= inicio && hora <= fin) {
+          return { permite: true, mensaje: 'Acceso permitido (domingo)' };
+        } else {
+          return { 
+            permite: false, 
+            mensaje: `Acceso denegado. Horario domingo: ${inicio} - ${fin}` 
+          };
+        }
+      } else {
+        return { permite: false, mensaje: 'Acceso denegado. Domingos deshabilitados' };
+      }
+    }
+    
+    console.log('📅 Día no reconocido o no procesado:', diaSemana);
+    return { permite: false, mensaje: 'Acceso denegado' };
+    
+  } catch (error) {
+    console.error('❌ Error validando horarios globales:', error.message);
+    console.error('❌ Error completo:', error);
+    return { permite: false, mensaje: 'Error validando configuración de horarios' };
+  }
+}
+
+// Validar permisos especiales
+async function validarPermisosEspeciales(permisos, diaSemana, hora) {
+  const diasMap = { 0: 'D', 1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V', 6: 'S' };
+  const diaActual = diasMap[diaSemana];
+  
+  console.log(`🔍 Validando permisos especiales para día ${diaActual} a las ${hora}`);
+  
+  for (const permiso of permisos) {
+    console.log(`📋 Evaluando permiso ID ${permiso.id} - Tipo: ${permiso.tipo}`);
+    console.log(`📋 Días semana: "${permiso.dias_semana}" (${permiso.dias_semana ? 'definido' : 'NULL'})`);
+    console.log(`📋 Horario: ${permiso.hora_inicio || 'NULL'} - ${permiso.hora_fin || 'NULL'}`);
+    
+    // Verificar si aplica para este día
+    // Si dias_semana es NULL o vacío, aplica para todos los días
+    // Si dias_semana tiene valor, debe incluir el día actual
+    const aplicaParaEsteDia = !permiso.dias_semana || 
+                             permiso.dias_semana.trim() === '' || 
+                             permiso.dias_semana.includes(diaActual);
+    
+    console.log(`📋 ¿Aplica para día ${diaActual}?: ${aplicaParaEsteDia}`);
+    
+    if (aplicaParaEsteDia) {
+      console.log(`✅ Permiso aplica para día ${diaActual}`);
+      
+      // Verificar horario si está definido
+      if (permiso.hora_inicio && permiso.hora_fin) {
+        console.log(`🕐 Verificando horario: ${permiso.hora_inicio} - ${permiso.hora_fin}`);
+        if (hora >= permiso.hora_inicio && hora <= permiso.hora_fin) {
+          console.log('✅ Acceso permitido por permiso especial con horario');
+          return { 
+            permite: true, 
+            mensaje: `Acceso permitido (permiso especial: ${permiso.observaciones || 'Sin observaciones'})`,
+            permiso: permiso
+          };
+        } else {
+          console.log(`❌ Fuera de horario del permiso especial`);
+        }
+      } else {
+        // Permiso sin restricción de horario
+        console.log('✅ Acceso permitido por permiso especial sin restricción de horario');
+        return { 
+          permite: true, 
+          mensaje: `Acceso permitido (permiso especial: ${permiso.observaciones || 'Sin observaciones'})`,
+          permiso: permiso
+        };
+      }
+    } else {
+      console.log(`❌ Permiso no aplica para día ${diaActual}`);
+    }
+  }
+  
+  console.log('❌ Acceso denegado - Permisos especiales no aplican para este horario');
+  return { permite: false, mensaje: 'Acceso denegado. Permisos especiales no aplican para este horario' };
+}
 
 // Iniciar servidor
 server.listen(PORT, async () => {

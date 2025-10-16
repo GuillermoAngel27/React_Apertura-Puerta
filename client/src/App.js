@@ -12,7 +12,19 @@ function App() {
   useEffect(() => {
     // Verificar si hay un token en cookies
     verifyToken();
-  }, []);
+    
+    // Verificación periódica de sesión (cada 30 segundos)
+    const sessionCheckInterval = setInterval(() => {
+      if (isAuthenticated) {
+        verifyToken();
+      }
+    }, 30000);
+    
+    // Cleanup del interval al desmontar
+    return () => {
+      clearInterval(sessionCheckInterval);
+    };
+  }, [isAuthenticated]);
 
   // Función para leer cookie del navegador
   const getCookie = (name) => {
@@ -37,18 +49,22 @@ function App() {
     try {
       const response = await apiGet('/api/verify-token');
 
-
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
         setIsAuthenticated(true);
       } else {
         const errorData = await response.json();
-        // NOTA: NO limpiar cookie - podría ser usuario diferente en mismo dispositivo
+        
+        // Solo limpiar estado, NO las cookies (dispositivo sigue autorizado)
+        console.log('🔒 Sesión inválida detectada - Manteniendo dispositivo autorizado');
         setUser(null);
         setIsAuthenticated(false);
       }
     } catch (error) {
+      console.error('❌ Error verificando token:', error);
+      
+      // Error de conexión - solo limpiar estado, mantener dispositivo autorizado
       setUser(null);
       setIsAuthenticated(false);
     } finally {

@@ -3,17 +3,19 @@ import ConfigModal from './ConfigModal';
 import UserManagementModal from './UserManagementModal';
 import NotificationsModal from './NotificationsModal';
 import HistoryModal from './HistoryModal';
+import PermisosModal from './PermisosModal';
 import MessageContainer from './MessageContainer';
 import LogoutAnimation from './LogoutAnimation';
 import useAnimatedMessages from '../hooks/useAnimatedMessages';
 import './Dashboard.css';
-import { apiPost } from '../utils/api';
+import { apiPost, apiGet } from '../utils/api';
 
 const Dashboard = ({ user, onLogout }) => {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showUserManagementModal, setShowUserManagementModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showPermisosModal, setShowPermisosModal] = useState(false);
   const [loading, setLoading] = useState(false);
   
   const [logoutCountdown, setLogoutCountdown] = useState(0);
@@ -45,6 +47,15 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  // WebSocket deshabilitado temporalmente - usando polling manual
+  useEffect(() => {
+    console.log('🔌 WebSocket deshabilitado - Usando polling manual');
+    
+    // Cleanup al desmontar componente
+    return () => {
+      console.log('🔌 Cleanup del componente');
+    };
+  }, []); // Solo ejecutar una vez al montar
 
   const getCurrentLocation = (attempt = 1, maxAttempts = 3) => {
     return new Promise((resolve, reject) => {
@@ -179,6 +190,48 @@ const Dashboard = ({ user, onLogout }) => {
     });
   };
 
+  // Función para hacer polling del estado de la solicitud
+  const startPollingForResult = (eventId) => {
+    let pollCount = 0;
+    const maxPolls = 15; // Máximo 15 intentos (30 segundos)
+    
+    const pollInterval = setInterval(async () => {
+      pollCount++;
+      
+      try {
+        // Consultar el estado de la solicitud
+        const response = await apiGet(`/api/door-status/${eventId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.status === 'correcto') {
+            showMessage('✅ Puerta abierta exitosamente', 'success');
+            clearInterval(pollInterval);
+          } else if (data.status === 'fuera_de_area') {
+            showMessage('❌ Usuario fuera de ubicación autorizada', 'error');
+            clearInterval(pollInterval);
+          } else if (data.status === 'timeout') {
+            showMessage('⚠️ Node-RED no respondió', 'warning');
+            clearInterval(pollInterval);
+          } else if (data.status === 'incorrecto') {
+            showMessage(`🚨 Error: ${data.message}`, 'error');
+            clearInterval(pollInterval);
+          }
+          // Si status es 'processing', continuar polling
+        }
+      } catch (error) {
+        console.error('❌ Error al verificar estado:', error);
+      }
+      
+      // Detener polling después de máximo intentos
+      if (pollCount >= maxPolls) {
+        showMessage('⚠️ Tiempo de espera agotado - Verifica el estado manualmente', 'warning');
+        clearInterval(pollInterval);
+      }
+    }, 2000); // Verificar cada 2 segundos
+  };
+
   const handleAbrirPuerta = async () => {
     setLoading(true);
 
@@ -225,28 +278,32 @@ const Dashboard = ({ user, onLogout }) => {
     
 
       if (response.ok) {
-        // Verificar si la puerta se puede abrir según la respuesta del backend
+        // Manejar respuesta del backend
         
-        if (data.canOpenDoor === true) {
-          showMessage('Puerta abierta - Usuario autorizado', 'success');
+        if (data.status === 'processing') {
+          // Solicitud enviada, esperando respuesta de Node-RED
+          console.log('📝 Evento creado con ID:', data.eventId, '- Esperando respuesta de Node-RED');
+          
+          // Iniciar polling manual para verificar el estado (sin mensaje de procesando)
+          startPollingForResult(data.eventId);
+        } else if (data.status === 'correcto' || data.canOpenDoor === true) {
+          // Puerta abierta exitosamente
+          showMessage('✅ Puerta abierta exitosamente', 'success');
         } else if (data.status === 'fuera_de_area') {
-          showMessage('Usuario fuera de ubicación autorizada', 'error');
-        } else if (data.status === 'warning') {
-          showMessage(`⚠️ ${data.message}`, 'warning');
+          // Usuario fuera de ubicación autorizada
+          showMessage('❌ Usuario fuera de ubicación autorizada', 'error');
+        } else if (data.status === 'timeout') {
+          // Node-RED no respondió
+          showMessage('⚠️ Solicitud registrada - Node-RED no respondió', 'warning');
+        } else if (data.status === 'duplicate') {
+          // Solicitud duplicada
+          showMessage('⚠️ Solicitud duplicada - Espera unos segundos', 'warning');
         } else if (data.status === 'incorrecto') {
-          showMessage(`🚨 Error del sistema: ${data.message}`, 'error');
+          // Error del sistema
+          showMessage(`🚨 Error: ${data.message}`, 'error');
         } else {
-          // Fallback para otros casos - Solo mostrar éxito si realmente se puede abrir
-          if (data.canOpenDoor === true) {
-            showMessage(data.message || '🎉 ¡Puerta abierta exitosamente! Acceso autorizado', 'success');
-          } else {
-            showMessage(data.message || '🚫 Acceso denegado: Ubicación no autorizada', 'error');
-          }
-        }
-        
-        if (locationData) {
-        
-        } else {
+          // Fallback - mostrar mensaje del servidor
+          showMessage(data.message || '✅ Solicitud enviada', 'info');
         }
       } else {
         
@@ -298,13 +355,33 @@ const Dashboard = ({ user, onLogout }) => {
     
   };
 
-  const handleLogoutClick = () => {
-    setShowLogoutAnimation(true);
+  const handleLogoutClick = async () => {
+    try {
+      // PASO 1: Cerrar sesión INMEDIATAMENTE en el backend
+      // Esto invalida la sesión activa pero MANTIENE el dispositivo autorizado
+      console.log('🚪 Iniciando cierre de sesión...');
+      await apiPost('/api/logout');
+      console.log('✅ Sesión cerrada en backend - Dispositivo sigue autorizado');
+      
+      // PASO 2: Mostrar animación de confirmación
+      // NO limpiar cookies - mantener dispositivo autorizado
+      setShowLogoutAnimation(true);
+      
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      
+      // Si hay error, mostrar animación de todas formas
+      // El dispositivo seguirá autorizado para próximos logins
+      setShowLogoutAnimation(true);
+    }
   };
 
   const handleLogoutAnimationComplete = () => {
     setShowLogoutAnimation(false);
-    onLogout();
+    // Redirección directa a login sin pasar por onLogout()
+    // La sesión ya fue cerrada en el backend
+    console.log('🎬 Animación completada - Redirigiendo a login...');
+    window.location.href = '/';
   };
 
   return (
@@ -317,6 +394,7 @@ const Dashboard = ({ user, onLogout }) => {
             </div>
           </div>
           <div className="navbar-actions">
+            {/* Botones para administradores */}
             {user.role === 'admin' && (
               <>
                 <button 
@@ -345,9 +423,24 @@ const Dashboard = ({ user, onLogout }) => {
                  >
                    ⚙️
                  </button>
-               </>
-             )}
-              <button className="logout-button" onClick={handleLogoutClick}>
+              </>
+            )}
+
+            {/* Botón de permisos para jefes */}
+            {user.role === 'jefe' && (
+              <button 
+                className="permisos-button"
+                onClick={() => setShowPermisosModal(true)}
+                title="Gestionar permisos de acceso"
+              >
+                🕐
+              </button>
+            )}
+              <button 
+                className="logout-button" 
+                onClick={handleLogoutClick}
+                style={{ display: 'none' }} // 🔒 OCULTO - Código intacto para futuro uso
+              >
               ❌Salir
               </button>
           </div>
@@ -414,6 +507,7 @@ const Dashboard = ({ user, onLogout }) => {
 
        {/* Mobile Bottom Navigation */}
        <div className="mobile-bottom-nav">
+         {/* Botones para administradores */}
          {user.role === 'admin' && (
            <>
              <button 
@@ -446,10 +540,22 @@ const Dashboard = ({ user, onLogout }) => {
              </button>
            </>
          )}
+
+         {/* Botón de permisos para jefes */}
+         {user.role === 'jefe' && (
+           <button 
+             className="mobile-nav-button"
+             onClick={() => setShowPermisosModal(true)}
+           >
+             <span className="nav-icon">🕐</span>
+             <span className="nav-label"></span>
+           </button>
+         )}
         
         <button 
           className="mobile-nav-button logout"
           onClick={handleLogoutClick}
+          style={{ display: 'none' }} // 🔒 OCULTO - Código intacto para futuro uso
         >
           <span className="nav-icon">❌</span>
           <span className="nav-label"></span>
@@ -480,6 +586,13 @@ const Dashboard = ({ user, onLogout }) => {
               {showHistoryModal && (
                 <HistoryModal
                   onClose={() => setShowHistoryModal(false)}
+                />
+              )}
+
+              {showPermisosModal && (
+                <PermisosModal
+                  onClose={() => setShowPermisosModal(false)}
+                  currentUser={user}
                 />
               )}
 

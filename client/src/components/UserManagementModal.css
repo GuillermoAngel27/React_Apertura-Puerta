@@ -1225,3 +1225,66 @@
     font-size: 0.9rem;
   }
 }
+
+/* Estilos para el dropdown de jefes */
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-select option {
+  background: #1a1a1a;
+  color: #ffffff;
+  padding: 8px;
+}
+
+.form-help-text {
+  margin-top: 5px;
+  font-size: 0.85rem;
+  color: #ffc107;
+  font-style: italic;
+}
+
+/* Estilos para información del jefe en la tabla */
+.jefe-info {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.jefe-info small {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.no-jefe {
+  color: #dc3545;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Estilos móviles para información del jefe */
+@media (max-width: 768px) {
+  .jefe-info {
+    font-size: 0.85rem;
+  }
+
+  .jefe-info small {
+    font-size: 0.75rem;
+  }
+
+  .no-jefe {
+    font-size: 0.8rem;
+  }
+}

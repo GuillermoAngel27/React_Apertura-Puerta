@@ -134,7 +134,7 @@
   }
 }
 
-.register-button, .config-button, .user-management-button, .notifications-button, .history-button, .logout-button {
+.register-button, .config-button, .user-management-button, .notifications-button, .history-button, .permisos-button, .logout-button {
   padding: 12px 20px;
   border-radius: 15px;
   font-size: 0.95rem;
@@ -224,6 +224,22 @@
   background: rgba(76, 175, 80, 0.2);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+.permisos-button {
+  background: rgba(255, 152, 0, 0.1);
+  color: #FF9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  text-transform: none;
+  position: relative;
+}
+
+.permisos-button:hover {
+  background: rgba(255, 152, 0, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
 }
 
 
@@ -786,7 +802,7 @@
   }
   
   /* Ocultar botones del navbar superior en móvil */
-  .navbar .register-button, .navbar .config-button, .navbar .user-management-button, .navbar .notifications-button, .navbar .history-button, .navbar .logout-button {
+  .navbar .register-button, .navbar .config-button, .navbar .user-management-button, .navbar .notifications-button, .navbar .history-button, .navbar .permisos-button, .navbar .logout-button {
     display: none !important;
   }
   

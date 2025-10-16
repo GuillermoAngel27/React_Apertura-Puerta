@@ -6,7 +6,7 @@ const HistoryModal = ({ onClose }) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // all, correcto, incorrecto, fuera_de_area, advertencia
+  const [statusFilter, setStatusFilter] = useState('all'); // all, correcto, incorrecto, fuera_de_area, advertencia, denegado_horario, timeout, duplicate
   const [dateFrom, setDateFrom] = useState(''); // fecha desde
   const [dateTo, setDateTo] = useState(''); // fecha hasta
   const [userSearch, setUserSearch] = useState(''); // búsqueda por usuario
@@ -77,6 +77,12 @@ const HistoryModal = ({ onClose }) => {
         return '🚫';
       case 'advertencia':
         return '⚠️';
+      case 'denegado_horario':
+        return '🕐';
+      case 'timeout':
+        return '⏰';
+      case 'duplicate':
+        return '🔄';
       default:
         return '❓';
     }
@@ -92,6 +98,12 @@ const HistoryModal = ({ onClose }) => {
         return 'Fuera de área';
       case 'advertencia':
         return 'Advertencia';
+      case 'denegado_horario':
+        return 'Denegado por horario';
+      case 'timeout':
+        return 'Timeout';
+      case 'duplicate':
+        return 'Duplicado';
       default:
         return 'Desconocido';
     }
@@ -107,6 +119,12 @@ const HistoryModal = ({ onClose }) => {
         return '#FF9800';
       case 'advertencia':
         return '#FFC107';
+      case 'denegado_horario':
+        return '#FF5722';
+      case 'timeout':
+        return '#9C27B0';
+      case 'duplicate':
+        return '#607D8B';
       default:
         return '#9E9E9E';
     }
@@ -211,6 +229,9 @@ const HistoryModal = ({ onClose }) => {
                   <option value="incorrecto">❌ Incorrectos</option>
                   <option value="fuera_de_area">🚫 Fuera de área</option>
                   <option value="advertencia">⚠️ Advertencias</option>
+                  <option value="denegado_horario">🕐 Denegado por horario</option>
+                  <option value="timeout">⏰ Timeout</option>
+                  <option value="duplicate">🔄 Duplicados</option>
                 </select>
             </div>
 

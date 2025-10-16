@@ -32,8 +32,13 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     password: '',
     role: 'user',
     nombre: '',
-    apellido: ''
+    apellido: '',
+    jefe_id: null
   });
+
+  // Estados para el dropdown de jefes
+  const [jefesList, setJefesList] = useState([]);
+  const [selectedJefe, setSelectedJefe] = useState(null);
 
   // Estados para el generador de contraseñas
   const [generatedPassword, setGeneratedPassword] = useState('');
@@ -43,6 +48,13 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   useEffect(() => {
     loadUsers();
   }, [currentPage, searchTerm]);
+
+  // Cargar lista de jefes cuando se abre el modal
+  useEffect(() => {
+    if (showAddForm) {
+      loadJefesList();
+    }
+  }, [showAddForm]);
 
   // Reset page when search term changes
   useEffect(() => {
@@ -99,10 +111,47 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     }
   };
 
+  // Función para cargar lista de jefes
+  const loadJefesList = async () => {
+    try {
+      const response = await apiGet('/api/jefes');
+      if (response.ok) {
+        const jefes = await response.json();
+        setJefesList(jefes);
+      } else {
+        console.error('Error cargando jefes');
+      }
+    } catch (error) {
+      console.error('Error de conexión cargando jefes:', error);
+    }
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Si cambia el rol, resetear el jefe seleccionado
+    if (name === 'role') {
+      setSelectedJefe(null);
+      setFormData({
+        ...formData,
+        [name]: value,
+        jefe_id: null
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+  };
+
+  // Función para manejar cambio de jefe seleccionado
+  const handleJefeChange = (e) => {
+    const jefeId = e.target.value;
+    setSelectedJefe(jefeId);
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      jefe_id: jefeId || null
     });
   };
 
@@ -113,8 +162,10 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       password: '',
       role: 'user',
       nombre: '',
-      apellido: ''
+      apellido: '',
+      jefe_id: null
     });
+    setSelectedJefe(null);
     setEditingUser(null);
     setShowAddForm(false);
     setGeneratedPassword('');
@@ -206,8 +257,10 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
           password: userData.password, // Cargar contraseña actual
           role: userData.role,
           nombre: userData.nombre || '',
-          apellido: userData.apellido || ''
+          apellido: userData.apellido || '',
+          jefe_id: userData.jefe_id || null
         });
+        setSelectedJefe(userData.jefe_id || null);
         setGeneratedPassword('');
         setShowPasswordGenerator(false);
         setShowPassword(false);
@@ -391,50 +444,56 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       return;
     }
 
-    try {
-      const url = editingUser 
-        ? `http://localhost:5000/api/users/${editingUser.id}`
-        : 'http://localhost:5000/api/register';
-      
-      const method = editingUser ? 'PUT' : 'POST';
+    // Validación: usuarios deben tener jefe asignado
+    if (formData.role === 'user' && !formData.jefe_id) {
+      setError('Los usuarios deben tener un jefe asignado');
+      setLoading(false);
+      return;
+    }
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          username: formData.username,
-          email: 'user@taqro.com.mx', // Email fijo para todos los usuarios
-          password: formData.password,
-          rol: formData.role,
-          nombre: formData.nombre,
-          apellido: formData.apellido
-        }),
-      });
+    try {
+      const userData = {
+        username: formData.username,
+        email: 'user@taqro.com.mx', // Email fijo para todos los usuarios
+        password: formData.password,
+        rol: formData.role,
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        jefe_id: formData.jefe_id
+      };
+
+      const response = editingUser 
+        ? await apiPut(`/api/users/${editingUser.id}`, userData)
+        : await apiPost('/api/register', userData);
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(editingUser ? 'Usuario actualizado exitosamente' : 'Usuario registrado exitosamente');
+        // Mostrar mensaje de éxito con información adicional si hay usuarios afectados
+        let successMessage = editingUser ? 'Usuario actualizado exitosamente' : 'Usuario registrado exitosamente';
+        
+        if (data.usuariosAfectados && data.usuariosAfectados > 0) {
+          successMessage += ` ${data.usuariosAfectados} usuarios quedaron sin jefe asignado.`;
+        }
+        
+        setSuccess(successMessage);
         
         // Mensaje específico para móvil (solo para actualizaciones)
         if (editingUser) {
           setUserSpecificMessage({
             userId: editingUser.id,
             username: editingUser.username,
-            message: `✅ Usuario ${editingUser.username} actualizado exitosamente`,
+            message: `✅ ${successMessage}`,
             type: 'success'
           });
           
-          // Limpiar mensaje específico después de 4 segundos
-          setTimeout(() => setUserSpecificMessage(null), 4000);
+          // Limpiar mensaje específico después de 6 segundos (más tiempo para leer el mensaje completo)
+          setTimeout(() => setUserSpecificMessage(null), 6000);
         }
         
         loadUsers();
         resetForm();
-        setTimeout(() => setSuccess(''), 3000);
+        setTimeout(() => setSuccess(''), 5000); // Más tiempo para leer el mensaje completo
       } else {
         setError(data.message || 'Error al procesar usuario');
         
@@ -503,7 +562,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                 <div className="search-input-wrapper">
                   <input
                     type="text"
-                    placeholder="🔍 Buscar usuarios por nombre, email, usuario o rol..."
+                    placeholder="🔍 Buscar usuarios por nombre, usuario o rol..."
                     value={searchTerm}
                     onChange={handleSearchChange}
                     className="search-input"
@@ -538,6 +597,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                       <th>Nombre</th>
                       <th>Usuario</th>
                       <th>Rol</th>
+                      <th>Jefe</th>
                       <th>Token & Acciones</th>
                     </tr>
                   </thead>
@@ -555,6 +615,21 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                              user.role === 'jefe' ? '👔 Jefe de Departamento' :
                              '👤 Usuario'}
                           </span>
+                        </td>
+                        <td>
+                          {user.role === 'user' ? (
+                            user.jefe_nombre && user.jefe_apellido ? (
+                              <span className="jefe-info">
+                                {user.jefe_nombre} {user.jefe_apellido}
+                                <br />
+                                <small>({user.jefe_username})</small>
+                              </span>
+                            ) : (
+                              <span className="no-jefe">Sin jefe asignado</span>
+                            )
+                          ) : (
+                            <span className="no-jefe">-</span>
+                          )}
                         </td>
                         <td>
                           <div className="action-buttons">
@@ -625,6 +700,23 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                         <div className="user-card-label">Usuario</div>
                         <div className="user-card-value">{user.username}</div>
                       </div>
+
+                      {user.role === 'user' && (
+                        <div className="user-card-field">
+                          <div className="user-card-label">Jefe</div>
+                          <div className="user-card-value">
+                            {user.jefe_nombre && user.jefe_apellido ? (
+                              <span className="jefe-info">
+                                {user.jefe_nombre} {user.jefe_apellido}
+                                <br />
+                                <small>({user.jefe_username})</small>
+                              </span>
+                            ) : (
+                              <span className="no-jefe">Sin jefe asignado</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="user-card-actions">
@@ -821,6 +913,33 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                     <option value="admin">👑 Administrador</option>
                   </select>
                 </div>
+
+                {/* Dropdown de jefes - solo visible si el rol es 'user' */}
+                {formData.role === 'user' && (
+                  <div className="form-group">
+                    <label htmlFor="jefe_id">Jefe Responsable:</label>
+                    <select
+                      id="jefe_id"
+                      name="jefe_id"
+                      value={selectedJefe || ''}
+                      onChange={handleJefeChange}
+                      required={formData.role === 'user'}
+                      className="form-select"
+                    >
+                      <option value="">Seleccionar jefe...</option>
+                      {jefesList.map(jefe => (
+                        <option key={jefe.id} value={jefe.id}>
+                          {jefe.nombre} {jefe.apellido} ({jefe.username})
+                        </option>
+                      ))}
+                    </select>
+                    {jefesList.length === 0 && (
+                      <div className="form-help-text">
+                        ⚠️ No hay jefes disponibles. Debe crear al menos un usuario con rol "Jefe de Departamento" primero.
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {error && <div className="error-message">{error}</div>}
                 {success && <div className="success-message">{success}</div>}

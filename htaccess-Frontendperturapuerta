@@ -1,0 +1,11 @@
+# Este .htaccess es para el frontend de la puerta de acceso se  queda en la raiz de public_html/subdominios/aperturapuerta
+RewriteEngine On
+
+# Don't redirect API calls - let them go to the backend
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^(.*)$ - [L]
+
+# Serve static files from build folder
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /client/build/$1 [L]
