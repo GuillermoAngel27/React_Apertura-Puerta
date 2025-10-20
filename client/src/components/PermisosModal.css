@@ -1,18 +1,51 @@
 /* PermisosModal Component - Neural Glass Style */
 
-/* Modal Overlay */
-.permisos-modal {
-  max-width: 1000px;
-  max-height: 90vh;
+/* Modal Overlay - Específico para PermisosModal */
+.permisos-modal .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
 }
 
-/* Contenido del modal */
-.permisos-content {
+/* Modal Content - Específico para PermisosModal */
+.permisos-modal .modal-content {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 
+              0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(25px);
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  overflow: hidden;
+}
+
+.permisos-modal {
+  max-width: 1000px;
+  min-height: 600px;
+  max-height: 90vh;
+  height: auto;
+}
+
+/* Contenido del modal - Específico para PermisosModal */
+.permisos-modal .permisos-content {
   padding: 20px;
+  min-height: 400px;
   max-height: 80vh;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Información de roles */
@@ -173,11 +206,40 @@
 }
 
 /* Sección de usuarios */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 .usuarios-section h3 {
   color: #ffffff;
-  margin: 0 0 20px 0;
+  margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.refresh-button {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Búsqueda */
@@ -448,11 +510,24 @@
 @media (max-width: 768px) {
   .permisos-modal {
     margin: 10px;
+    min-height: 500px;
     max-height: 95vh;
   }
 
   .permisos-content {
     padding: 15px;
+    min-height: 400px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .section-header .refresh-button {
+    align-self: flex-start;
+    order: -1;
   }
 
   .roles-grid {
@@ -532,8 +607,13 @@
 }
 
 @media (max-width: 480px) {
+  .permisos-modal {
+    min-height: 450px;
+  }
+
   .permisos-content {
     padding: 10px;
+    min-height: 350px;
   }
 
   .horarios-globales {
@@ -556,5 +636,231 @@
   .action-button {
     padding: 10px 12px;
     font-size: 0.8rem;
+  }
+}
+
+/* Estilos para conteo de permisos */
+.permisos-count {
+  color: #4CAF50;
+  font-weight: 600;
+  background: rgba(76, 175, 80, 0.1);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  font-size: 0.9rem;
+}
+
+.sin-permisos {
+  color: #FF9800;
+  font-weight: 500;
+  background: rgba(255, 152, 0, 0.1);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  font-size: 0.9rem;
+}
+
+/* Responsive para conteo de permisos */
+@media (max-width: 768px) {
+  .permisos-count,
+  .sin-permisos {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
+}
+
+/* ======================================== */
+/* NUEVOS ESTILOS PARA DROPDOWN Y CUADRO */
+/* ======================================== */
+
+/* Contenedor del selector de usuario */
+.user-selector-container {
+  margin-bottom: 25px;
+}
+
+/* Dropdown wrapper */
+.dropdown-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Botón del dropdown */
+.dropdown-toggle {
+  width: 100%;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.dropdown-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dropdown-text {
+  flex: 1;
+  text-align: left;
+}
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+  color: #e0a3ff;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Menú del dropdown */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  margin-top: 5px;
+  max-height: 250px;
+  min-height: 120px;
+  overflow-y: auto;
+  z-index: 1000;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Items del dropdown */
+.dropdown-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: rgba(224, 163, 255, 0.1);
+}
+
+.dropdown-item.selected {
+  background: rgba(224, 163, 255, 0.2);
+}
+
+.dropdown-item-name {
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Cuadro de usuario seleccionado */
+.selected-user-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 25px;
+  backdrop-filter: blur(20px);
+  margin-top: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1),
+              0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.selected-user-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(224, 163, 255, 0.15),
+              0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Contenido del cuadro de usuario simplificado */
+.user-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.user-card-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.user-card-info h4 {
+  color: #ffffff;
+  margin: 0 0 5px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.user-card-username {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Acciones del cuadro de usuario */
+.user-card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+/* Responsive para el nuevo diseño */
+@media (max-width: 768px) {
+  .dropdown-toggle {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .dropdown-item {
+    padding: 10px 16px;
+  }
+  
+  .dropdown-item-name {
+    font-size: 0.9rem;
+  }
+  
+  .selected-user-card {
+    padding: 20px;
+  }
+  
+  .user-card-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .user-card-info h4 {
+    font-size: 1.1rem;
+  }
+  
+  .user-card-actions {
+    width: 100%;
+  }
+  
+  .user-card-actions .action-button {
+    width: 100%;
   }
 }

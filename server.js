@@ -1057,10 +1057,6 @@ app.post('/api/register', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ message: 'El usuario ya existe' });
     }
 
-    // Validación: usuarios deben tener jefe asignado
-    if (rol === 'user' && !jefe_id) {
-      return res.status(400).json({ message: 'Los usuarios deben tener un jefe asignado' });
-    }
 
     // Encriptar contraseña con sistema bidireccional
     const encryptedPassword = encryptPassword(password);
@@ -1400,17 +1396,24 @@ app.get('/api/permisos-especiales/usuarios-asignados', authenticateToken, async 
     }
 
     
-    // Obtener usuarios asignados al jefe con información de permisos
+    // Obtener usuarios asignados al jefe con conteo de permisos y último acceso
     const usuarios = await executeQuery(`
       SELECT 
         u.id, u.username, u.nombre, u.apellido, u.activo,
-        COUNT(p.id) as permisos_activos,
-        MAX(h.timestamp) as ultimo_acceso
+        COALESCE(
+          (SELECT COUNT(*) 
+           FROM permisos_entrada p 
+           WHERE p.usuario_id = u.id 
+             AND p.activo = TRUE 
+             AND (p.fecha_fin IS NULL OR p.fecha_fin >= CURDATE())
+          ), 0
+        ) as permisos_activos,
+        (SELECT MAX(timestamp) 
+         FROM historial_aperturas h 
+         WHERE h.usuario_id = u.id
+        ) as ultimo_acceso
       FROM usuarios u
-      LEFT JOIN permisos_entrada p ON u.id = p.usuario_id AND p.activo = TRUE
-      LEFT JOIN historial_aperturas h ON u.id = h.usuario_id
       WHERE u.jefe_id = ? AND u.activo = 1
-      GROUP BY u.id, u.username, u.nombre, u.apellido, u.activo
       ORDER BY u.nombre, u.apellido
     `, [req.user.id]);
     
@@ -1440,10 +1443,12 @@ app.get('/api/permisos-especiales/usuario/:id', authenticateToken, async (req, r
       return res.status(404).json({ error: 'Usuario no encontrado o no asignado a este jefe' });
     }
     
-    // Obtener permisos del usuario
+    // Obtener permisos del usuario (solo activos y vigentes)
     const permisos = await executeQuery(`
       SELECT * FROM permisos_entrada 
       WHERE usuario_id = ? 
+        AND activo = TRUE
+        AND (fecha_fin IS NULL OR fecha_fin >= CURDATE())
       ORDER BY fecha_creado DESC
     `, [usuarioId]);
     
@@ -1663,10 +1668,6 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
       }
     }
 
-    // Validación: usuarios deben tener jefe asignado
-    if (rol === 'user' && !jefe_id) {
-      return res.status(400).json({ message: 'Los usuarios deben tener un jefe asignado' });
-    }
 
     // Construir query de actualización
     let updateFields = ['username = ?', 'email = ?', 'rol = ?', 'nombre = ?', 'apellido = ?', 'telefono = ?', 'jefe_id = ?'];

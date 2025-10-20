@@ -433,7 +433,7 @@ const Dashboard = ({ user, onLogout }) => {
                 onClick={() => setShowPermisosModal(true)}
                 title="Gestionar permisos de acceso"
               >
-                🕐
+                🔑
               </button>
             )}
               <button 
@@ -543,11 +543,11 @@ const Dashboard = ({ user, onLogout }) => {
 
          {/* Botón de permisos para jefes */}
          {user.role === 'jefe' && (
-           <button 
+           <button
              className="mobile-nav-button"
              onClick={() => setShowPermisosModal(true)}
            >
-             <span className="nav-icon">🕐</span>
+             <span className="nav-icon">🔑</span>
              <span className="nav-label"></span>
            </button>
          )}

@@ -6,33 +6,60 @@
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/x-icon",
+      "purpose": "any"
     },
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#e0a3ff",
-  "background_color": "#000000",
+  "background_color": "#ffffff",
   "orientation": "portrait-primary",
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "security"],
   "lang": "es",
   "dir": "ltr",
   "scope": "/",
   "prefer_related_applications": false,
+  "offline_enabled": false,
+  "network_only": true,
   "edge_side_panel": {
     "preferred_width": 400
   },
   "launch_handler": {
     "client_mode": "navigate-existing"
-  }
+  },
+  "screenshots": [
+    {
+      "src": "logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Abrir Puerta",
+      "short_name": "Abrir",
+      "description": "Abrir la puerta rápidamente",
+      "url": "/",
+      "icons": [
+        {
+          "src": "logo192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

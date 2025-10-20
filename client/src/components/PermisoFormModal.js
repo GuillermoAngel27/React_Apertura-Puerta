@@ -17,15 +17,15 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
   
   const [formData, setFormData] = useState({
     tipo: 'horario_especial',
-    fecha_inicio: '',
-    fecha_fin: '',
-    hora_inicio: '',
-    hora_fin: '',
+    fecha_inicio: new Date().toISOString().split('T')[0],
+    fecha_fin: new Date().toISOString().split('T')[0],
+    hora_inicio: '07:00',
+    hora_fin: '23:00',
     observaciones: ''
   });
 
   // Sistema de mensajes animados
-  const { messages, showSuccess: showMsgSuccess, showError: showMsgError, removeMessage } = useAnimatedMessages();
+  const { messages, showSuccess: showMsgSuccess, showError: showMsgError, showConfirm, removeMessage } = useAnimatedMessages();
 
   useEffect(() => {
     if (usuario) {
@@ -67,10 +67,10 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
   const resetForm = () => {
     setFormData({
       tipo: 'horario_especial',
-      fecha_inicio: '',
-      fecha_fin: '',
-      hora_inicio: '',
-      hora_fin: '',
+      fecha_inicio: new Date().toISOString().split('T')[0],
+      fecha_fin: new Date().toISOString().split('T')[0],
+      hora_inicio: '07:00',
+      hora_fin: '23:00',
       observaciones: ''
     });
     setEditingPermiso(null);
@@ -107,16 +107,31 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
   };
 
   const handleEliminarPermiso = async (permisoId) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este permiso?')) {
-      return;
-    }
+    // Mostrar mensaje de confirmación en lugar del alert
+    showConfirm(
+      `¿Eliminar permiso especial?\n\nEsta acción no se puede deshacer. El permiso será eliminado permanentemente del sistema.`,
+      () => {
+        // Función de confirmación - ejecutar la eliminación
+        executeEliminarPermiso(permisoId);
+      },
+      () => {
+        // Función de cancelación - no hacer nada
+      },
+      {
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar'
+      }
+    );
+  };
 
+  // Función separada para ejecutar la eliminación
+  const executeEliminarPermiso = async (permisoId) => {
     try {
       setLoading(true);
       const response = await apiDelete(`/api/permisos-especiales/${permisoId}`);
       
       if (response.ok) {
-        setSuccess('Permiso eliminado exitosamente');
+        setSuccess('✅ Permiso eliminado exitosamente');
         loadPermisosUsuario();
         if (onSuccess) onSuccess();
       } else {
@@ -233,26 +248,29 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
       
       <div className="modal-content permiso-form-modal">
         <div className="modal-header">
-          <h2>📅 Permisos de Acceso - {usuario.nombre} {usuario.apellido}</h2>
-          <button className="close-button" onClick={onClose}>
-            ✕
-          </button>
+          <h2>📅 Agregar Permisos</h2>
         </div>
 
         <div className="permiso-content">
           {!showForm ? (
             <div className="permisos-list">
-              {/* Botón agregar */}
-              <div className="list-header">
-                <h3>Permisos Especiales</h3>
-                <button 
-                  className="add-button"
-                  onClick={handleNuevoPermiso}
-                  disabled={loading}
-                >
-                  ➕ Nuevo Permiso
-                </button>
-              </div>
+               {/* Header con botones */}
+               <div className="list-header">
+                 <button 
+                   className="back-button"
+                   onClick={onClose}
+                   title="Volver"
+                 >
+                   ← Volver
+                 </button>
+                 <button 
+                   className="add-button"
+                   onClick={handleNuevoPermiso}
+                   disabled={loading}
+                 >
+                   ➕ Permiso
+                 </button>
+               </div>
 
               {error && <div className="error-message">{error}</div>}
               {success && <div className="success-message">{success}</div>}
@@ -270,24 +288,7 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
                     <div key={permiso.id} className={`permiso-card ${!permiso.activo ? 'inactivo' : ''}`}>
                       <div className="permiso-header">
                         <div className="permiso-tipo">
-                          <span className="tipo-badge">{getTipoText(permiso.tipo)}</span>
                           {!permiso.activo && <span className="inactivo-badge">Inactivo</span>}
-                        </div>
-                        <div className="permiso-actions">
-                          <button 
-                            className="edit-btn"
-                            onClick={() => handleEditarPermiso(permiso)}
-                            title="Editar permiso"
-                          >
-                            ✏️
-                          </button>
-                          <button 
-                            className="delete-btn"
-                            onClick={() => handleEliminarPermiso(permiso.id)}
-                            title="Eliminar permiso"
-                          >
-                            🗑️
-                          </button>
                         </div>
                       </div>
                       
@@ -313,6 +314,23 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
                           </div>
                         )}
                       </div>
+                      
+                      <div className="permiso-actions">
+                        <button 
+                          className="edit-btn"
+                          onClick={() => handleEditarPermiso(permiso)}
+                          title="Editar permiso"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          className="delete-btn"
+                          onClick={() => handleEliminarPermiso(permiso.id)}
+                          title="Eliminar permiso"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}
@@ -320,15 +338,15 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
             </div>
           ) : (
             <div className="permiso-form">
-              <div className="form-header">
-                <h3>{editingPermiso ? '✏️ Editar Permiso' : '➕ Nuevo Permiso'}</h3>
-                <button 
-                  className="back-button"
-                  onClick={resetForm}
-                >
-                  ← Volver
-                </button>
-              </div>
+               <div className="form-header">
+                 <h3>{editingPermiso ? '✏️ Editar Permiso' : '➕ Nuevo Permiso'}</h3>
+                 <button 
+                   className="back-button"
+                   onClick={resetForm}
+                 >
+                   ← Volver
+                 </button>
+               </div>
 
               <form onSubmit={handleSubmit} className="form">
                 {/* Días */}
@@ -401,22 +419,22 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
                 {error && <div className="error-message">{error}</div>}
                 {success && <div className="success-message">{success}</div>}
 
-                <div className="form-actions">
-                  <button 
-                    type="submit" 
-                    className="save-button"
-                    disabled={loading}
-                  >
-                    {loading ? 'Procesando...' : (editingPermiso ? 'Actualizar' : 'Guardar')}
-                  </button>
-                  <button 
-                    type="button" 
-                    className="cancel-button"
-                    onClick={resetForm}
-                  >
-                    Cancelar
-                  </button>
-                </div>
+                 <div className="form-actions">
+                   <button 
+                     type="submit" 
+                     className="save-button"
+                     disabled={loading}
+                   >
+                     {loading ? 'Procesando...' : (editingPermiso ? 'Actualizar' : 'Guardar')}
+                   </button>
+                   <button 
+                     type="button" 
+                     className="cancel-button"
+                     onClick={resetForm}
+                   >
+                     Cancelar
+                   </button>
+                 </div>
               </form>
             </div>
           )}

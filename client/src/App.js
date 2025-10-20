@@ -10,19 +10,22 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar si hay un token en cookies
+    // Verificar si hay un token en cookies (solo al cargar la app)
     verifyToken();
     
-    // Verificación periódica de sesión (cada 30 segundos)
-    const sessionCheckInterval = setInterval(() => {
-      if (isAuthenticated) {
-        verifyToken();
+    // Detectar cuando la ventana vuelve a estar activa (solo para logging)
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isAuthenticated) {
+        console.log('👁️ Ventana reactivada - sesión activa');
+        // No hacer verificación automática - se validará en la próxima acción del usuario
       }
-    }, 30000);
+    };
     
-    // Cleanup del interval al desmontar
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup del evento al desmontar
     return () => {
-      clearInterval(sessionCheckInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isAuthenticated]);
 
@@ -56,15 +59,20 @@ function App() {
       } else {
         const errorData = await response.json();
         
-        // Solo limpiar estado, NO las cookies (dispositivo sigue autorizado)
-        console.log('🔒 Sesión inválida detectada - Manteniendo dispositivo autorizado');
-        setUser(null);
-        setIsAuthenticated(false);
+        // Solo limpiar estado si es un error de autenticación real
+        if (response.status === 401) {
+          console.log('🔒 Sesión inválida detectada - Manteniendo dispositivo autorizado');
+          setUser(null);
+          setIsAuthenticated(false);
+        } else {
+          console.log('⚠️ Error de servidor - manteniendo sesión activa');
+          // No cambiar el estado para errores de servidor
+        }
       }
     } catch (error) {
       console.error('❌ Error verificando token:', error);
       
-      // Error de conexión - solo limpiar estado, mantener dispositivo autorizado
+      // Solo limpiar estado para errores de conexión críticos
       setUser(null);
       setIsAuthenticated(false);
     } finally {

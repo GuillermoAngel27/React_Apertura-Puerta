@@ -10,13 +10,12 @@ const PermisosModal = ({ onClose, currentUser }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
   const [horariosGlobales, setHorariosGlobales] = useState(null);
   
   // Estados para modales anidados
   const [showPermisoForm, setShowPermisoForm] = useState(false);
   const [selectedUsuario, setSelectedUsuario] = useState(null);
-  const [showHistorial, setShowHistorial] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   
   // Sistema de mensajes animados
   const { messages, showSuccess, showError, removeMessage } = useAnimatedMessages();
@@ -72,11 +71,6 @@ const PermisosModal = ({ onClose, currentUser }) => {
     setShowPermisoForm(true);
   };
 
-  const handleVerHistorial = (usuario) => {
-    setSelectedUsuario(usuario);
-    setShowHistorial(true);
-  };
-
   const handlePermisoFormClose = () => {
     setShowPermisoForm(false);
     setSelectedUsuario(null);
@@ -84,17 +78,15 @@ const PermisosModal = ({ onClose, currentUser }) => {
     loadUsuariosAsignados();
   };
 
-  const handleHistorialClose = () => {
-    setShowHistorial(false);
-    setSelectedUsuario(null);
+  const handleUsuarioSelect = (usuario) => {
+    setSelectedUsuario(usuario);
+    setDropdownOpen(false);
   };
 
-  // Filtrar usuarios por término de búsqueda
-  const usuariosFiltrados = usuarios.filter(usuario => 
-    usuario.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    usuario.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    usuario.username.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleDropdownToggle = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
 
   // Función para obtener estado visual del usuario
   const getEstadoUsuario = (usuario) => {
@@ -147,7 +139,7 @@ const PermisosModal = ({ onClose, currentUser }) => {
       
       <div className="modal-content permisos-modal">
         <div className="modal-header">
-          <h2>🕐 Gestión de Permisos de Acceso</h2>
+          <h2>🔑 Gestión de Permisos de Acceso</h2>
           <button className="close-button" onClick={onClose}>
             ✕
           </button>
@@ -184,109 +176,98 @@ const PermisosModal = ({ onClose, currentUser }) => {
             </div>
           )}
 
-          {/* Lista de usuarios */}
+          {/* Sección de selección de usuario */}
           <div className="usuarios-section">
-            <h3>👥 Mis Usuarios Asignados:</h3>
-            
-            {/* Búsqueda */}
-            <div className="search-container">
-              <input
-                type="text"
-                placeholder="🔍 Buscar usuario..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              {searchTerm && (
-                <button 
-                  className="clear-search-button"
-                  onClick={() => setSearchTerm('')}
-                  title="Limpiar búsqueda"
-                >
-                  ✕
-                </button>
-              )}
+            <div className="section-header">
+              <h3>👥 Mis Usuarios Asignados:</h3>
+              <button 
+                className="refresh-button"
+                onClick={loadUsuariosAsignados}
+                disabled={loading}
+                title="Actualizar lista"
+              >
+                🔄 Actualizar
+              </button>
             </div>
-
+            
             {error && <div className="error-message">{error}</div>}
             {loading && <div className="loading-message">⏳ Cargando usuarios...</div>}
 
-            {/* Lista de usuarios */}
-            <div className="usuarios-list">
-              {usuariosFiltrados.length === 0 ? (
-                <div className="no-users">
-                  {searchTerm ? 'No se encontraron usuarios' : 'No tienes usuarios asignados'}
-                </div>
-              ) : (
-                usuariosFiltrados.map((usuario) => {
-                  const estado = getEstadoUsuario(usuario);
-                  return (
-                    <div key={usuario.id} className="usuario-card">
-                      <div className="usuario-header">
-                        <div className="usuario-info">
-                          <h4>👤 {usuario.nombre} {usuario.apellido}</h4>
-                          <span className="username">({usuario.username})</span>
-                        </div>
-                        <div className={`estado-badge ${estado.color}`}>
-                          {estado.icon} {estado.text}
-                        </div>
+            {/* Dropdown para seleccionar usuario */}
+            <div className="user-selector-container">
+              <div className="dropdown-wrapper">
+                <button 
+                  className="dropdown-toggle"
+                  onClick={handleDropdownToggle}
+                  disabled={loading || usuarios.length === 0}
+                >
+                  <span className="dropdown-text">
+                    {selectedUsuario 
+                      ? `👤 ${selectedUsuario.nombre} ${selectedUsuario.apellido}` 
+                      : 'Seleccionar usuario...'
+                    }
+                  </span>
+                  <span className={`dropdown-arrow ${dropdownOpen ? 'open' : ''}`}>▼</span>
+                </button>
+                
+                {dropdownOpen && usuarios.length > 0 && (
+                  <div className="dropdown-menu">
+                    {usuarios.map((usuario) => (
+                      <div 
+                        key={usuario.id}
+                        className={`dropdown-item ${selectedUsuario?.id === usuario.id ? 'selected' : ''}`}
+                        onClick={() => handleUsuarioSelect(usuario)}
+                      >
+                        <span className="dropdown-item-name">
+                          👤 {usuario.nombre} {usuario.apellido}
+                        </span>
                       </div>
-                      
-                      <div className="usuario-details">
-                        <div className="detail-item">
-                          <span className="label">Último acceso:</span>
-                          <span className="value">{formatFecha(usuario.ultimo_acceso)}</span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="label">Permisos especiales:</span>
-                          <span className="value">{usuario.permisos_activos}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="usuario-actions">
-                        {usuario.permisos_activos === 0 ? (
-                          <button 
-                            className="action-button primary"
-                            onClick={() => handleAgregarPermiso(usuario)}
-                            title="Agregar permiso especial"
-                          >
-                            ➕ Agregar Permiso
-                          </button>
-                        ) : (
-                          <button 
-                            className="action-button secondary"
-                            onClick={() => handleGestionarPermisos(usuario)}
-                            title="Gestionar permisos existentes"
-                          >
-                            ✏️ Gestionar
-                          </button>
-                        )}
-                        
-                        <button 
-                          className="action-button info"
-                          onClick={() => handleVerHistorial(usuario)}
-                          title="Ver historial de accesos"
-                        >
-                          📋 Ver Historial
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Cuadro de usuario seleccionado */}
+            {selectedUsuario && (
+              <div className="selected-user-card">
+                <div className="user-card-content">
+                  <div className="user-card-info">
+                    <h4>👤 {selectedUsuario.nombre} {selectedUsuario.apellido}</h4>
+                    <span className="user-card-username">({selectedUsuario.username})</span>
+                  </div>
+                  
+                  <div className="user-card-actions">
+                    {selectedUsuario.permisos_activos === 0 ? (
+                      <button 
+                        className="action-button primary"
+                        onClick={() => handleAgregarPermiso(selectedUsuario)}
+                        title="Agregar permiso especial"
+                      >
+                        ➕ Agregar Permiso
+                      </button>
+                    ) : (
+                      <button 
+                        className="action-button secondary"
+                        onClick={() => handleGestionarPermisos(selectedUsuario)}
+                        title="Gestionar permisos existentes"
+                      >
+                        ✏️ Gestionar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mensaje cuando no hay usuarios */}
+            {!loading && usuarios.length === 0 && (
+              <div className="no-users">
+                <p>No tienes usuarios asignados</p>
+              </div>
+            )}
           </div>
 
-          {/* Botón actualizar */}
-          <div className="modal-footer">
-            <button 
-              className="update-button"
-              onClick={loadUsuariosAsignados}
-              disabled={loading}
-            >
-              🔄 Actualizar
-            </button>
-          </div>
         </div>
       </div>
 
@@ -302,23 +283,6 @@ const PermisosModal = ({ onClose, currentUser }) => {
         />
       )}
 
-      {/* Modal de historial (placeholder - se implementará después) */}
-      {showHistorial && selectedUsuario && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>📋 Historial de Accesos - {selectedUsuario.nombre}</h3>
-              <button className="close-button" onClick={handleHistorialClose}>
-                ✕
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>Historial de accesos para {selectedUsuario.nombre} {selectedUsuario.apellido}</p>
-              <p><em>Esta funcionalidad se implementará en la siguiente fase.</em></p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

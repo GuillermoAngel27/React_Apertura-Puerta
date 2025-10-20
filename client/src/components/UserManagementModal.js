@@ -444,13 +444,6 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       return;
     }
 
-    // Validación: usuarios deben tener jefe asignado
-    if (formData.role === 'user' && !formData.jefe_id) {
-      setError('Los usuarios deben tener un jefe asignado');
-      setLoading(false);
-      return;
-    }
-
     try {
       const userData = {
         username: formData.username,
@@ -917,13 +910,12 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                 {/* Dropdown de jefes - solo visible si el rol es 'user' */}
                 {formData.role === 'user' && (
                   <div className="form-group">
-                    <label htmlFor="jefe_id">Jefe Responsable:</label>
+                    <label htmlFor="jefe_id">Jefe Responsable (opcional):</label>
                     <select
                       id="jefe_id"
                       name="jefe_id"
                       value={selectedJefe || ''}
                       onChange={handleJefeChange}
-                      required={formData.role === 'user'}
                       className="form-select"
                     >
                       <option value="">Seleccionar jefe...</option>
@@ -935,7 +927,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                     </select>
                     {jefesList.length === 0 && (
                       <div className="form-help-text">
-                        ⚠️ No hay jefes disponibles. Debe crear al menos un usuario con rol "Jefe de Departamento" primero.
+                        ℹ️ No hay jefes disponibles. El usuario puede ser creado sin jefe asignado.
                       </div>
                     )}
                   </div>

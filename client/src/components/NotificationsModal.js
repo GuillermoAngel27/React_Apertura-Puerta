@@ -194,11 +194,7 @@ const NotificationsModal = ({ onClose }) => {
                     <div className="notification-info">
                       <div className="notification-title">{notification.titulo}</div>
                       <div className="notification-message">{notification.mensaje}</div>
-                      <div className="notification-details">
-                        <span className="username">👤 {notification.nombre_usuario}</span>
-                        <span className="ip">🌐 {notification.direccion_ip}</span>
-                        <span className="severity">⚡ {notification.severidad}</span>
-                      </div>
+                      <div className="notification-user">👤 {notification.nombre_usuario}</div>
                     </div>
                     <div className="notification-date">
                       {formatDate(notification.fecha_creacion)}
