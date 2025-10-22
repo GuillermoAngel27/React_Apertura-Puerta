@@ -5,7 +5,7 @@ import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
 import useAnimatedMessages from '../hooks/useAnimatedMessages';
 import MessageContainer from './MessageContainer';
 
-const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
+const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) => {
   const [permisos, setPermisos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,7 +38,12 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
       setLoading(true);
       setError('');
       
-      const response = await apiGet(`/api/permisos-especiales/usuario/${usuario.id}`);
+      // Usar endpoint diferente según el modo
+      const endpoint = isAdminMode 
+        ? `/api/permisos-admin/usuario/${usuario.id}`
+        : `/api/permisos-especiales/usuario/${usuario.id}`;
+      
+      const response = await apiGet(endpoint);
       
       if (response.ok) {
         const data = await response.json();
@@ -128,7 +133,10 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
   const executeEliminarPermiso = async (permisoId) => {
     try {
       setLoading(true);
-      const response = await apiDelete(`/api/permisos-especiales/${permisoId}`);
+      const endpoint = isAdminMode 
+        ? `/api/permisos-admin/${permisoId}`
+        : `/api/permisos-especiales/${permisoId}`;
+      const response = await apiDelete(endpoint);
       
       if (response.ok) {
         setSuccess('✅ Permiso eliminado exitosamente');
@@ -185,9 +193,15 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess }) => {
 
       let response;
       if (editingPermiso) {
-        response = await apiPut(`/api/permisos-especiales/${editingPermiso.id}`, permisoData);
+        const endpoint = isAdminMode 
+          ? `/api/permisos-admin/${editingPermiso.id}`
+          : `/api/permisos-especiales/${editingPermiso.id}`;
+        response = await apiPut(endpoint, permisoData);
       } else {
-        response = await apiPost('/api/permisos-especiales', permisoData);
+        const endpoint = isAdminMode 
+          ? '/api/permisos-admin'
+          : '/api/permisos-especiales';
+        response = await apiPost(endpoint, permisoData);
       }
 
       if (response.ok) {

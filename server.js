@@ -1044,7 +1044,7 @@ app.post('/api/login', async (req, res) => {
 // Ruta para registrar nuevos usuarios (solo admin)
 app.post('/api/register', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    
+
     const { username, email, password, rol, nombre, apellido, telefono, jefe_id } = req.body;
 
     // Verificar si el username ya existe (solo username, no email)
@@ -1169,10 +1169,10 @@ app.post('/api/abrir-puerta', authenticateToken, async (req, res) => {
       status: 'processing',
       eventId: eventId,
       canOpenDoor: null, // Aún no se sabe
-      timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString()
     });
 
-
+    
   } catch (error) {
     res.status(500).json({ 
       message: 'Error interno del servidor',
@@ -1260,9 +1260,10 @@ app.get('/api/verify-auth-token', authenticateToken, (req, res) => {
 // Ruta para obtener lista de usuarios (solo admin)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
-   
-    const { page = 1, limit = 50, search = '' } = req.query;
+    
+    const { page = 1, limit = 50, search = '', role = '', active = '' } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
+    
     
     // Consulta optimizada con paginación y búsqueda incluyendo información del jefe
     let query = `SELECT 
@@ -1274,15 +1275,36 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     
     const params = [];
     
+    // Construir condiciones WHERE
+    const whereConditions = [];
+    
     // Agregar filtro de búsqueda si existe
     if (search && search.trim() !== '') {
-      query += ' WHERE (LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?) OR LOWER(u.nombre) LIKE LOWER(?) OR LOWER(u.apellido) LIKE LOWER(?))';
+      whereConditions.push('(LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?) OR LOWER(u.nombre) LIKE LOWER(?) OR LOWER(u.apellido) LIKE LOWER(?))');
       const searchTerm = `%${search.trim()}%`;
       params.push(searchTerm, searchTerm, searchTerm, searchTerm);
     }
     
+    // Agregar filtro de rol si existe
+    if (role && role.trim() !== '') {
+      whereConditions.push('u.rol = ?');
+      params.push(role.trim());
+    }
+    
+    // Agregar filtro de estado activo si existe
+    if (active !== '') {
+      whereConditions.push('u.activo = ?');
+      params.push(active === 'true' ? 1 : 0);
+    }
+    
+    // Aplicar condiciones WHERE si existen
+    if (whereConditions.length > 0) {
+      query += ' WHERE ' + whereConditions.join(' AND ');
+    }
+    
     query += ' ORDER BY u.id DESC LIMIT ? OFFSET ?';
     params.push(parseInt(limit), offset);
+    
     
     const users = await executeQuery(query, params);
     
@@ -1290,10 +1312,28 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     let countQuery = 'SELECT COUNT(*) as total FROM usuarios u';
     const countParams = [];
     
+    // Construir condiciones WHERE para el conteo
+    const countWhereConditions = [];
+    
     if (search && search.trim() !== '') {
-      countQuery += ' WHERE (LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?) OR LOWER(u.nombre) LIKE LOWER(?) OR LOWER(u.apellido) LIKE LOWER(?))';
+      countWhereConditions.push('(LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?) OR LOWER(u.nombre) LIKE LOWER(?) OR LOWER(u.apellido) LIKE LOWER(?))');
       const searchTerm = `%${search.trim()}%`;
       countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+    
+    if (role && role.trim() !== '') {
+      countWhereConditions.push('u.rol = ?');
+      countParams.push(role.trim());
+    }
+    
+    if (active !== '') {
+      countWhereConditions.push('u.activo = ?');
+      countParams.push(active === 'true' ? 1 : 0);
+    }
+    
+    // Aplicar condiciones WHERE para el conteo si existen
+    if (countWhereConditions.length > 0) {
+      countQuery += ' WHERE ' + countWhereConditions.join(' AND ');
     }
     
     const countResult = await executeQuery(countQuery, countParams);
@@ -1326,6 +1366,64 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
         itemsPerPage: parseInt(limit)
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+  }
+});
+
+// Ruta para desactivar usuario (solo admin)
+app.put('/api/users/:id/deactivate', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Verificar que el usuario existe y está activo
+    const user = await executeQuery('SELECT id, username, activo FROM usuarios WHERE id = ?', [userId]);
+    
+    if (!user.length) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    if (user[0].activo === 0) {
+      return res.status(400).json({ message: 'El usuario ya está dado de baja' });
+    }
+    
+    // Dar de baja al usuario (activo = 0)
+    await executeQuery('UPDATE usuarios SET activo = 0 WHERE id = ?', [userId]);
+    
+    res.json({ 
+      message: `Usuario ${user[0].username} dado de baja exitosamente`,
+      username: user[0].username
+    });
+    
+  } catch (error) {
+    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+  }
+});
+
+// Ruta para activar usuario (solo admin)
+app.put('/api/users/:id/activate', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Verificar que el usuario existe
+    const user = await executeQuery('SELECT id, username, activo FROM usuarios WHERE id = ?', [userId]);
+    
+    if (!user.length) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    if (user[0].activo === 1) {
+      return res.status(400).json({ message: 'El usuario ya está activo' });
+    }
+    
+    // Activar al usuario (activo = 1)
+    await executeQuery('UPDATE usuarios SET activo = 1 WHERE id = ?', [userId]);
+    
+    res.json({ 
+      message: `Usuario ${user[0].username} activado exitosamente`,
+      username: user[0].username
+    });
+    
   } catch (error) {
     res.status(500).json({ message: 'Error interno del servidor', error: error.message });
   }
@@ -1518,29 +1616,15 @@ app.post('/api/permisos-especiales', authenticateToken, async (req, res) => {
 // Endpoint para actualizar permiso especial
 app.put('/api/permisos-especiales/:id', authenticateToken, async (req, res) => {
   try {
-    console.log('🔄 Actualizando permiso especial:', req.params.id);
-    console.log('📋 Datos recibidos:', req.body);
     
     // Verificar que el usuario sea jefe
     if (req.user.role !== 'jefe') {
-      console.log('❌ Usuario no es jefe:', req.user.role);
       return res.status(403).json({ error: 'Solo los jefes pueden modificar permisos especiales' });
     }
 
     const permisoId = parseInt(req.params.id);
     const { tipo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, observaciones, activo } = req.body;
     
-    console.log('📋 Datos procesados:', {
-      permisoId,
-      tipo,
-      fecha_inicio,
-      fecha_fin,
-      hora_inicio,
-      hora_fin,
-      dias_semana,
-      observaciones,
-      activo
-    });
         
     // Verificar que el permiso pertenezca al jefe
     const permisoValido = await executeQuery(
@@ -1549,11 +1633,9 @@ app.put('/api/permisos-especiales/:id', authenticateToken, async (req, res) => {
     );
     
     if (permisoValido.length === 0) {
-      console.log('❌ Permiso no encontrado o no pertenece al jefe');
       return res.status(404).json({ error: 'Permiso no encontrado o no pertenece a este jefe' });
     }
     
-    console.log('✅ Permiso válido encontrado, procediendo con actualización');
     
     // Actualizar el permiso
     const result = await executeQuery(`
@@ -1564,7 +1646,6 @@ app.put('/api/permisos-especiales/:id', authenticateToken, async (req, res) => {
     `, [tipo, fecha_inicio || null, fecha_fin || null, hora_inicio || null, hora_fin || null, 
         dias_semana || null, observaciones || null, activo !== undefined ? activo : true, permisoId, req.user.id]);
     
-    console.log('✅ Permiso actualizado exitosamente');
         
     res.json({
       message: 'Permiso especial actualizado exitosamente',
@@ -1581,7 +1662,6 @@ app.put('/api/permisos-especiales/:id', authenticateToken, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Error actualizando permiso especial:', error);
     res.status(500).json({ 
       error: 'Error interno del servidor',
       details: error.message 
@@ -1615,6 +1695,228 @@ app.delete('/api/permisos-especiales/:id', authenticateToken, async (req, res) =
       [permisoId, req.user.id]
     );
         
+    res.json({
+      message: 'Permiso especial eliminado exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ===== ENDPOINTS PARA ADMINISTRACIÓN DE PERMISOS ESPECIALES (SOLO ADMIN) =====
+
+// Endpoint para obtener usuarios sin jefe asignado (solo admin)
+app.get('/api/permisos-admin/usuarios-sin-jefe', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const usuarios = await executeQuery(`
+      SELECT 
+        u.id, u.username, u.nombre, u.apellido, u.activo,
+        COALESCE(
+          (SELECT COUNT(*) 
+           FROM permisos_entrada p 
+           WHERE p.usuario_id = u.id 
+             AND p.activo = TRUE 
+             AND (p.fecha_fin IS NULL OR p.fecha_fin >= CURDATE())
+          ), 0
+        ) as permisos_activos,
+        (SELECT MAX(timestamp) 
+         FROM historial_aperturas h 
+         WHERE h.usuario_id = u.id
+        ) as ultimo_acceso
+      FROM usuarios u
+      WHERE u.rol = 'user' AND u.jefe_id IS NULL AND u.activo = 1
+      ORDER BY u.nombre, u.apellido
+    `);
+    
+    res.json(usuarios);
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para obtener lista de jefes (solo admin)
+app.get('/api/permisos-admin/jefes', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const jefes = await executeQuery(`
+      SELECT 
+        u.id, u.username, u.nombre, u.apellido, u.activo,
+        (SELECT COUNT(*) 
+         FROM usuarios sub_u 
+         WHERE sub_u.jefe_id = u.id AND sub_u.activo = 1
+        ) as usuarios_asignados
+      FROM usuarios u
+      WHERE u.rol = 'jefe' AND u.activo = 1
+      ORDER BY u.nombre, u.apellido
+    `);
+    
+    res.json(jefes);
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para obtener usuarios asignados a un jefe específico (solo admin)
+app.get('/api/permisos-admin/usuarios-por-jefe/:jefeId', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const jefeId = parseInt(req.params.jefeId);
+    
+    // Verificar que el jefe existe
+    const jefeExiste = await executeQuery(
+      'SELECT id, username, nombre, apellido FROM usuarios WHERE id = ? AND rol = "jefe" AND activo = 1',
+      [jefeId]
+    );
+    
+    if (jefeExiste.length === 0) {
+      return res.status(404).json({ error: 'Jefe no encontrado' });
+    }
+    
+    const usuarios = await executeQuery(`
+      SELECT 
+        u.id, u.username, u.nombre, u.apellido, u.activo,
+        COALESCE(
+          (SELECT COUNT(*) 
+           FROM permisos_entrada p 
+           WHERE p.usuario_id = u.id 
+             AND p.activo = TRUE 
+             AND (p.fecha_fin IS NULL OR p.fecha_fin >= CURDATE())
+          ), 0
+        ) as permisos_activos,
+        (SELECT MAX(timestamp) 
+         FROM historial_aperturas h 
+         WHERE h.usuario_id = u.id
+        ) as ultimo_acceso
+      FROM usuarios u
+      WHERE u.jefe_id = ? AND u.activo = 1
+      ORDER BY u.nombre, u.apellido
+    `, [jefeId]);
+    
+    res.json({
+      jefe: jefeExiste[0],
+      usuarios: usuarios
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para obtener permisos de cualquier usuario (solo admin)
+app.get('/api/permisos-admin/usuario/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const usuarioId = parseInt(req.params.id);
+    
+    // Verificar que el usuario existe
+    const usuarioExiste = await executeQuery(
+      'SELECT id, username, nombre, apellido, jefe_id FROM usuarios WHERE id = ? AND activo = 1',
+      [usuarioId]
+    );
+    
+    if (usuarioExiste.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    // Obtener permisos del usuario (solo activos y vigentes)
+    const permisos = await executeQuery(`
+      SELECT * FROM permisos_entrada 
+      WHERE usuario_id = ? 
+        AND activo = TRUE 
+        AND (fecha_fin IS NULL OR fecha_fin >= CURDATE())
+      ORDER BY fecha_creado DESC
+    `, [usuarioId]);
+    
+    res.json({
+      usuario: usuarioExiste[0],
+      permisos: permisos
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para crear permiso especial (solo admin)
+app.post('/api/permisos-admin', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { usuario_id, tipo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, observaciones } = req.body;
+    
+    // Verificar que el usuario existe
+    const usuarioExiste = await executeQuery(
+      'SELECT id, username, nombre, apellido FROM usuarios WHERE id = ? AND activo = 1',
+      [usuario_id]
+    );
+    
+    if (usuarioExiste.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    // Crear el permiso (jefe_id será null para permisos administrativos)
+    const result = await executeQuery(`
+      INSERT INTO permisos_entrada 
+      (usuario_id, jefe_id, tipo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, observaciones, activo, fecha_creado)
+      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, TRUE, NOW())
+    `, [usuario_id, tipo, fecha_inicio || null, fecha_fin || null, hora_inicio || null, hora_fin || null, dias_semana || null, observaciones || null]);
+    
+    res.json({
+      message: 'Permiso especial creado exitosamente',
+      permiso_id: result.insertId
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para actualizar permiso especial (solo admin)
+app.put('/api/permisos-admin/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const permisoId = parseInt(req.params.id);
+    const { tipo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, observaciones, activo } = req.body;
+    
+    // Verificar que el permiso existe
+    const permisoExiste = await executeQuery(
+      'SELECT * FROM permisos_entrada WHERE id = ?',
+      [permisoId]
+    );
+    
+    if (permisoExiste.length === 0) {
+      return res.status(404).json({ error: 'Permiso no encontrado' });
+    }
+    
+    // Actualizar el permiso
+    await executeQuery(`
+      UPDATE permisos_entrada 
+      SET tipo = ?, fecha_inicio = ?, fecha_fin = ?, hora_inicio = ?, hora_fin = ?, 
+          dias_semana = ?, observaciones = ?, activo = ?
+      WHERE id = ?
+    `, [tipo, fecha_inicio || null, fecha_fin || null, hora_inicio || null, hora_fin || null, 
+        dias_semana || null, observaciones || null, activo !== undefined ? activo : true, permisoId]);
+    
+    res.json({
+      message: 'Permiso especial actualizado exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para eliminar permiso especial (solo admin)
+app.delete('/api/permisos-admin/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const permisoId = parseInt(req.params.id);
+    
+    // Verificar que el permiso existe
+    const permisoExiste = await executeQuery(
+      'SELECT * FROM permisos_entrada WHERE id = ?',
+      [permisoId]
+    );
+    
+    if (permisoExiste.length === 0) {
+      return res.status(404).json({ error: 'Permiso no encontrado' });
+    }
+    
+    // Eliminar el permiso
+    await executeQuery(
+      'DELETE FROM permisos_entrada WHERE id = ?',
+      [permisoId]
+    );
+    
     res.json({
       message: 'Permiso especial eliminado exitosamente'
     });
@@ -2878,7 +3180,6 @@ async function validarPermisoAcceso(usuarioId) {
     
     // 🚀 ADMIN Y JEFE: Acceso libre sin restricciones de horario
     if (rolUsuario === 'admin' || rolUsuario === 'jefe') {
-      console.log(`✅ Acceso libre para ${rolUsuario} - Sin restricciones de horario`);
       return { 
         permite: true, 
         mensaje: `Acceso permitido (${rolUsuario} - sin restricciones de horario)` 
@@ -2886,7 +3187,6 @@ async function validarPermisoAcceso(usuarioId) {
     }
     
     // 👤 USUARIO: Aplicar validaciones de horarios y permisos especiales
-    console.log(`🔐 Validando permisos para usuario con rol: ${rolUsuario}`);
     
     // 1. Verificar si tiene permisos especiales (sobrescriben configuración global)
     const permisosEspeciales = await executeQuery(`
@@ -2897,22 +3197,17 @@ async function validarPermisoAcceso(usuarioId) {
       AND (fecha_fin IS NULL OR fecha_fin >= ?)
     `, [usuarioId, fecha, fecha]);
     
-    console.log(`📋 Encontrados ${permisosEspeciales.length} permisos especiales para el usuario`);
     
     // Si tiene permisos especiales, validar contra ellos
     if (permisosEspeciales.length > 0) {
-      console.log('🎯 Validando permisos especiales...');
       const resultadoPermisos = await validarPermisosEspeciales(permisosEspeciales, diaSemana, hora);
-      console.log('🎯 Resultado de permisos especiales:', resultadoPermisos);
       return resultadoPermisos;
     }
     
     // 2. Si no tiene permisos especiales, usar configuración global
-    console.log('🌍 Validando contra configuración global de horarios');
     return await validarHorariosGlobales(diaSemana, hora);
     
   } catch (error) {
-    console.error('❌ Error validando permisos:', error);
     return {
       permite: false,
       mensaje: 'Error validando permisos de acceso'
@@ -2930,46 +3225,33 @@ async function validarHorariosGlobales(diaSemana, hora) {
     );
     
     if (config.length === 0) {
-      console.log('⚠️ No se encontró configuración de horarios en la base de datos');
       return { permite: false, mensaje: 'Configuración de horarios no encontrada' };
     }
     
-    console.log('📅 Configuración de horarios encontrada:', config[0].valor);
-    console.log('📅 Tipo de dato:', typeof config[0].valor);
     
     let horarios;
     
     // Verificar si ya es un objeto o si necesita ser parseado
     if (typeof config[0].valor === 'object') {
-      console.log('📅 La configuración ya es un objeto, usando directamente');
       horarios = config[0].valor;
     } else if (typeof config[0].valor === 'string') {
-      console.log('📅 La configuración es un string, parseando JSON');
       try {
         horarios = JSON.parse(config[0].valor);
-        console.log('📅 Horarios parseados exitosamente:', horarios);
       } catch (parseError) {
-        console.error('❌ Error parseando JSON:', parseError.message);
-        console.error('❌ JSON problemático:', config[0].valor);
+
         return { permite: false, mensaje: 'Error en configuración de horarios - JSON inválido' };
       }
     } else {
-      console.error('❌ Tipo de dato inesperado:', typeof config[0].valor);
       return { permite: false, mensaje: 'Error en configuración de horarios - Tipo de dato inválido' };
     }
     
     // Validar estructura de horarios
     if (!horarios.lunesViernes || !horarios.sabados || !horarios.domingos) {
-      console.error('❌ Estructura de horarios incompleta:', horarios);
       return { permite: false, mensaje: 'Error en configuración de horarios - Estructura incompleta' };
     }
-    
-    console.log('📅 Estructura de horarios validada correctamente');
-    console.log(`📅 Validando día: ${diaSemana} (0=Domingo, 1=Lunes, etc.), Hora: ${hora}`);
-    
+
     // Lunes a Viernes (1-5)
     if (diaSemana >= 1 && diaSemana <= 5) {
-      console.log('📅 Procesando día laboral (Lunes-Viernes)');
       if (horarios.lunesViernes.habilitado) {
         const inicio = horarios.lunesViernes.inicio;
         const fin = horarios.lunesViernes.fin;
@@ -2988,7 +3270,6 @@ async function validarHorariosGlobales(diaSemana, hora) {
     
     // Sábado (6)
     if (diaSemana === 6) {
-      console.log('📅 Procesando sábado');
       if (horarios.sabados.habilitado) {
         const inicio = horarios.sabados.inicio;
         const fin = horarios.sabados.fin;
@@ -3007,7 +3288,6 @@ async function validarHorariosGlobales(diaSemana, hora) {
     
     // Domingo (0)
     if (diaSemana === 0) {
-      console.log('📅 Procesando domingo');
       if (horarios.domingos.habilitado) {
         const inicio = horarios.domingos.inicio;
         const fin = horarios.domingos.fin;
@@ -3024,12 +3304,9 @@ async function validarHorariosGlobales(diaSemana, hora) {
       }
     }
     
-    console.log('📅 Día no reconocido o no procesado:', diaSemana);
     return { permite: false, mensaje: 'Acceso denegado' };
     
   } catch (error) {
-    console.error('❌ Error validando horarios globales:', error.message);
-    console.error('❌ Error completo:', error);
     return { permite: false, mensaje: 'Error validando configuración de horarios' };
   }
 }
@@ -3039,12 +3316,8 @@ async function validarPermisosEspeciales(permisos, diaSemana, hora) {
   const diasMap = { 0: 'D', 1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V', 6: 'S' };
   const diaActual = diasMap[diaSemana];
   
-  console.log(`🔍 Validando permisos especiales para día ${diaActual} a las ${hora}`);
   
   for (const permiso of permisos) {
-    console.log(`📋 Evaluando permiso ID ${permiso.id} - Tipo: ${permiso.tipo}`);
-    console.log(`📋 Días semana: "${permiso.dias_semana}" (${permiso.dias_semana ? 'definido' : 'NULL'})`);
-    console.log(`📋 Horario: ${permiso.hora_inicio || 'NULL'} - ${permiso.hora_fin || 'NULL'}`);
     
     // Verificar si aplica para este día
     // Si dias_semana es NULL o vacío, aplica para todos los días
@@ -3053,27 +3326,21 @@ async function validarPermisosEspeciales(permisos, diaSemana, hora) {
                              permiso.dias_semana.trim() === '' || 
                              permiso.dias_semana.includes(diaActual);
     
-    console.log(`📋 ¿Aplica para día ${diaActual}?: ${aplicaParaEsteDia}`);
     
     if (aplicaParaEsteDia) {
-      console.log(`✅ Permiso aplica para día ${diaActual}`);
       
       // Verificar horario si está definido
       if (permiso.hora_inicio && permiso.hora_fin) {
-        console.log(`🕐 Verificando horario: ${permiso.hora_inicio} - ${permiso.hora_fin}`);
         if (hora >= permiso.hora_inicio && hora <= permiso.hora_fin) {
-          console.log('✅ Acceso permitido por permiso especial con horario');
           return { 
             permite: true, 
             mensaje: `Acceso permitido (permiso especial: ${permiso.observaciones || 'Sin observaciones'})`,
             permiso: permiso
           };
         } else {
-          console.log(`❌ Fuera de horario del permiso especial`);
         }
       } else {
         // Permiso sin restricción de horario
-        console.log('✅ Acceso permitido por permiso especial sin restricción de horario');
         return { 
           permite: true, 
           mensaje: `Acceso permitido (permiso especial: ${permiso.observaciones || 'Sin observaciones'})`,
@@ -3081,11 +3348,9 @@ async function validarPermisosEspeciales(permisos, diaSemana, hora) {
         };
       }
     } else {
-      console.log(`❌ Permiso no aplica para día ${diaActual}`);
     }
   }
   
-  console.log('❌ Acceso denegado - Permisos especiales no aplican para este horario');
   return { permite: false, mensaje: 'Acceso denegado. Permisos especiales no aplican para este horario' };
 }
 

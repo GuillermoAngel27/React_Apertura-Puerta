@@ -1,7 +1,7 @@
 /* History Modal - Neural Glass Style */
 .history-modal {
-  width: 90%;
-  max-width: 1000px;
+  width: 85%;
+  max-width: 800px;
   max-height: 90vh;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(25px);
@@ -111,6 +111,239 @@
   overflow-y: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* History Search Row - usando la misma estructura que UserManagementModal */
+.history-search-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 0px;
+}
+
+.history-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.history-status-filter-wrapper,
+.history-date-filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 180px;
+  flex-shrink: 0;
+}
+
+/* Estilos para dropdown personalizado - Neural Glass Style */
+.dropdown-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: #ffffff;
+  font-family: inherit;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.dropdown-toggle:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dropdown-text {
+  flex: 1;
+  text-align: left;
+}
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+  color: #e0a3ff;
+  font-size: 0.8rem;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.dropdown-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: rgba(224, 163, 255, 0.1);
+  color: #e0a3ff;
+}
+
+.dropdown-item.selected {
+  background: rgba(224, 163, 255, 0.15);
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+.dropdown-item-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Botón de Refresh - Neural Glass Style */
+.history-refresh-container {
+  display: flex;
+  justify-content: flex-start;
+  margin: 8px 0;
+  padding: 0 0px;
+}
+
+.history-refresh-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.history-refresh-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+}
+
+.history-refresh-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.history-refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.refresh-icon {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.history-refresh-button:hover:not(:disabled) .refresh-icon {
+  transform: rotate(180deg);
+}
+
+
+/* Responsive para el botón de refresh */
+@media (max-width: 768px) {
+  .history-refresh-container {
+    margin: 6px 0;
+    padding: 0 15px;
+  }
+  
+  .history-refresh-button {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .refresh-icon {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-refresh-container {
+    margin: 4px 0;
+    padding: 0 10px;
+  }
+  
+  .history-refresh-button {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .refresh-icon {
+    font-size: 0.8rem;
+  }
 }
 
 /* Ocultar scrollbars en WebKit */
@@ -121,19 +354,159 @@
   gap: 20px;
 }
 
-/* Filtros Mejorados - Layout Horizontal Profesional */
-.history-filters {
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  margin-bottom: 25px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
+/* Filtros individuales sin contenedor - aplicando estilos directamente */
+
+/* History Search Input - estilos específicos para HistoryModal */
+.history-search-input {
+  width: 100%;
+  padding: 12px 45px 12px 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: #ffffff;
+  font-family: inherit;
   backdrop-filter: blur(10px);
-  align-items: end;
-  flex-wrap: wrap;
+  transition: all 0.3s ease;
+}
+
+.history-search-input:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.history-search-input::placeholder {
+  color: #888;
+}
+
+.history-clear-search-button {
+  position: absolute;
+  right: 10px;
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.history-clear-search-button:hover {
+  background: rgba(255, 68, 68, 0.3);
+  transform: scale(1.1);
+}
+
+/* Estilos duplicados eliminados - ya definidos arriba con prefijos history- */
+
+/* History Dropdown - estilos específicos para HistoryModal */
+.history-dropdown-wrapper {
+  position: relative;
+  min-width: 180px;
+  flex-shrink: 0;
+}
+
+.history-dropdown-toggle {
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: #ffffff;
+  font-family: inherit;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.history-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.history-dropdown-toggle:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.history-dropdown-text {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-dropdown-arrow {
+  margin-left: 10px;
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.history-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.history-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 5px;
+}
+
+.history-dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.history-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.history-dropdown-item:hover {
+  background: rgba(224, 163, 255, 0.1);
+  color: #e0a3ff;
+}
+
+.history-dropdown-item.selected {
+  background: rgba(224, 163, 255, 0.2);
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+.history-dropdown-item-name {
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .filter-group {
@@ -168,6 +541,135 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 5px;
+}
+
+/* Estilos para dropdowns personalizados */
+.dropdown-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 1000;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #ffffff;
+  padding: 15px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.dropdown-toggle:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  box-shadow: 
+    0 0 20px rgba(224, 163, 255, 0.3),
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  transform: translateY(-1px);
+}
+
+.dropdown-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dropdown-text {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-arrow {
+  margin-left: 10px;
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+  color: #e0a3ff;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-top: 5px;
+  z-index: 9999;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-item.selected {
+  background: rgba(59, 130, 246, 0.2);
+  border-left: 3px solid #3b82f6;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item-name {
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Asegurar que los dropdowns abiertos estén por encima de todo */
+.dropdown-wrapper:has(.dropdown-menu) {
+  z-index: 10000;
+}
+
+/* Fallback para navegadores que no soportan :has() */
+.dropdown-wrapper .dropdown-menu {
+  z-index: 10000 !important;
 }
 
 .filter-buttons {
@@ -206,35 +708,68 @@
 }
 
 /* Dropdown de Estado */
-.status-dropdown {
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  color: #ffffff;
-  font-size: 14px;
-  transition: all 0.3s ease;
+.history-modal .status-dropdown {
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  border: 2px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(15px) !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease !important;
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  cursor: pointer;
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0a3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
 }
 
-.status-dropdown:focus {
+.history-modal .status-dropdown:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.history-modal .status-dropdown:focus {
   outline: none;
-  border-color: rgba(224, 163, 255, 0.3);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(224, 163, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   box-shadow: 
     0 0 0 2px rgba(224, 163, 255, 0.2),
     0 6px 20px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.status-dropdown option {
-  background: rgba(20, 20, 30, 0.95);
+.history-modal .status-dropdown option {
+  background: rgba(15, 23, 42, 0.98) !important;
   color: #ffffff;
-  padding: 8px;
+  padding: 12px 20px;
+  border: none;
+  backdrop-filter: blur(20px) !important;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.history-modal .status-dropdown option:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff;
+}
+
+.history-modal .status-dropdown option:checked {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 /* Rango de Fechas - Layout Horizontal */
@@ -260,8 +795,32 @@
   letter-spacing: 0.05em;
 }
 
-.date-input {
-  padding: 12px 16px;
+/* History Date Range - estilos específicos para HistoryModal */
+.history-date-range-wrapper {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.date-input-label {
+  font-size: 0.65rem;
+  color: #e0a3ff;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.history-date-input {
+  width: 100%;
+  padding: 6px 16px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
@@ -272,6 +831,52 @@
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.history-date-input:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.history-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.history-date-input::-webkit-datetime-edit-text,
+.history-date-input::-webkit-datetime-edit-month-field,
+.history-date-input::-webkit-datetime-edit-day-field,
+.history-date-input::-webkit-datetime-edit-year-field {
+  color: #ffffff;
+}
+
+.history-clear-filters-btn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  background: rgba(255, 68, 68, 0.1);
+  backdrop-filter: blur(10px);
+  color: #ff4444;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.history-clear-filters-btn:hover {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: rgba(255, 68, 68, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(255, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .date-input:focus {
@@ -302,23 +907,20 @@
 
 .clear-filters-btn {
   padding: 12px 20px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
   border: 1px solid rgba(255, 68, 68, 0.3);
   background: rgba(255, 68, 68, 0.1);
   backdrop-filter: blur(10px);
   color: #ff4444;
   cursor: pointer;
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 5px;
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  align-self: flex-end;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .clear-filters-btn:hover {
@@ -377,7 +979,7 @@
 
 .history-item {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   padding: 20px;
   transition: all 0.3s ease;
@@ -385,6 +987,40 @@
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+/* Colores de fondo neural glass para diferentes tipos de acceso */
+.history-item[style*="rgba(76, 175, 80, 0.05)"] {
+  background: rgba(76, 175, 80, 0.05) !important;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 4px 15px rgba(76, 175, 80, 0.1),
+    inset 0 1px 0 rgba(76, 175, 80, 0.1);
+}
+
+.history-item[style*="rgba(244, 67, 54, 0.05)"] {
+  background: rgba(244, 67, 54, 0.05) !important;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 4px 15px rgba(244, 67, 54, 0.1),
+    inset 0 1px 0 rgba(244, 67, 54, 0.1);
+}
+
+.history-item[style*="rgba(255, 193, 7, 0.05)"] {
+  background: rgba(255, 193, 7, 0.05) !important;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 4px 15px rgba(255, 193, 7, 0.1),
+    inset 0 1px 0 rgba(255, 193, 7, 0.1);
+}
+
+.history-item[style*="rgba(158, 158, 158, 0.05)"] {
+  background: rgba(158, 158, 158, 0.05) !important;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 4px 15px rgba(158, 158, 158, 0.1),
+    inset 0 1px 0 rgba(158, 158, 158, 0.1);
 }
 
 .history-item:hover {
@@ -394,6 +1030,66 @@
   box-shadow: 
     0 8px 25px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Botón Toggle para expandir/contraer detalles */
+.history-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.history-toggle-btn:hover {
+  background: rgba(224, 163, 255, 0.1);
+  border-color: rgba(224, 163, 255, 0.3);
+  transform: scale(1.05);
+  box-shadow: 
+    0 4px 12px rgba(224, 163, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.history-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.toggle-icon {
+  font-size: 0.7rem;
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.toggle-icon.open {
+  transform: rotate(180deg);
+}
+
+/* Animación para history-details */
+.history-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.history-details.expanded {
+  max-height: 500px;
+  opacity: 1;
+  margin-top: 15px;
 }
 
 .history-header {
@@ -409,16 +1105,28 @@
   gap: 5px;
 }
 
+.user-name-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
 .user-name {
   font-size: 16px;
   font-weight: 600;
   color: #ffffff;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  line-height: 1.3;
 }
 
 .user-role {
   font-size: 12px;
   color: #e0a3ff;
   font-weight: 500;
+  align-self: flex-start;
 }
 
 .history-status {
@@ -445,9 +1153,109 @@
 .history-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   font-size: 14px;
   color: #cccccc;
+}
+
+/* Badge Principal de Tipo de Acceso */
+.access-type-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.access-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.access-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  flex: 1;
+}
+
+.access-description {
+  font-size: 12px;
+  color: #cccccc;
+  font-style: italic;
+  flex: 2;
+}
+
+/* Información de Validación */
+.validation-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.validation-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.validation-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e0a3ff;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.validation-value {
+  font-size: 12px;
+  font-weight: 500;
+  flex: 1;
+}
+
+/* Información Técnica */
+.technical-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.info-item strong {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Timestamp en header */
+.history-timestamp {
+  font-size: 12px;
+  color: #cccccc;
+  font-family: 'Courier New', monospace;
+  margin-top: 4px;
 }
 
 .history-details strong {
@@ -626,6 +1434,135 @@
   letter-spacing: 0.02em;
 }
 
+/* Desktop Layout - Botón al lado del nombre */
+@media (min-width: 769px) {
+  .user-name-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+    margin-bottom: 0;
+  }
+  
+  .user-role-container {
+    display: block;
+  }
+  
+  .user-name {
+    flex: 1;
+  }
+  
+  .history-toggle-btn {
+    flex-shrink: 0;
+  }
+}
+
+/* Responsive para pantallas grandes (PC) */
+@media (min-width: 1400px) {
+  .history-modal {
+    max-width: 900px;
+  }
+  
+  .history-filters {
+    gap: 25px;
+    padding: 25px;
+  }
+  
+  .filter-group:nth-child(1) {
+    flex: 1.8; /* Búsqueda de usuario más ancha en PC */
+  }
+  
+  .filter-group:nth-child(2) {
+    flex: 1.2; /* Estado dropdown más ancho */
+  }
+  
+  .filter-group:nth-child(3) {
+    flex: 2.5; /* Rango de fechas mucho más ancho */
+  }
+  
+  .filter-group:nth-child(4) {
+    flex: 0 0 auto;
+  }
+  
+  .filter-group:nth-child(5) {
+    flex: 0 0 auto;
+  }
+  
+  .filter-label {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  
+  .dropdown-toggle {
+    padding: 18px 25px;
+    font-size: 1.1rem;
+  }
+  
+  .user-search-input {
+    padding: 18px 25px;
+    font-size: 1.1rem;
+  }
+  
+  .date-input {
+    padding: 18px 20px;
+    font-size: 1.1rem;
+  }
+  
+  .clear-filters-btn {
+    padding: 18px 25px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Responsive para pantallas medianas-grandes */
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .history-modal {
+    max-width: 850px;
+  }
+  
+  .history-filters {
+    gap: 22px;
+    padding: 22px;
+  }
+  
+  .filter-group:nth-child(1) {
+    flex: 1.6;
+  }
+  
+  .filter-group:nth-child(2) {
+    flex: 1.1;
+  }
+  
+  .filter-group:nth-child(3) {
+    flex: 2.2;
+  }
+  
+  .filter-label {
+    font-size: 14px;
+    margin-bottom: 7px;
+  }
+  
+  .dropdown-toggle {
+    padding: 16px 22px;
+    font-size: 1.05rem;
+  }
+  
+  .user-search-input {
+    padding: 16px 22px;
+    font-size: 1.05rem;
+  }
+  
+  .date-input {
+    padding: 16px 18px;
+    font-size: 1.05rem;
+  }
+  
+  .clear-filters-btn {
+    padding: 16px 22px;
+    font-size: 1.05rem;
+  }
+}
+
 /* Responsive para pantallas medianas */
 @media (max-width: 1024px) and (min-width: 769px) {
   .history-filters {
@@ -661,15 +1598,85 @@
     padding: 15px;
   }
   
-  /* Filtros móvil con Flexbox optimizado */
-  .history-filters {
-    display: flex;
+  /* History Search Row móvil - usando la misma estructura que UserManagementModal */
+  .history-search-row {
     flex-direction: column;
-    padding: 15px;
-    gap: 12px;
+    gap: 15px;
     align-items: stretch;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+  }
+  
+  .history-search-input-wrapper {
+    flex: none;
+    order: 1;
+  }
+  
+  .history-status-filter-wrapper {
+    flex: none;
+    order: 2;
+    min-width: unset;
+  }
+  
+  .history-date-filter-wrapper {
+    flex: none;
+    order: 3;
+    min-width: unset;
+  }
+  
+  .history-date-range-wrapper {
+    flex-direction: row;
+    gap: 8px;
+    flex: 1;
+  }
+  
+  .date-input-group {
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .date-input-label {
+    font-size: 0.7rem;
+    margin-bottom: 1px;
+  }
+  
+  .history-date-input {
+    width: 100%;
+    min-width: 0;
+    flex: 1;
+  }
+  
+  .history-clear-filters-btn {
+    order: 4;
+    align-self: center;
+    width: auto;
+    padding: 10px 15px;
+  }
+  
+  /* Ajustes para el botón toggle en móvil */
+  .user-name-container {
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+  
+  .user-name {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+  
+  .user-role {
+    font-size: 11px;
+  }
+  
+  .history-toggle-btn {
+    min-width: 24px;
+    height: 24px;
+    padding: 4px 6px;
+    font-size: 0.6rem;
+    flex-shrink: 0;
+  }
+  
+  .toggle-icon {
+    font-size: 0.6rem;
   }
   
   .filter-group {
@@ -775,6 +1782,62 @@
   .history-item {
     padding: 15px;
   }
+  
+  /* Responsive para nuevos badges */
+  .access-type-badge {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  
+  .access-text {
+    font-size: 13px;
+  }
+  
+  .access-description {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  
+  .validation-info {
+    padding: 10px;
+    gap: 6px;
+  }
+  
+  .validation-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 4px 0;
+  }
+  
+  .validation-label {
+    min-width: unset;
+    font-size: 11px;
+  }
+  
+  .validation-value {
+    font-size: 11px;
+  }
+  
+  .technical-info {
+    padding: 10px;
+    gap: 6px;
+  }
+  
+  .info-item {
+    font-size: 12px;
+  }
+  
+  .info-item strong {
+    font-size: 11px;
+  }
+  
+  .history-timestamp {
+    font-size: 11px;
+    margin-top: 2px;
+  }
 }
 
 /* Pantallas muy pequeñas - Optimización adicional */
@@ -798,9 +1861,16 @@
   }
   
   /* Filtros ultra compactos */
-  .history-filters {
-    padding: 12px;
-    gap: 10px;
+  .search-input-wrapper,
+  .status-filter-wrapper,
+  .date-filter-wrapper {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .clear-filters-btn {
+    padding: 10px 16px;
+    margin-bottom: 10px;
   }
   
   .filter-group {
@@ -828,6 +1898,26 @@
     padding: 10px 8px;
     font-size: 13px;
     min-height: 42px;
+  }
+  
+  /* Datepickers específicos para móvil */
+  .history-date-range-wrapper {
+    flex-direction: row !important;
+    gap: 6px;
+    flex: 1;
+  }
+  
+  .date-input-group {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .history-date-input {
+    width: 100%;
+    min-width: 0;
+    flex: 1;
+    padding: 8px 6px;
+    font-size: 12px;
   }
   
   .date-input-label {

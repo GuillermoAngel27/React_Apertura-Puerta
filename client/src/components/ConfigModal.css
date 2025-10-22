@@ -119,39 +119,6 @@
   font-size: 0.9rem;
 }
 
-.form-group label {
-  color: #e0a3ff;
-  font-weight: 500;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 8px;
-  display: block;
-}
-
-.form-group input[type="url"] {
-  padding: 15px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  font-size: 1rem;
-  color: #ffffff;
-  font-family: inherit;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  width: 100%;
-}
-
-.form-group input[type="url"]:focus {
-  outline: none;
-  border-color: #e0a3ff;
-  box-shadow: 0 0 20px rgba(224, 163, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.form-group input[type="text"]::placeholder {
-  color: #888;
-}
 
 
 .success-message {
@@ -299,16 +266,6 @@
     width: 20px;
   }
   
-  .form-group label {
-    font-size: 0.85rem;
-    margin-bottom: 10px;
-  }
-  
-  .form-group input[type="text"] {
-    padding: 12px 15px;
-    font-size: 0.9rem;
-    border-radius: 10px;
-  }
   
   .form-actions {
     flex-direction: column;
@@ -406,16 +363,6 @@
     width: 18px;
   }
   
-  .form-group label {
-    font-size: 0.8rem;
-    margin-bottom: 8px;
-  }
-  
-  .form-group input[type="text"] {
-    padding: 10px 12px;
-    font-size: 0.85rem;
-    border-radius: 8px;
-  }
   
   .form-actions {
     gap: 10px;
@@ -481,10 +428,6 @@
     font-size: 0.8rem;
   }
   
-  .form-group input[type="text"] {
-    padding: 8px 10px;
-    font-size: 0.8rem;
-  }
   
   .save-button,
   .cancel-button {
@@ -508,10 +451,6 @@
     touch-action: manipulation;
   }
   
-  .form-group input[type="text"] {
-    min-height: 44px;
-    touch-action: manipulation;
-  }
   
   .save-button,
   .cancel-button {
@@ -526,15 +465,13 @@
   }
   
   /* Better focus states for touch devices */
-  .time-inputs input[type="time"]:focus,
-  .form-group input[type="text"]:focus {
+  .time-inputs input[type="time"]:focus {
     transform: scale(1.02);
     box-shadow: 0 0 20px rgba(224, 163, 255, 0.4);
   }
   
   /* Prevent zoom on input focus */
-  .time-inputs input[type="time"],
-  .form-group input[type="text"] {
+  .time-inputs input[type="time"] {
     font-size: 16px;
   }
 }

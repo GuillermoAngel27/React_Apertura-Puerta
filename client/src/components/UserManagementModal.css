@@ -106,7 +106,7 @@
 }
 
 .user-management-modal {
-  max-width: 900px;
+  max-width: 1200px;
   max-height: 90vh;
   width: 95vw;
 }
@@ -137,12 +137,12 @@
   display: none;
 }
 
-/* Search and Add Button Row */
+/* Search, Filter and Add Button Row */
 .search-add-row {
   display: flex;
   gap: 15px;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 2px;
 }
 
 .search-input-wrapper {
@@ -150,6 +150,16 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
+}
+
+.role-filter-wrapper,
+.active-filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 180px;
+  flex-shrink: 0;
 }
 
 .search-input {
@@ -196,6 +206,92 @@
 .clear-search-button:hover {
   background: rgba(255, 68, 68, 0.3);
   transform: scale(1.1);
+}
+
+.user-management-modal .role-filter-select,
+.user-management-modal .active-filter-select {
+  width: 100% !important;
+  padding: 15px 20px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 2px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  backdrop-filter: blur(15px) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0a3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
+}
+
+.user-management-modal .role-filter-select:focus,
+.user-management-modal .active-filter-select:focus {
+  outline: none;
+  border-color: #e0a3ff !important;
+  box-shadow: 
+    0 0 20px rgba(224, 163, 255, 0.3),
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px) !important;
+  transform: translateY(-1px);
+}
+
+.user-management-modal .role-filter-select:active,
+.user-management-modal .active-filter-select:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 0 15px rgba(224, 163, 255, 0.2),
+    0 4px 15px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.user-management-modal .role-filter-select:hover,
+.user-management-modal .active-filter-select:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.user-management-modal .role-filter-select option,
+.user-management-modal .active-filter-select option {
+  background: rgba(15, 23, 42, 0.98) !important;
+  color: #ffffff;
+  padding: 12px 20px;
+  border: none;
+  backdrop-filter: blur(20px) !important;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.user-management-modal .role-filter-select option:hover,
+.user-management-modal .active-filter-select option:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff;
+}
+
+.user-management-modal .role-filter-select option:checked,
+.user-management-modal .active-filter-select option:checked {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .table-header {
@@ -334,6 +430,40 @@
 .delete-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.toggle-status-button {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.toggle-status-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+}
+
+.toggle-status-button:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Form Styles */
@@ -564,7 +694,7 @@
 }
 
 .form-group input,
-.form-group select {
+.form-group select:not(.role-filter-select):not(.active-filter-select):not(.form-select) {
   padding: 12px 15px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -577,7 +707,7 @@
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus:not(.role-filter-select):not(.active-filter-select):not(.form-select) {
   outline: none;
   border-color: #e0a3ff;
   box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
@@ -588,7 +718,7 @@
   color: #888;
 }
 
-.form-group select option {
+.form-group select option:not(.role-filter-select option):not(.active-filter-select option):not(.form-select option) {
   background: #1a1a1a;
   color: #ffffff;
 }
@@ -789,6 +919,17 @@
     order: 2;
   }
   
+  .role-filter-wrapper,
+  .active-filter-wrapper {
+    flex: none;
+    order: 3;
+    min-width: unset;
+  }
+  
+  .active-filter-wrapper {
+    order: 4;
+  }
+  
   .add-user-button {
     order: 1;
     align-self: flex-end;
@@ -985,6 +1126,34 @@
     background: rgba(255, 68, 68, 0.2);
     border-color: rgba(255, 68, 68, 0.3);
     transform: translateY(-1px);
+  }
+  
+  .mobile-toggle-button {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-toggle-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+  }
+  
+  .mobile-toggle-button:active {
+    transform: translateY(0);
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
   
   .form-header {
@@ -1195,6 +1364,12 @@
     order: 2;
   }
   
+  .user-management-modal .role-filter-select,
+  .user-management-modal .active-filter-select {
+    padding: 12px 16px !important;
+    font-size: 0.9rem;
+  }
+  
   /* Extra small mobile form buttons */
   .form-actions {
     gap: 12px;
@@ -1227,27 +1402,83 @@
 }
 
 /* Estilos para el dropdown de jefes */
-.form-select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+.user-management-modal .form-select {
+  width: 100% !important;
+  padding: 15px 20px !important;
+  border: 2px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  backdrop-filter: blur(15px) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0a3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
+}
+
+.user-management-modal .form-select:focus {
+  outline: none;
+  border-color: #e0a3ff !important;
+  box-shadow: 
+    0 0 20px rgba(224, 163, 255, 0.3),
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px) !important;
+  transform: translateY(-1px);
+}
+
+.user-management-modal .form-select:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 0 15px rgba(224, 163, 255, 0.2),
+    0 4px 15px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.user-management-modal .form-select:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.user-management-modal .form-select option {
+  background: rgba(15, 23, 42, 0.98) !important;
   color: #ffffff;
-  font-size: 14px;
+  padding: 12px 20px;
+  border: none;
+  backdrop-filter: blur(20px) !important;
+  font-size: 0.95rem;
+  font-weight: 500;
   transition: all 0.3s ease;
 }
 
-.form-select:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+.user-management-modal .form-select option:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff;
 }
 
-.form-select option {
-  background: #1a1a1a;
+.user-management-modal .form-select option:checked {
+  background: rgba(59, 130, 246, 0.2) !important;
   color: #ffffff;
-  padding: 8px;
+  font-weight: 600;
 }
 
 .form-help-text {

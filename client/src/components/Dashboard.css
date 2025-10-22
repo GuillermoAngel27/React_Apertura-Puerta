@@ -134,7 +134,7 @@
   }
 }
 
-.register-button, .config-button, .user-management-button, .notifications-button, .history-button, .permisos-button, .logout-button {
+.register-button, .config-button, .user-management-button, .notifications-button, .history-button, .permisos-button, .admin-permisos-button, .logout-button {
   padding: 12px 20px;
   border-radius: 15px;
   font-size: 0.95rem;
@@ -242,6 +242,22 @@
   box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
 }
 
+.admin-permisos-button {
+  background: rgba(156, 39, 176, 0.1);
+  color: #9C27B0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
+  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  text-transform: none;
+  position: relative;
+}
+
+.admin-permisos-button:hover {
+  background: rgba(156, 39, 176, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(156, 39, 176, 0.3);
+}
+
 
 @keyframes pulse {
   0% {
@@ -282,7 +298,7 @@
 }
 
 .control-panel {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0);
   backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 25px;
@@ -521,7 +537,7 @@
 }
 
 .info-panel {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.008);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   padding: 30px 25px;
@@ -552,7 +568,7 @@
 }
 
 .fullname-display {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 400;
   color: #ffffff;
   opacity: 0.85;
@@ -802,7 +818,7 @@
   }
   
   /* Ocultar botones del navbar superior en móvil */
-  .navbar .register-button, .navbar .config-button, .navbar .user-management-button, .navbar .notifications-button, .navbar .history-button, .navbar .permisos-button, .navbar .logout-button {
+  .navbar .register-button, .navbar .config-button, .navbar .user-management-button, .navbar .notifications-button, .navbar .history-button, .navbar .permisos-button, .navbar .admin-permisos-button, .navbar .logout-button {
     display: none !important;
   }
   

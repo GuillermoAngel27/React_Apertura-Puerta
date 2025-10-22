@@ -151,7 +151,7 @@
 }
 
 .form-group input,
-.form-group select {
+.form-group select:not(.status-dropdown) {
   padding: 15px 20px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -164,7 +164,7 @@
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus:not(.status-dropdown) {
   outline: none;
   border-color: #e0a3ff;
   box-shadow: 0 0 20px rgba(224, 163, 255, 0.3);
@@ -175,7 +175,7 @@
   color: #888;
 }
 
-.form-group select option {
+.form-group select option:not(.status-dropdown option) {
   background: #1a1a1a;
   color: #ffffff;
 }
@@ -344,7 +344,7 @@
   }
   
   .form-group input,
-  .form-group select {
+  .form-group select:not(.status-dropdown) {
     padding: 10px 12px;
     font-size: 0.85rem;
   }

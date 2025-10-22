@@ -16,7 +16,6 @@ function App() {
     // Detectar cuando la ventana vuelve a estar activa (solo para logging)
     const handleVisibilityChange = () => {
       if (!document.hidden && isAuthenticated) {
-        console.log('👁️ Ventana reactivada - sesión activa');
         // No hacer verificación automática - se validará en la próxima acción del usuario
       }
     };
@@ -61,16 +60,13 @@ function App() {
         
         // Solo limpiar estado si es un error de autenticación real
         if (response.status === 401) {
-          console.log('🔒 Sesión inválida detectada - Manteniendo dispositivo autorizado');
           setUser(null);
           setIsAuthenticated(false);
         } else {
-          console.log('⚠️ Error de servidor - manteniendo sesión activa');
           // No cambiar el estado para errores de servidor
         }
       }
     } catch (error) {
-      console.error('❌ Error verificando token:', error);
       
       // Solo limpiar estado para errores de conexión críticos
       setUser(null);

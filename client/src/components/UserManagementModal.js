@@ -21,10 +21,35 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [activeFilter, setActiveFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(5);
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  
+  // Estados para dropdowns personalizados
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const [activeDropdownOpen, setActiveDropdownOpen] = useState(false);
+  const [formRoleDropdownOpen, setFormRoleDropdownOpen] = useState(false);
+  const [formJefeDropdownOpen, setFormJefeDropdownOpen] = useState(false);
+
+  // Cerrar dropdowns al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-wrapper')) {
+        setRoleDropdownOpen(false);
+        setActiveDropdownOpen(false);
+        setFormRoleDropdownOpen(false);
+        setFormJefeDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -47,7 +72,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
 
   useEffect(() => {
     loadUsers();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, roleFilter, activeFilter]);
 
   // Cargar lista de jefes cuando se abre el modal
   useEffect(() => {
@@ -56,12 +81,12 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     }
   }, [showAddForm]);
 
-  // Reset page when search term changes
+  // Reset page when search term, role filter, or active filter changes
   useEffect(() => {
-    if (searchTerm !== '') {
+    if (searchTerm !== '' || roleFilter !== '' || activeFilter !== '') {
       setCurrentPage(1);
     }
-  }, [searchTerm]);
+  }, [searchTerm, roleFilter, activeFilter]);
 
   const loadUsers = async () => {
     try {
@@ -71,7 +96,9 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       const params = new URLSearchParams({
         page: currentPage,
         limit: usersPerPage,
-        search: searchTerm
+        search: searchTerm,
+        role: roleFilter,
+        active: activeFilter
       });
 
       const response = await apiGet(`/api/users?${params}`);
@@ -222,6 +249,47 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     setSearchTerm(e.target.value);
   };
 
+  const handleRoleFilterChange = (e) => {
+    setRoleFilter(e.target.value);
+  };
+
+  const handleActiveFilterChange = (e) => {
+    setActiveFilter(e.target.value);
+  };
+
+  // Funciones para dropdowns personalizados
+  const handleRoleSelect = (role) => {
+    setRoleFilter(role);
+    setRoleDropdownOpen(false);
+    setCurrentPage(1);
+  };
+
+  const handleActiveSelect = (active) => {
+    setActiveFilter(active);
+    setActiveDropdownOpen(false);
+    setCurrentPage(1);
+  };
+
+  // Funciones para dropdowns del formulario
+  const handleFormRoleSelect = (role) => {
+    setFormData({
+      ...formData,
+      role: role,
+      jefe_id: null // Reset jefe cuando cambia el rol
+    });
+    setSelectedJefe(null);
+    setFormRoleDropdownOpen(false);
+  };
+
+  const handleFormJefeSelect = (jefeId) => {
+    setSelectedJefe(jefeId);
+    setFormData({
+      ...formData,
+      jefe_id: jefeId || null
+    });
+    setFormJefeDropdownOpen(false);
+  };
+
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
@@ -362,6 +430,81 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         cancelText: 'Cancelar'
       }
     );
+  };
+
+  // Función para manejar activar/desactivar usuario
+  const handleToggleUserStatus = async (userId, username, isActive) => {
+    const action = isActive ? 'desactivar' : 'activar';
+    const actionText = isActive ? 'dar de baja' : 'activar';
+    
+    showConfirm(
+      `¿${actionText.charAt(0).toUpperCase() + actionText.slice(1)} al usuario ${username}?\n\n${
+        isActive 
+          ? 'El usuario no podrá acceder al sistema hasta que sea reactivado.'
+          : 'El usuario podrá acceder al sistema nuevamente.'
+      }`,
+      () => {
+        executeToggleUserStatus(userId, username, isActive);
+      },
+      () => {},
+      {
+        confirmText: isActive ? 'Desactivar' : 'Activar',
+        cancelText: 'Cancelar'
+      }
+    );
+  };
+
+  // Función separada para ejecutar el cambio de estado
+  const executeToggleUserStatus = async (userId, username, isActive) => {
+    try {
+      const endpoint = isActive ? `/api/users/${userId}/deactivate` : `/api/users/${userId}/activate`;
+      const response = await apiPut(endpoint);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess(data.message);
+        
+        // Mensaje específico para móvil
+        setUserSpecificMessage({
+          userId: userId,
+          username: username,
+          message: data.message,
+          type: 'success'
+        });
+        
+        // Limpiar mensaje específico después de 4 segundos
+        setTimeout(() => setUserSpecificMessage(null), 4000);
+        
+        loadUsers(); // Recargar lista
+      } else {
+        const data = await response.json();
+        setError(data.message || `Error al ${isActive ? 'desactivar' : 'activar'} usuario`);
+        
+        // Mensaje específico para móvil (error)
+        setUserSpecificMessage({
+          userId: userId,
+          username: username,
+          message: `❌ Error al ${isActive ? 'desactivar' : 'activar'} usuario`,
+          type: 'error'
+        });
+        
+        // Limpiar mensaje específico después de 5 segundos
+        setTimeout(() => setUserSpecificMessage(null), 5000);
+      }
+    } catch (error) {
+      setError(`Error de conexión al ${isActive ? 'desactivar' : 'activar'} usuario`);
+      
+      // Mensaje específico para móvil (error de conexión)
+      setUserSpecificMessage({
+        userId: userId,
+        username: username,
+        message: `❌ Error de conexión`,
+        type: 'error'
+      });
+      
+      // Limpiar mensaje específico después de 5 segundos
+      setTimeout(() => setUserSpecificMessage(null), 5000);
+    }
   };
 
   // Función separada para ejecutar el refresh token
@@ -550,7 +693,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         <div className="user-management-content">
           {!showAddForm ? (
             <div className="users-table-container">
-              {/* Search Bar and Add Button Row */}
+              {/* Search Bar, Filters and Add Button Row */}
               <div className="search-add-row">
                 <div className="search-input-wrapper">
                   <input
@@ -569,6 +712,91 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                       ✕
                     </button>
                   )}
+                </div>
+                <div className="role-filter-wrapper">
+                  <div className="dropdown-wrapper">
+                    <button 
+                      className="dropdown-toggle"
+                      onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                      disabled={loading}
+                    >
+                      <span className="dropdown-text">
+                        {roleFilter === 'user' ? '👤 Usuario' :
+                         roleFilter === 'jefe' ? '👔 Jefe de Departamento' :
+                         roleFilter === 'admin' ? '👑 Administrador' :
+                         '👥 Todos los roles'}
+                      </span>
+                      <span className={`dropdown-arrow ${roleDropdownOpen ? 'open' : ''}`}>▼</span>
+                    </button>
+                    
+                    {roleDropdownOpen && (
+                      <div className="dropdown-menu">
+                        <div 
+                          className={`dropdown-item ${roleFilter === '' ? 'selected' : ''}`}
+                          onClick={() => handleRoleSelect('')}
+                        >
+                          <span className="dropdown-item-name">👥 Todos los roles</span>
+                        </div>
+                        <div 
+                          className={`dropdown-item ${roleFilter === 'user' ? 'selected' : ''}`}
+                          onClick={() => handleRoleSelect('user')}
+                        >
+                          <span className="dropdown-item-name">👤 Usuario</span>
+                        </div>
+                        <div 
+                          className={`dropdown-item ${roleFilter === 'jefe' ? 'selected' : ''}`}
+                          onClick={() => handleRoleSelect('jefe')}
+                        >
+                          <span className="dropdown-item-name">👔 Jefe de Departamento</span>
+                        </div>
+                        <div 
+                          className={`dropdown-item ${roleFilter === 'admin' ? 'selected' : ''}`}
+                          onClick={() => handleRoleSelect('admin')}
+                        >
+                          <span className="dropdown-item-name">👑 Administrador</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="active-filter-wrapper">
+                  <div className="dropdown-wrapper">
+                    <button 
+                      className="dropdown-toggle"
+                      onClick={() => setActiveDropdownOpen(!activeDropdownOpen)}
+                      disabled={loading}
+                    >
+                      <span className="dropdown-text">
+                        {activeFilter === 'true' ? '✅ Activos' :
+                         activeFilter === 'false' ? '❌ Inactivos' :
+                         '🔄 Todos los estados'}
+                      </span>
+                      <span className={`dropdown-arrow ${activeDropdownOpen ? 'open' : ''}`}>▼</span>
+                    </button>
+                    
+                    {activeDropdownOpen && (
+                      <div className="dropdown-menu">
+                        <div 
+                          className={`dropdown-item ${activeFilter === '' ? 'selected' : ''}`}
+                          onClick={() => handleActiveSelect('')}
+                        >
+                          <span className="dropdown-item-name">🔄 Todos los estados</span>
+                        </div>
+                        <div 
+                          className={`dropdown-item ${activeFilter === 'true' ? 'selected' : ''}`}
+                          onClick={() => handleActiveSelect('true')}
+                        >
+                          <span className="dropdown-item-name">✅ Activos</span>
+                        </div>
+                        <div 
+                          className={`dropdown-item ${activeFilter === 'false' ? 'selected' : ''}`}
+                          onClick={() => handleActiveSelect('false')}
+                        >
+                          <span className="dropdown-item-name">❌ Inactivos</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <button 
                   className="add-user-button"
@@ -642,6 +870,13 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                               }}
                             >
                               🔄
+                            </button>
+                            <button 
+                              className="toggle-status-button" 
+                              onClick={() => handleToggleUserStatus(user.id, user.username, user.activo)} 
+                              title={user.activo ? "Desactivar usuario" : "Activar usuario"}
+                            >
+                              {user.activo ? '⬇️' : '✔️'}
                             </button>
                             <button 
                               className="edit-button" 
@@ -728,6 +963,13 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                           title="🔄 Refrescar Token"
                         >
                           🔄
+                        </button>
+                        <button 
+                          className="mobile-action-button mobile-toggle-button" 
+                          onClick={() => handleToggleUserStatus(user.id, user.username, user.activo)} 
+                          title={user.activo ? "Desactivar usuario" : "Activar usuario"}
+                        >
+                          {user.activo ? '⬇️' : '✔️'}
                         </button>
                         <button 
                           className="mobile-action-button mobile-edit-button" 
@@ -894,37 +1136,92 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
 
                 <div className="form-group">
                   <label htmlFor="role">Rol:</label>
-                  <select
-                    id="role"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="user">👤 Usuario</option>
-                    <option value="jefe">👔 Jefe de Departamento</option>
-                    <option value="admin">👑 Administrador</option>
-                  </select>
+                  <div className="dropdown-wrapper">
+                    <button 
+                      className="dropdown-toggle"
+                      onClick={() => setFormRoleDropdownOpen(!formRoleDropdownOpen)}
+                      disabled={loading}
+                      type="button"
+                    >
+                      <span className="dropdown-text">
+                        {formData.role === 'user' ? '👤 Usuario' :
+                         formData.role === 'jefe' ? '👔 Jefe de Departamento' :
+                         formData.role === 'admin' ? '👑 Administrador' :
+                         '👤 Usuario'}
+                      </span>
+                      <span className={`dropdown-arrow ${formRoleDropdownOpen ? 'open' : ''}`}>▼</span>
+                    </button>
+                    
+                    {formRoleDropdownOpen && (
+                      <div className="dropdown-menu">
+                        <div 
+                          className={`dropdown-item ${formData.role === 'user' ? 'selected' : ''}`}
+                          onClick={() => handleFormRoleSelect('user')}
+                        >
+                          <span className="dropdown-item-name">👤 Usuario</span>
+                        </div>
+                        <div 
+                          className={`dropdown-item ${formData.role === 'jefe' ? 'selected' : ''}`}
+                          onClick={() => handleFormRoleSelect('jefe')}
+                        >
+                          <span className="dropdown-item-name">👔 Jefe de Departamento</span>
+                        </div>
+                        <div 
+                          className={`dropdown-item ${formData.role === 'admin' ? 'selected' : ''}`}
+                          onClick={() => handleFormRoleSelect('admin')}
+                        >
+                          <span className="dropdown-item-name">👑 Administrador</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Dropdown de jefes - solo visible si el rol es 'user' */}
                 {formData.role === 'user' && (
                   <div className="form-group">
                     <label htmlFor="jefe_id">Jefe Responsable (opcional):</label>
-                    <select
-                      id="jefe_id"
-                      name="jefe_id"
-                      value={selectedJefe || ''}
-                      onChange={handleJefeChange}
-                      className="form-select"
-                    >
-                      <option value="">Seleccionar jefe...</option>
-                      {jefesList.map(jefe => (
-                        <option key={jefe.id} value={jefe.id}>
-                          {jefe.nombre} {jefe.apellido} ({jefe.username})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="dropdown-wrapper">
+                      <button 
+                        className="dropdown-toggle"
+                        onClick={() => setFormJefeDropdownOpen(!formJefeDropdownOpen)}
+                        disabled={loading}
+                        type="button"
+                      >
+                        <span className="dropdown-text">
+                          {selectedJefe ? 
+                            (() => {
+                              const jefe = jefesList.find(j => j.id == selectedJefe);
+                              return jefe ? `${jefe.nombre} ${jefe.apellido} (${jefe.username})` : 'Seleccionar jefe...';
+                            })() :
+                            'Seleccionar jefe...'
+                          }
+                        </span>
+                        <span className={`dropdown-arrow ${formJefeDropdownOpen ? 'open' : ''}`}>▼</span>
+                      </button>
+                      
+                      {formJefeDropdownOpen && (
+                        <div className="dropdown-menu">
+                          <div 
+                            className={`dropdown-item ${!selectedJefe ? 'selected' : ''}`}
+                            onClick={() => handleFormJefeSelect('')}
+                          >
+                            <span className="dropdown-item-name">Sin jefe asignado</span>
+                          </div>
+                          {jefesList.map(jefe => (
+                            <div 
+                              key={jefe.id}
+                              className={`dropdown-item ${selectedJefe == jefe.id ? 'selected' : ''}`}
+                              onClick={() => handleFormJefeSelect(jefe.id)}
+                            >
+                              <span className="dropdown-item-name">
+                                {jefe.nombre} {jefe.apellido} ({jefe.username})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     {jefesList.length === 0 && (
                       <div className="form-help-text">
                         ℹ️ No hay jefes disponibles. El usuario puede ser creado sin jefe asignado.

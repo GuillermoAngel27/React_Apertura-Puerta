@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './HistoryModal.css';
 import { apiGet } from '../utils/api';
 
@@ -14,33 +14,160 @@ const HistoryModal = ({ onClose }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
+  
+  // Estados para dropdowns personalizados
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  
+  // Estado para items expandidos
+  const [expandedItems, setExpandedItems] = useState(new Set());
 
+  // Cerrar dropdowns al hacer clic fuera
   useEffect(() => {
-    loadHistory();
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-wrapper')) {
+        setStatusDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Debounce para prevenir refreshes excesivos
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      console.log('StatusFilter cambió a:', statusFilter);
+      loadHistory();
+    }, 300); // 300ms de debounce
+
+    return () => clearTimeout(timeoutId);
   }, [statusFilter, dateFrom, dateTo, userSearch, currentPage, workingHoursFilter]);
 
+  // useEffect específico para monitorear cambios en statusFilter
+  useEffect(() => {
+    console.log('useEffect statusFilter:', statusFilter);
+  }, [statusFilter]);
+
   const loadHistory = async () => {
+    // Prevenir cargas múltiples simultáneas
+    if (loading) {
+      console.log('⚠️ Carga ya en progreso, ignorando nueva solicitud');
+      return;
+    }
+    
     try {
       setLoading(true);
       setError('');
       
-      
-      const params = new URLSearchParams({
+           // Estrategia diferente para filtros frontend vs backend
+           let params;
+           if (statusFilter === 'all') {
+             // Para 'all', usar paginación del backend
+             params = new URLSearchParams({
+               status: 'all',
+               dateFrom: dateFrom,
+               dateTo: dateTo,
+               user: userSearch,
+               page: currentPage,
+               limit: itemsPerPage,
+               workingHours: workingHoursFilter
+             });
+           } else {
+             // Para filtros frontend, pedir TODOS los registros sin paginación
+             params = new URLSearchParams({
+               status: 'all',
+               dateFrom: dateFrom,
+               dateTo: dateTo,
+               user: userSearch,
+               page: 1,
+               limit: 1000, // Obtener muchos registros para filtrar
+               workingHours: workingHoursFilter
+             });
+           }
+
+      console.log('Filtros enviados:', {
         status: statusFilter,
-        dateFrom: dateFrom,
-        dateTo: dateTo,
+        dateFrom,
+        dateTo,
         user: userSearch,
         page: currentPage,
-        limit: itemsPerPage,
         workingHours: workingHoursFilter
       });
+      console.log('StatusFilter actual:', statusFilter);
 
       const response = await apiGet(`/api/history?${params}`);
 
-      if (response.ok) {
-        const data = await response.json();
-        setHistory(data.history || []);
-        setTotalPages(data.pagination?.totalPages || 1);
+           if (response.ok) {
+             const data = await response.json();
+             let filteredHistory = data.history || [];
+             
+             // Filtro inteligente en frontend para opciones simplificadas
+             if (statusFilter !== 'all') {
+               const originalCount = filteredHistory.length;
+               
+               filteredHistory = filteredHistory.filter(record => {
+                 if (statusFilter === 'correcto') {
+                   return record.status === 'correcto';
+                 } else if (statusFilter === 'denegado') {
+                   // Incluir todos los tipos de denegación
+                   return ['incorrecto', 'fuera_de_area', 'denegado_horario', 'timeout'].includes(record.status);
+                 } else if (statusFilter === 'sospechoso') {
+                   // Incluir accesos sospechosos y duplicados
+                   return ['advertencia', 'duplicate'].includes(record.status);
+                 }
+                 return true;
+               });
+               
+               console.log('🔍 Filtrado simplificado:', {
+                 statusFilter,
+                 totalRegistros: originalCount,
+                 registrosFiltrados: filteredHistory.length,
+                 tiposIncluidos: statusFilter === 'denegado' ? 
+                   'incorrecto, fuera_de_area, denegado_horario, timeout' :
+                   statusFilter === 'sospechoso' ? 'advertencia, duplicate' : 'correcto',
+                 registrosEncontrados: filteredHistory.map(r => ({ 
+                   id: r.id, 
+                   status: r.status, 
+                   usuario: r.username 
+                 }))
+               });
+             }
+        
+        setHistory(filteredHistory);
+        
+        // Manejar paginación según el tipo de filtro
+        if (statusFilter !== 'all') {
+          // Para filtros frontend, implementar paginación frontend
+          const totalFiltered = filteredHistory.length;
+          const calculatedTotalPages = Math.ceil(totalFiltered / itemsPerPage);
+          setTotalPages(calculatedTotalPages);
+          
+          // Aplicar paginación frontend a los datos filtrados
+          const startIndex = (currentPage - 1) * itemsPerPage;
+          const endIndex = startIndex + itemsPerPage;
+          const paginatedHistory = filteredHistory.slice(startIndex, endIndex);
+          
+          setHistory(paginatedHistory);
+          
+          // Ajustar página actual si es necesario
+          if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+            setCurrentPage(calculatedTotalPages);
+          }
+          
+          console.log('📄 Paginación frontend:', {
+            totalFiltrados: totalFiltered,
+            paginaActual: currentPage,
+            totalPaginas: calculatedTotalPages,
+            registrosEnPagina: paginatedHistory.length,
+            rango: `${startIndex + 1}-${Math.min(endIndex, totalFiltered)} de ${totalFiltered}`
+          });
+        } else {
+          // Para 'all', usar paginación del backend
+          setHistory(filteredHistory);
+          setTotalPages(data.pagination?.totalPages || 1);
+        }
       } else {
         setError('Error al cargar el historial');
       }
@@ -154,10 +281,130 @@ const HistoryModal = ({ onClose }) => {
     return isWithinHours ? '#4CAF50' : '#FF9800'; // Verde/Naranja
   };
 
+  // Nuevo sistema de badges específicos para tipo de acceso
+  const getAccessTypeBadge = (record) => {
+    const { status, isWithinWorkingHours, workingHoursInfo } = record;
+    
+    // Acceso Normal
+    if (status === 'correcto' && isWithinWorkingHours) {
+      return {
+        icon: '✅',
+        text: 'Acceso Normal',
+        color: '#4CAF50',
+        description: 'Dentro de horario laboral y ubicación autorizada',
+        borderColor: 'rgba(76, 175, 80, 0.3)', // Verde desvanecido
+        backgroundColor: 'rgba(76, 175, 80, 0.05)' // Verde neural glass
+      };
+    }
+    
+    // Acceso con Permisos Especiales
+    if (status === 'correcto' && !isWithinWorkingHours) {
+      return {
+        icon: '🔑',
+        text: 'Permisos Especiales',
+        color: '#FF9800',
+        description: 'Acceso autorizado fuera de horario laboral',
+        borderColor: 'rgba(76, 175, 80, 0.3)', // Verde desvanecido (correcto)
+        backgroundColor: 'rgba(76, 175, 80, 0.05)' // Verde neural glass
+      };
+    }
+    
+    // Acceso Denegado por Ubicación
+    if (status === 'fuera_de_area') {
+      return {
+        icon: '🚫',
+        text: 'Fuera de Área',
+        color: '#F44336',
+        description: 'Usuario fuera del área autorizada',
+        borderColor: 'rgba(244, 67, 54, 0.3)', // Rojo desvanecido
+        backgroundColor: 'rgba(244, 67, 54, 0.05)' // Rojo neural glass
+      };
+    }
+    
+    // Acceso Denegado por Horario
+    if (status === 'denegado_horario') {
+      return {
+        icon: '🕐',
+        text: 'Fuera de Horario',
+        color: '#FF5722',
+        description: 'Acceso denegado - Fuera de horario laboral',
+        borderColor: 'rgba(244, 67, 54, 0.3)', // Rojo desvanecido
+        backgroundColor: 'rgba(244, 67, 54, 0.05)' // Rojo neural glass
+      };
+    }
+    
+    // Acceso Incorrecto
+    if (status === 'incorrecto') {
+      return {
+        icon: '❌',
+        text: 'Acceso Incorrecto',
+        color: '#F44336',
+        description: 'Credenciales inválidas o error en la autenticación',
+        borderColor: 'rgba(244, 67, 54, 0.3)', // Rojo desvanecido
+        backgroundColor: 'rgba(244, 67, 54, 0.05)' // Rojo neural glass
+      };
+    }
+    
+    // Acceso Sospechoso
+    if (status === 'advertencia') {
+      return {
+        icon: '⚠️',
+        text: 'Acceso Sospechoso',
+        color: '#FFC107',
+        description: 'Patrón de acceso anómalo detectado',
+        borderColor: 'rgba(255, 193, 7, 0.3)', // Amarillo desvanecido
+        backgroundColor: 'rgba(255, 193, 7, 0.05)' // Amarillo neural glass
+      };
+    }
+    
+    // Timeout
+    if (status === 'timeout') {
+      return {
+        icon: '⏰',
+        text: 'Timeout',
+        color: '#9C27B0',
+        description: 'Tiempo de respuesta excedido',
+        borderColor: 'rgba(244, 67, 54, 0.3)', // Rojo desvanecido
+        backgroundColor: 'rgba(244, 67, 54, 0.05)' // Rojo neural glass
+      };
+    }
+    
+    // Duplicado
+    if (status === 'duplicate') {
+      return {
+        icon: '🔄',
+        text: 'Duplicado',
+        color: '#607D8B',
+        description: 'Intento de acceso duplicado',
+        borderColor: 'rgba(255, 193, 7, 0.3)', // Amarillo desvanecido
+        backgroundColor: 'rgba(255, 193, 7, 0.05)' // Amarillo neural glass
+      };
+    }
+    
+    // Default
+    return {
+      icon: '❓',
+      text: 'Desconocido',
+      color: '#9E9E9E',
+      description: 'Estado no identificado',
+      borderColor: 'rgba(158, 158, 158, 0.3)', // Gris desvanecido
+      backgroundColor: 'rgba(158, 158, 158, 0.05)' // Gris neural glass
+    };
+  };
+
   const handleStatusFilterChange = (newStatus) => {
     setStatusFilter(newStatus);
     setCurrentPage(1);
   };
+
+  // Funciones para dropdowns personalizados
+  const handleStatusSelect = (status) => {
+    console.log('Seleccionando status:', status);
+    setStatusFilter(status);
+    setStatusDropdownOpen(false);
+    setCurrentPage(1);
+  };
+
 
   const handleDateFromChange = (event) => {
     setDateFrom(event.target.value);
@@ -179,12 +426,26 @@ const HistoryModal = ({ onClose }) => {
   };
 
   const clearFilters = () => {
+    console.log('clearFilters ejecutado - reseteando a all');
     setStatusFilter('all');
     setDateFrom('');
     setDateTo('');
     setUserSearch('');
     setWorkingHoursFilter('all');
     setCurrentPage(1);
+  };
+
+  // Función para toggle de items expandidos
+  const toggleExpanded = (itemId) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -198,100 +459,105 @@ const HistoryModal = ({ onClose }) => {
         </div>
 
         <div className="history-content">
-          {/* Filtros Mejorados */}
-          <div className="history-filters">
-            {/* Búsqueda por Usuario */}
-            <div className="filter-group">
-              <label htmlFor="userSearch" className="filter-label">
-                🔍 Buscar Usuario:
-              </label>
+          {/* Search Bar, Filters and Clear Button Row - usando la misma estructura que UserManagementModal */}
+          <div className="history-search-row">
+            <div className="history-search-input-wrapper">
               <input
-                id="userSearch"
                 type="text"
-                className="user-search-input"
-                placeholder="Nombre, email o username..."
+                placeholder="🔍 Buscar por usuario..."
                 value={userSearch}
                 onChange={handleUserSearchChange}
+                className="history-search-input"
               />
-            </div>
-
-            {/* Filtro por Estado */}
-            <div className="filter-group">
-              <label htmlFor="statusFilter" className="filter-label">📊 Estado:</label>
-                <select
-                  id="statusFilter"
-                  className="status-dropdown"
-                  value={statusFilter}
-                  onChange={(e) => handleStatusFilterChange(e.target.value)}
+              {userSearch && (
+                <button 
+                  className="history-clear-search-button"
+                  onClick={() => setUserSearch('')}
+                  title="Limpiar búsqueda"
                 >
-                  <option value="all">📋 Todos los estados</option>
-                  <option value="correcto">✅ Correctos</option>
-                  <option value="incorrecto">❌ Incorrectos</option>
-                  <option value="fuera_de_area">🚫 Fuera de área</option>
-                  <option value="advertencia">⚠️ Advertencias</option>
-                  <option value="denegado_horario">🕐 Denegado por horario</option>
-                  <option value="timeout">⏰ Timeout</option>
-                  <option value="duplicate">🔄 Duplicados</option>
-                </select>
+                  ✕
+                </button>
+              )}
             </div>
-
-            {/* Filtro por Rango de Fechas */}
-            <div className="filter-group">
-              <label className="filter-label">📅 Rango de Fechas:</label>
-              <div className="date-range-inputs">
+            <div className="history-status-filter-wrapper">
+              <div className="dropdown-wrapper">
+                <button 
+                  className="dropdown-toggle"
+                  onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                  disabled={loading}
+                >
+                  <span className="dropdown-text">
+                    {statusFilter === 'all' ? '📋 Todos los registros' :
+                     statusFilter === 'correcto' ? '✅ Accesos exitosos' :
+                     statusFilter === 'denegado' ? '❌ Accesos denegados' :
+                     statusFilter === 'sospechoso' ? '⚠️ Accesos sospechosos' :
+                     '📋 Todos los registros'}
+                  </span>
+                  <span className={`dropdown-arrow ${statusDropdownOpen ? 'open' : ''}`}>▼</span>
+                </button>
+                
+                {statusDropdownOpen && (
+                  <div className="dropdown-menu">
+                    <div 
+                      className={`dropdown-item ${statusFilter === 'all' ? 'selected' : ''}`}
+                      onClick={() => handleStatusSelect('all')}
+                    >
+                      <span className="dropdown-item-name">📋 Todos los registros</span>
+                    </div>
+                    <div 
+                      className={`dropdown-item ${statusFilter === 'correcto' ? 'selected' : ''}`}
+                      onClick={() => handleStatusSelect('correcto')}
+                    >
+                      <span className="dropdown-item-name">✅ Accesos exitosos</span>
+                    </div>
+                    <div 
+                      className={`dropdown-item ${statusFilter === 'denegado' ? 'selected' : ''}`}
+                      onClick={() => handleStatusSelect('denegado')}
+                    >
+                      <span className="dropdown-item-name">❌ Accesos denegados</span>
+                    </div>
+                    <div 
+                      className={`dropdown-item ${statusFilter === 'sospechoso' ? 'selected' : ''}`}
+                      onClick={() => handleStatusSelect('sospechoso')}
+                    >
+                      <span className="dropdown-item-name">⚠️ Accesos sospechosos</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="history-date-filter-wrapper">
+              <div className="history-date-range-wrapper">
                 <div className="date-input-group">
-                  <label htmlFor="dateFrom" className="date-input-label">Desde:</label>
+                  <label className="date-input-label">Desde</label>
                   <input
-                    id="dateFrom"
                     type="date"
-                    className="date-input"
+                    className="history-date-input"
                     value={dateFrom}
                     onChange={handleDateFromChange}
+                    placeholder="Desde"
                   />
                 </div>
                 <div className="date-input-group">
-                  <label htmlFor="dateTo" className="date-input-label">Hasta:</label>
+                  <label className="date-input-label">Hasta</label>
                   <input
-                    id="dateTo"
                     type="date"
-                    className="date-input"
+                    className="history-date-input"
                     value={dateTo}
                     onChange={handleDateToChange}
+                    placeholder="Hasta"
                   />
                 </div>
               </div>
             </div>
-
-            {/* Filtro por Horarios Laborales */}
-            <div className="filter-group">
-              <label htmlFor="workingHoursFilter" className="filter-label">⏰ Horarios:</label>
-              <select
-                id="workingHoursFilter"
-                className="status-dropdown"
-                value={workingHoursFilter}
-                onChange={(e) => {
-                  setWorkingHoursFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="all">📋 Todos los horarios</option>
-                <option value="within">✅ Dentro de horario</option>
-                <option value="outside">⏰ Fuera de horario</option>
-              </select>
-            </div>
-
-            {/* Botón Limpiar Filtros */}
-            <div className="filter-group">
               <button 
-                className="clear-filters-btn"
+              className="history-clear-filters-btn"
                 onClick={clearFilters}
                 title="Limpiar todos los filtros"
               >
                 🗑️ Limpiar
               </button>
             </div>
-          </div>
-
           {/* Contenido */}
           {loading && (
             <div className="loading-state">
@@ -312,13 +578,35 @@ const HistoryModal = ({ onClose }) => {
             </div>
           )}
 
+          {/* Botón de Refresh */}
+          <div className="history-refresh-container">
+            <button 
+              className="history-refresh-button"
+              onClick={loadHistory}
+              disabled={loading}
+              title="🔄 Refrescar historial"
+            >
+              <span className="refresh-icon">🔄</span>
+            </button>
+          </div>
+
           {!loading && !error && history.length > 0 && (
             <>
               <div className="history-list">
-                {history.map((record) => (
-                  <div key={record.id} className="history-item">
+                {history.map((record) => {
+                  const accessBadge = getAccessTypeBadge(record);
+                  return (
+                    <div 
+                      key={record.id} 
+                      className="history-item"
+                      style={{ 
+                        borderColor: accessBadge.borderColor,
+                        backgroundColor: accessBadge.backgroundColor
+                      }}
+                    >
                     <div className="history-header">
                       <div className="history-user">
+                          <div className="user-name-container">
                         <div className="user-name">
                           {record.nombre && record.apellido 
                             ? `${record.nombre} ${record.apellido}`
@@ -331,31 +619,63 @@ const HistoryModal = ({ onClose }) => {
                            '👤 Usuario'}
                         </div>
                       </div>
-                      <div className="history-status">
-                        <span 
-                          className="status-badge"
-                          style={{ color: getStatusColor(record.status) }}
+                          <div className="history-timestamp">
+                            {formatDate(record.timestamp)}
+                          </div>
+                        </div>
+                        <button 
+                          className="history-toggle-btn"
+                          onClick={() => toggleExpanded(record.id)}
+                          title={expandedItems.has(record.id) ? "Ocultar detalles" : "Mostrar detalles"}
                         >
-                          {getStatusIcon(record.status)} {getStatusText(record.status)}
+                          <span className={`toggle-icon ${expandedItems.has(record.id) ? 'open' : ''}`}>
+                            ▼
                         </span>
-                        {/* Indicador de horarios laborales */}
-                        <span 
-                          className="working-hours-badge"
-                          style={{ color: getWorkingHoursColor(record.isWithinWorkingHours, record.workingHoursInfo) }}
-                          title={getWorkingHoursText(record.isWithinWorkingHours, record.workingHoursInfo)}
-                        >
-                          {getWorkingHoursIcon(record.isWithinWorkingHours, record.workingHoursInfo)}
-                        </span>
-                      </div>
+                        </button>
                     </div>
                     
-                    <div className="history-details">
-                      <div className="history-date">
-                        <strong>Fecha:</strong> {formatDate(record.timestamp)}
+                    <div className={`history-details ${expandedItems.has(record.id) ? 'expanded' : ''}`}>
+                      {/* Badge Principal de Tipo de Acceso */}
+                      <div className="access-type-badge" style={{ borderColor: accessBadge.color }}>
+                        <span className="access-icon">{accessBadge.icon}</span>
+                        <span className="access-text">{accessBadge.text}</span>
+                        <span className="access-description">{accessBadge.description}</span>
                       </div>
                       
+                      {/* Información de Validación */}
+                      <div className="validation-info">
+                        <div className="validation-item">
+                          <span className="validation-label">Horario Laboral:</span>
+                          <span 
+                            className="validation-value"
+                            style={{ color: getWorkingHoursColor(record.isWithinWorkingHours, record.workingHoursInfo) }}
+                          >
+                            {getWorkingHoursIcon(record.isWithinWorkingHours, record.workingHoursInfo)} {getWorkingHoursText(record.isWithinWorkingHours, record.workingHoursInfo)}
+                          </span>
+                        </div>
+                        <div className="validation-item">
+                          <span className="validation-label">Ubicación:</span>
+                          <span 
+                            className="validation-value"
+                            style={{ color: record.status === 'fuera_de_area' ? '#F44336' : '#4CAF50' }}
+                          >
+                            {record.status === 'fuera_de_area' ? '🚫 Fuera del área autorizada' : '✅ Dentro del área autorizada'}
+                          </span>
+                        </div>
+                        {!record.isWithinWorkingHours && record.status === 'correcto' && (
+                          <div className="validation-item">
+                            <span className="validation-label">Permisos:</span>
+                            <span className="validation-value" style={{ color: '#FF9800' }}>
+                              🔑 Permisos especiales activos
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Información Técnica */}
+                      <div className="technical-info">
                       {record.location && (
-                        <div className="history-location">
+                          <div className="info-item">
                           <strong>Ubicación:</strong> 
                           <span className="location-coords">
                             {record.location.lat?.toFixed(6)}, {record.location.lon?.toFixed(6)}
@@ -369,21 +689,15 @@ const HistoryModal = ({ onClose }) => {
                       )}
                       
                       {record.message && (
-                        <div className="history-message">
+                          <div className="info-item">
                           <strong>Mensaje:</strong> {record.message}
                         </div>
                       )}
-                      
-                      {/* Información de horarios laborales */}
-                      <div className="working-hours-info">
-                        <strong>Horario laboral:</strong> 
-                        <span style={{ color: getWorkingHoursColor(record.isWithinWorkingHours, record.workingHoursInfo) }}>
-                          {getWorkingHoursText(record.isWithinWorkingHours, record.workingHoursInfo)}
-                        </span>
                       </div>
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
 
               {/* Paginación */}

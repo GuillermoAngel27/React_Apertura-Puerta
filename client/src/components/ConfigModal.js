@@ -4,7 +4,6 @@ import { apiGet, apiPut } from '../utils/api';
 
 const ConfigModal = ({ onClose, onSuccess }) => {
   const [config, setConfig] = useState({
-    nodeRedIp: '',
     horarios: {
       lunesViernes: {
         inicio: '08:00',
@@ -47,36 +46,15 @@ const ConfigModal = ({ onClose, onSuccess }) => {
     
         
         // Verificar si hay configuración válida
-        if (data.config && (data.config.nodeRedUrl || data.config.horarios)) {
-          // Extraer solo la IP de la URL completa
-          try {
-            let nodeRedIp = '';
-            if (data.config.nodeRedUrl) {
-              const url = new URL(data.config.nodeRedUrl);
-              nodeRedIp = url.hostname;
+        if (data.config && data.config.horarios) {
+          setConfig({
+            horarios: data.config.horarios || {
+              lunesViernes: { inicio: '08:00', fin: '18:00', habilitado: true },
+              sabados: { inicio: '09:00', fin: '14:00', habilitado: true },
+              domingos: { inicio: '10:00', fin: '12:00', habilitado: false }
             }
-            
-            setConfig({
-              nodeRedIp: nodeRedIp,
-              horarios: data.config.horarios || {
-                lunesViernes: { inicio: '08:00', fin: '18:00', habilitado: true },
-                sabados: { inicio: '09:00', fin: '14:00', habilitado: true },
-                domingos: { inicio: '10:00', fin: '12:00', habilitado: false }
-              }
-            });
-            setConfigLoaded(true);
-          } catch (urlError) {
-            // Si hay error al parsear la URL, usar configuración por defecto
-            setConfig({
-              nodeRedIp: '',
-              horarios: data.config.horarios || {
-                lunesViernes: { inicio: '08:00', fin: '18:00', habilitado: true },
-                sabados: { inicio: '09:00', fin: '14:00', habilitado: true },
-                domingos: { inicio: '10:00', fin: '12:00', habilitado: false }
-              }
-            });
-            setConfigLoaded(true);
-          }
+          });
+          setConfigLoaded(true);
         } else {
           // No hay configuración en base de datos
           setNoConfigMessage('⚠️ No se encontró configuración en la base de datos. Se mostrarán valores por defecto.');
@@ -97,24 +75,17 @@ const ConfigModal = ({ onClose, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    if (name === 'nodeRedIp') {
-      setConfig(prev => ({
-        ...prev,
-        nodeRedIp: value
-      }));
-    } else {
-      const [periodo, campo] = name.split('.');
-      setConfig(prev => ({
-        ...prev,
-        horarios: {
-          ...prev.horarios,
-          [periodo]: {
-            ...prev.horarios[periodo],
-            [campo]: type === 'checkbox' ? checked : value
-          }
+    const [periodo, campo] = name.split('.');
+    setConfig(prev => ({
+      ...prev,
+      horarios: {
+        ...prev.horarios,
+        [periodo]: {
+          ...prev.horarios[periodo],
+          [campo]: type === 'checkbox' ? checked : value
         }
-      }));
-    }
+      }
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -126,9 +97,8 @@ const ConfigModal = ({ onClose, onSuccess }) => {
     try {
       // Token se maneja automáticamente con cookies
       
-      // Construir la URL completa automáticamente
+      // Enviar solo la configuración de horarios
       const configToSend = {
-        nodeRedUrl: `http://${config.nodeRedIp}:1880/datosRecibidos`,
         horarios: config.horarios
       };
 
@@ -174,23 +144,6 @@ const ConfigModal = ({ onClose, onSuccess }) => {
             </div>
           )}
           
-          <div className="config-section">
-            <h3>🔗 Configuración de Node-RED</h3>
-            <div className="form-group">
-              <label htmlFor="nodeRedIp">IP de Node-RED:</label>
-              <input
-                type="text"
-                id="nodeRedIp"
-                name="nodeRedIp"
-                value={config.nodeRedIp}
-                onChange={handleChange}
-                required
-                placeholder="xxx.xxx.xxx.xxx"
-                pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
-                title="Ingrese una dirección IP válida (ej: 192.168.1.95)"
-              />
-            </div>
-          </div>
 
           <div className="config-section">
             <h3>🕐 Horarios de Apertura</h3>

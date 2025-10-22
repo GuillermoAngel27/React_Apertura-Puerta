@@ -4,6 +4,7 @@ import UserManagementModal from './UserManagementModal';
 import NotificationsModal from './NotificationsModal';
 import HistoryModal from './HistoryModal';
 import PermisosModal from './PermisosModal';
+import AdminPermisosModal from './AdminPermisosModal';
 import MessageContainer from './MessageContainer';
 import LogoutAnimation from './LogoutAnimation';
 import useAnimatedMessages from '../hooks/useAnimatedMessages';
@@ -16,6 +17,7 @@ const Dashboard = ({ user, onLogout }) => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showPermisosModal, setShowPermisosModal] = useState(false);
+  const [showAdminPermisosModal, setShowAdminPermisosModal] = useState(false);
   const [loading, setLoading] = useState(false);
   
   const [logoutCountdown, setLogoutCountdown] = useState(0);
@@ -49,11 +51,9 @@ const Dashboard = ({ user, onLogout }) => {
 
   // WebSocket deshabilitado temporalmente - usando polling manual
   useEffect(() => {
-    console.log('🔌 WebSocket deshabilitado - Usando polling manual');
     
     // Cleanup al desmontar componente
     return () => {
-      console.log('🔌 Cleanup del componente');
     };
   }, []); // Solo ejecutar una vez al montar
 
@@ -221,7 +221,6 @@ const Dashboard = ({ user, onLogout }) => {
           // Si status es 'processing', continuar polling
         }
       } catch (error) {
-        console.error('❌ Error al verificar estado:', error);
       }
       
       // Detener polling después de máximo intentos
@@ -282,7 +281,6 @@ const Dashboard = ({ user, onLogout }) => {
         
         if (data.status === 'processing') {
           // Solicitud enviada, esperando respuesta de Node-RED
-          console.log('📝 Evento creado con ID:', data.eventId, '- Esperando respuesta de Node-RED');
           
           // Iniciar polling manual para verificar el estado (sin mensaje de procesando)
           startPollingForResult(data.eventId);
@@ -359,16 +357,13 @@ const Dashboard = ({ user, onLogout }) => {
     try {
       // PASO 1: Cerrar sesión INMEDIATAMENTE en el backend
       // Esto invalida la sesión activa pero MANTIENE el dispositivo autorizado
-      console.log('🚪 Iniciando cierre de sesión...');
       await apiPost('/api/logout');
-      console.log('✅ Sesión cerrada en backend - Dispositivo sigue autorizado');
       
       // PASO 2: Mostrar animación de confirmación
       // NO limpiar cookies - mantener dispositivo autorizado
       setShowLogoutAnimation(true);
       
     } catch (error) {
-      console.error('❌ Error al cerrar sesión:', error);
       
       // Si hay error, mostrar animación de todas formas
       // El dispositivo seguirá autorizado para próximos logins
@@ -380,7 +375,6 @@ const Dashboard = ({ user, onLogout }) => {
     setShowLogoutAnimation(false);
     // Redirección directa a login sin pasar por onLogout()
     // La sesión ya fue cerrada en el backend
-    console.log('🎬 Animación completada - Redirigiendo a login...');
     window.location.href = '/';
   };
 
@@ -432,6 +426,17 @@ const Dashboard = ({ user, onLogout }) => {
                 className="permisos-button"
                 onClick={() => setShowPermisosModal(true)}
                 title="Gestionar permisos de acceso"
+              >
+                🔑
+              </button>
+            )}
+
+            {/* Botón de permisos especiales para administradores */}
+            {user.role === 'admin' && (
+              <button 
+                className="admin-permisos-button"
+                onClick={() => setShowAdminPermisosModal(true)}
+                title="Administrar permisos especiales"
               >
                 🔑
               </button>
@@ -551,6 +556,17 @@ const Dashboard = ({ user, onLogout }) => {
              <span className="nav-label"></span>
            </button>
          )}
+
+         {/* Botón de permisos especiales para administradores */}
+         {user.role === 'admin' && (
+           <button
+             className="mobile-nav-button"
+             onClick={() => setShowAdminPermisosModal(true)}
+           >
+             <span className="nav-icon">🔑</span>
+             <span className="nav-label"></span>
+           </button>
+         )}
         
         <button 
           className="mobile-nav-button logout"
@@ -593,6 +609,15 @@ const Dashboard = ({ user, onLogout }) => {
                 <PermisosModal
                   onClose={() => setShowPermisosModal(false)}
                   currentUser={user}
+                />
+              )}
+
+              {showAdminPermisosModal && (
+                <AdminPermisosModal
+                  onClose={() => setShowAdminPermisosModal(false)}
+                  onSuccess={() => {
+                    showSuccess('Permisos actualizados exitosamente');
+                  }}
                 />
               )}
 
