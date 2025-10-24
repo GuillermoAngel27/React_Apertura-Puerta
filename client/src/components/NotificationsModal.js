@@ -4,32 +4,75 @@ import { apiGet } from '../utils/api';
 
 const NotificationsModal = ({ onClose }) => {
   const [loginNotifications, setLoginNotifications] = useState([]);
+  const [allNotifications, setAllNotifications] = useState([]); // Almacenar todos los datos
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [stats, setStats] = useState({});
   
   // Estados para filtros
   const [searchUser, setSearchUser] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [notificationsPerPage] = useState(10); // 10 notificaciones por página
+  const [totalNotifications, setTotalNotifications] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  
   // Modal siempre está abierto cuando se renderiza
 
   useEffect(() => {
     // Solo cargar datos cuando el modal se abre por primera vez
     loadLoginNotifications();
-  }, []);
+  }, []); // Solo ejecutar una vez al montar el componente
 
   // useEffect para filtros en tiempo real
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchUser.trim() || dateFrom || dateTo) {
-        loadLoginNotifications();
-      }
+      loadLoginNotifications();
     }, 500); // Debounce de 500ms para evitar demasiadas consultas
 
     return () => clearTimeout(timeoutId);
   }, [searchUser, dateFrom, dateTo]);
+
+  // Reset page when search term or date filters change
+  useEffect(() => {
+    if (searchUser.trim() !== '' || dateFrom !== '' || dateTo !== '') {
+      setCurrentPage(1);
+    }
+  }, [searchUser, dateFrom, dateTo]);
+
+  // Función para aplicar paginación local
+  const applyPagination = (notificationsData) => {
+    const totalNotificationsCount = notificationsData.length;
+    const totalPagesCount = Math.ceil(totalNotificationsCount / notificationsPerPage);
+    
+    // Validar que currentPage no exceda totalPages
+    let validCurrentPage = currentPage;
+    if (currentPage > totalPagesCount && totalPagesCount > 0) {
+      validCurrentPage = totalPagesCount;
+      setCurrentPage(totalPagesCount);
+    }
+    
+    // Aplicar paginación
+    const startIndex = (validCurrentPage - 1) * notificationsPerPage;
+    const endIndex = startIndex + notificationsPerPage;
+    const paginatedNotifications = notificationsData.slice(startIndex, endIndex);
+    
+    // Actualizar estados
+    setLoginNotifications(paginatedNotifications);
+    setTotalPages(totalPagesCount);
+    setTotalNotifications(totalNotificationsCount);
+  };
+
+  // useEffect para manejar cambios de página sin refrescar datos
+  useEffect(() => {
+    // Solo actualizar la paginación local sin hacer nueva consulta al backend
+    if (allNotifications.length > 0) {
+      applyPagination(allNotifications);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
 
 
 
@@ -41,10 +84,10 @@ const NotificationsModal = ({ onClose }) => {
       setLoading(true);
       setError('');
       
-      // Construir parámetros de consulta
+      // Construir parámetros de consulta - Solicitar TODOS los registros
       const params = new URLSearchParams({
-        limit: 1000, // Aumentar límite para mostrar más registros
-        includeStats: false
+        includeStats: 'false',
+        limit: '1000' // Solicitar un límite alto para obtener todos los registros
       });
       
       // Agregar filtros si están presentes
@@ -58,14 +101,17 @@ const NotificationsModal = ({ onClose }) => {
         params.append('dateTo', dateTo);
       }
       
-      // No usar filtro de horas por defecto - mostrar todos los registros
-      
       const response = await apiGet(`/api/login-notifications?${params}`);
 
       if (response.ok) {
         const data = await response.json();
-        setLoginNotifications(data.notifications || []);
-        setStats(data.stats || []);
+        
+        // Almacenar todos los registros
+        const allNotificationsData = data.notifications || [];
+        setAllNotifications(allNotificationsData);
+        
+        // Aplicar paginación inicial
+        applyPagination(allNotificationsData);
       } else {
         setError('Error al cargar notificaciones');
       }
@@ -99,14 +145,43 @@ const NotificationsModal = ({ onClose }) => {
     setDateTo('');
   };
 
-  // Función maskToken removida - no se utiliza
+  // Funciones de paginación
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages && totalPages > 0) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Manejar tecla Escape para cerrar modal
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   return (
     <div className="modal-overlay">
       <div className="modal-content notifications-modal">
         <div className="modal-header">
           <h2>🔐 Actividad de Login/Logout</h2>
-          <button className="close-button" onClick={onClose}>
+          <button 
+            className="close-button" 
+            onClick={onClose}
+            aria-label="Cerrar modal de notificaciones"
+          >
             ✕
           </button>
         </div>
@@ -114,20 +189,24 @@ const NotificationsModal = ({ onClose }) => {
         <div className="notifications-content">
           <div className="notifications-top-bar">
             <div className="filters-section">
-              <div className="inline-filters">
+              {/* Primera fila: Búsqueda */}
+              <div className="search-row">
                 <input
                   type="text"
                   value={searchUser}
                   onChange={(e) => setSearchUser(e.target.value)}
                   placeholder="👤 Usuario..."
-                  className="inline-filter-input"
+                  className="search-input"
                 />
-                
+              </div>
+              
+              {/* Segunda fila: Fechas */}
+              <div className="dates-row">
                 <input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="inline-filter-input"
+                  className="notifications-date-input"
                   title="Fecha inicio"
                 />
                 
@@ -135,31 +214,36 @@ const NotificationsModal = ({ onClose }) => {
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="inline-filter-input"
+                  className="notifications-date-input"
                   title="Fecha fin"
                 />
-                
+              </div>
+              
+              {/* Botones - Fila con dos columnas */}
+              <div className="buttons-row">
                 <button 
-                  className="clear-filters-button inline"
+                  className="clear-filters-button"
                   onClick={handleClearFilters}
                   disabled={loading}
                   title="Limpiar filtros"
+                  aria-label="Limpiar filtros de búsqueda"
                 >
                   🗑️
                 </button>
+                
+                <button 
+                  className="refresh-button"
+                  onClick={() => {
+                    loadLoginNotifications();
+                  }}
+                  disabled={loading}
+                  title="Actualizar notificaciones de login/logout"
+                  aria-label="Actualizar lista de notificaciones"
+                >
+                  🔄
+                </button>
               </div>
             </div>
-            
-            <button 
-              className="refresh-icon-button"
-              onClick={() => {
-                loadLoginNotifications();
-              }}
-              disabled={loading}
-              title="Actualizar notificaciones de login/logout"
-            >
-              🔄
-            </button>
           </div>
 
           {loading && (
@@ -182,27 +266,64 @@ const NotificationsModal = ({ onClose }) => {
           )}
 
           {!loading && !error && loginNotifications.length > 0 && (
-            <div className="notifications-list">
-              {loginNotifications.map((notification) => (
-                <div key={notification.id} className={`notification-item login-notification ${notification.tipo}`}>
-                  <div className="notification-header">
-                    <div className="notification-icon">
-                      {notification.tipo === 'login_exitoso' && '✅'}
-                      {notification.tipo === 'login_fallido' && '❌'}
-                      {notification.tipo === 'logout' && '👋'}
+            <>
+              {/* Área scrollable para notificaciones */}
+              <div className="notifications-scroll-area">
+                <div className="notifications-list">
+                  {loginNotifications.map((notification) => (
+                    <div key={notification.id} className={`notification-item login-notification ${notification.tipo}`}>
+                      <div className="notification-header">
+                        <div className="notification-icon">
+                          {notification.tipo === 'login_exitoso' && '✅'}
+                          {notification.tipo === 'login_fallido' && '❌'}
+                          {notification.tipo === 'logout' && '👋'}
+                        </div>
+                        <div className="notification-info">
+                          <div className="notification-title">{notification.titulo}</div>
+                          <div className="notification-user">👤 {notification.nombre_usuario}</div>
+                        </div>
+                        <div className="notification-date">
+                          {formatDate(notification.fecha_creacion)}
+                        </div>
+                      </div>
                     </div>
-                    <div className="notification-info">
-                      <div className="notification-title">{notification.titulo}</div>
-                      <div className="notification-message">{notification.mensaje}</div>
-                      <div className="notification-user">👤 {notification.nombre_usuario}</div>
-                    </div>
-                    <div className="notification-date">
-                      {formatDate(notification.fecha_creacion)}
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+
+              {/* Paginación - Fija en la parte inferior */}
+              <div className="notifications-pagination-container">
+                <div className="notifications-pagination-controls">
+                  <button 
+                    className="notifications-pagination-button"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1 || loading}
+                    title="Página anterior"
+                    aria-label="Ir a página anterior"
+                  >
+                    ◀
+                  </button>
+                  
+                  <div className="notifications-pagination-info" role="status" aria-live="polite">
+                    {loading ? (
+                      <span>⏳ Cargando...</span>
+                    ) : (
+                      <span>Pág. {currentPage} de {totalPages} • {totalNotifications} notificaciones</span>
+                    )}
+                  </div>
+                  
+                  <button 
+                    className="notifications-pagination-button"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages || loading}
+                    title="Página siguiente"
+                    aria-label="Ir a página siguiente"
+                  >
+                    ▶
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>

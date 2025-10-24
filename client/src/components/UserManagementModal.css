@@ -96,6 +96,8 @@
   font-size: 1.2rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  opacity: 1;
+  transform: scale(1);
 }
 
 .close-button:hover {
@@ -103,6 +105,14 @@
   border-color: rgba(255, 68, 68, 0.3);
   transform: scale(1.1);
   box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+}
+
+/* Botón de cerrar oculto */
+.close-button.hidden {
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  transition: all 0.3s ease;
 }
 
 .user-management-modal {
@@ -137,15 +147,16 @@
   display: none;
 }
 
-/* Search, Filter and Add Button Row */
-.search-add-row {
+/* Search, Filter and Add Button Row - User Management Specific - COMPACT */
+.user-mgmt-search-add-row {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   align-items: center;
   margin-bottom: 2px;
+  padding: 8px 0;
 }
 
-.search-input-wrapper {
+.user-mgmt-search-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
@@ -153,63 +164,422 @@
   min-width: 0;
 }
 
-.role-filter-wrapper,
-.active-filter-wrapper {
+.user-mgmt-role-filter-wrapper,
+.user-mgmt-active-filter-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 180px;
+  min-width: 140px;
   flex-shrink: 0;
 }
 
-.search-input {
+.user-mgmt-search-input {
   width: 100%;
-  padding: 12px 45px 12px 15px;
+  padding: 8px 35px 8px 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
   color: #ffffff;
   font-family: inherit;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  height: 36px;
+  box-sizing: border-box;
 }
 
-.search-input:focus {
+.user-mgmt-search-input:focus {
   outline: none;
   border-color: #e0a3ff;
-  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
+  box-shadow: 0 0 12px rgba(224, 163, 255, 0.3);
   background: rgba(255, 255, 255, 0.1);
 }
 
-.search-input::placeholder {
+.user-mgmt-search-input::placeholder {
   color: #888;
+  font-size: 0.8rem;
 }
 
-.clear-search-button {
+.user-mgmt-clear-search-button {
   position: absolute;
-  right: 10px;
+  right: 8px;
   background: rgba(255, 68, 68, 0.2);
   color: #ff4444;
   border: 1px solid rgba(255, 68, 68, 0.3);
   border-radius: 50%;
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   transition: all 0.3s ease;
 }
 
-.clear-search-button:hover {
+.user-mgmt-clear-search-button:hover {
   background: rgba(255, 68, 68, 0.3);
   transform: scale(1.1);
 }
 
-.user-management-modal .role-filter-select,
-.user-management-modal .active-filter-select {
+/* User Management Dropdown Styles - Unique */
+
+/* Filter Dropdowns (z-index: 1000) */
+.user-mgmt-filter-dropdown-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 1000;
+}
+
+/* Form Dropdowns (z-index: 3000 - highest) */
+.user-mgmt-form-dropdown-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 3000;
+}
+
+/* Jefe Dropdown (z-index: 2000) */
+.user-mgmt-jefe-dropdown-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 2000;
+}
+
+/* Filter Dropdown Toggle */
+.user-mgmt-filter-dropdown-toggle {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #ffffff;
+  font-family: inherit;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+/* Form Dropdown Toggle */
+.user-mgmt-form-dropdown-toggle {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #ffffff;
+  font-family: inherit;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+/* Jefe Dropdown Toggle */
+.user-mgmt-jefe-dropdown-toggle {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #ffffff;
+  font-family: inherit;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+/* Hover states for all dropdown toggles */
+.user-mgmt-filter-dropdown-toggle:hover,
+.user-mgmt-form-dropdown-toggle:hover,
+.user-mgmt-jefe-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Focus states for all dropdown toggles */
+.user-mgmt-filter-dropdown-toggle:focus,
+.user-mgmt-form-dropdown-toggle:focus,
+.user-mgmt-jefe-dropdown-toggle:focus {
+  outline: none;
+  border-color: #e0a3ff;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 0 20px rgba(224, 163, 255, 0.3),
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Disabled states for all dropdown toggles */
+.user-mgmt-filter-dropdown-toggle:disabled,
+.user-mgmt-form-dropdown-toggle:disabled,
+.user-mgmt-jefe-dropdown-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Text styles for all dropdown toggles */
+.user-mgmt-filter-dropdown-text,
+.user-mgmt-form-dropdown-text,
+.user-mgmt-jefe-dropdown-text {
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Arrow styles for all dropdown toggles */
+.user-mgmt-filter-dropdown-arrow,
+.user-mgmt-form-dropdown-arrow,
+.user-mgmt-jefe-dropdown-arrow {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+  color: #e0a3ff;
+  margin-left: 8px;
+}
+
+.user-mgmt-filter-dropdown-arrow.open,
+.user-mgmt-form-dropdown-arrow.open,
+.user-mgmt-jefe-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Filter Dropdown Menu */
+.user-mgmt-filter-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 1001;
+  margin-top: 4px;
+  overflow: hidden;
+  animation: userMgmtDropdownSlideIn 0.2s ease-out;
+}
+
+/* Form Dropdown Menu (highest z-index) */
+.user-mgmt-form-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 3001;
+  margin-top: 4px;
+  overflow: hidden;
+  animation: userMgmtDropdownSlideIn 0.2s ease-out;
+}
+
+/* Jefe Dropdown Menu */
+.user-mgmt-jefe-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 2001;
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: userMgmtDropdownSlideIn 0.2s ease-out;
+}
+
+/* Custom scrollbar for Jefe Dropdown */
+.user-mgmt-jefe-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-mgmt-jefe-dropdown-menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.user-mgmt-jefe-dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.user-mgmt-jefe-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes userMgmtDropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Filter Dropdown Items */
+.user-mgmt-filter-dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.user-mgmt-filter-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.user-mgmt-filter-dropdown-item:hover {
+  background: rgba(224, 163, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.user-mgmt-filter-dropdown-item.selected {
+  background: rgba(224, 163, 255, 0.15);
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+.user-mgmt-filter-dropdown-item-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.user-mgmt-filter-dropdown-item.selected .user-mgmt-filter-dropdown-item-name {
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+/* Form Dropdown Items */
+.user-mgmt-form-dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.user-mgmt-form-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.user-mgmt-form-dropdown-item:hover {
+  background: rgba(224, 163, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.user-mgmt-form-dropdown-item.selected {
+  background: rgba(224, 163, 255, 0.15);
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+.user-mgmt-form-dropdown-item-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.user-mgmt-form-dropdown-item.selected .user-mgmt-form-dropdown-item-name {
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+/* Jefe Dropdown Items */
+.user-mgmt-jefe-dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.user-mgmt-jefe-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.user-mgmt-jefe-dropdown-item:hover {
+  background: rgba(224, 163, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.user-mgmt-jefe-dropdown-item.selected {
+  background: rgba(224, 163, 255, 0.15);
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+.user-mgmt-jefe-dropdown-item-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.user-mgmt-jefe-dropdown-item.selected .user-mgmt-jefe-dropdown-item-name {
+  color: #e0a3ff;
+  font-weight: 600;
+}
+
+.user-mgmt-role-filter-select,
+.user-mgmt-active-filter-select {
   width: 100% !important;
   padding: 15px 20px !important;
   background: rgba(255, 255, 255, 0.05) !important;
@@ -237,8 +607,8 @@
   padding-right: 40px !important;
 }
 
-.user-management-modal .role-filter-select:focus,
-.user-management-modal .active-filter-select:focus {
+.user-mgmt-role-filter-select:focus,
+.user-mgmt-active-filter-select:focus {
   outline: none;
   border-color: #e0a3ff !important;
   box-shadow: 
@@ -250,8 +620,8 @@
   transform: translateY(-1px);
 }
 
-.user-management-modal .role-filter-select:active,
-.user-management-modal .active-filter-select:active {
+.user-mgmt-role-filter-select:active,
+.user-mgmt-active-filter-select:active {
   transform: translateY(0);
   box-shadow: 
     0 0 15px rgba(224, 163, 255, 0.2),
@@ -259,8 +629,8 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.user-management-modal .role-filter-select:hover,
-.user-management-modal .active-filter-select:hover {
+.user-mgmt-role-filter-select:hover,
+.user-mgmt-active-filter-select:hover {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
   transform: translateY(-2px);
@@ -269,8 +639,8 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.user-management-modal .role-filter-select option,
-.user-management-modal .active-filter-select option {
+.user-mgmt-role-filter-select option,
+.user-mgmt-active-filter-select option {
   background: rgba(15, 23, 42, 0.98) !important;
   color: #ffffff;
   padding: 12px 20px;
@@ -281,14 +651,14 @@
   transition: all 0.3s ease;
 }
 
-.user-management-modal .role-filter-select option:hover,
-.user-management-modal .active-filter-select option:hover {
+.user-mgmt-role-filter-select option:hover,
+.user-mgmt-active-filter-select option:hover {
   background: rgba(255, 255, 255, 0.08) !important;
   color: #ffffff;
 }
 
-.user-management-modal .role-filter-select option:checked,
-.user-management-modal .active-filter-select option:checked {
+.user-mgmt-role-filter-select option:checked,
+.user-mgmt-active-filter-select option:checked {
   background: rgba(59, 130, 246, 0.2) !important;
   color: #ffffff;
   font-weight: 600;
@@ -312,26 +682,31 @@
 }
 
 .add-user-button {
-  padding: 12px 20px;
+  padding: 8px 16px;
   background: linear-gradient(135deg, #e0a3ff, #ff69b4);
   color: #000;
   border: none;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.02em;
   white-space: nowrap;
   flex-shrink: 0;
+  height: 36px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .add-user-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(224, 163, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(224, 163, 255, 0.3);
 }
 
-.table-wrapper {
+.user-mgmt-table-wrapper {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
@@ -339,105 +714,112 @@
   backdrop-filter: blur(10px);
 }
 
-.users-table {
+.user-mgmt-users-table {
   width: 100%;
   border-collapse: collapse;
   background: transparent;
 }
 
-.users-table th {
+.user-mgmt-users-table th {
   background: rgba(224, 163, 255, 0.1);
   color: #e0a3ff;
-  padding: 15px 12px;
+  padding: 10px 8px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.users-table td {
-  padding: 12px;
+.user-mgmt-users-table td {
+  padding: 8px;
   color: #ffffff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
-.users-table tr:hover {
+.user-mgmt-users-table tr:hover {
   background: rgba(224, 163, 255, 0.05);
 }
 
-.role-badge {
+.user-mgmt-role-badge {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 15px;
+  font-size: 0.7rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.role-badge.admin {
+.user-mgmt-role-badge.admin {
   background: rgba(255, 215, 0, 0.2);
   color: #ffd700;
   border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
-
-.role-badge.jefe {
+.user-mgmt-role-badge.jefe {
   background: rgba(34, 139, 34, 0.2);
   color: #228b22;
   border: 1px solid rgba(34, 139, 34, 0.3);
 }
 
-.role-badge.user {
+.user-mgmt-role-badge.user {
   background: rgba(224, 163, 255, 0.2);
   color: #e0a3ff;
   border: 1px solid rgba(224, 163, 255, 0.3);
 }
 
-.action-buttons {
+/* User Management Modal Specific Action Buttons */
+.user-mgmt-action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
-.edit-button,
-.delete-button {
-  padding: 6px 10px;
+.user-mgmt-edit-button,
+.user-mgmt-delete-button,
+.user-mgmt-refresh-token-button {
+  padding: 4px 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.edit-button:hover {
+.user-mgmt-edit-button:hover {
   background: rgba(0, 255, 255, 0.2);
   border-color: rgba(0, 255, 255, 0.3);
   transform: translateY(-1px);
 }
 
-.delete-button:hover:not(:disabled) {
+.user-mgmt-delete-button:hover:not(:disabled) {
   background: rgba(255, 68, 68, 0.2);
   border-color: rgba(255, 68, 68, 0.3);
   transform: translateY(-1px);
 }
 
-.delete-button:disabled {
+.user-mgmt-delete-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.toggle-status-button {
-  padding: 6px 10px;
+.user-mgmt-refresh-token-button:hover {
+  background: rgba(0, 123, 255, 0.2);
+  border-color: rgba(0, 123, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.user-mgmt-toggle-status-button {
+  padding: 4px 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
@@ -449,7 +831,7 @@
   overflow: hidden;
 }
 
-.toggle-status-button:hover {
+.user-mgmt-toggle-status-button:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
@@ -459,7 +841,7 @@
   backdrop-filter: blur(20px);
 }
 
-.toggle-status-button:active {
+.user-mgmt-toggle-status-button:active {
   transform: translateY(0);
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.15),
@@ -817,56 +1199,28 @@
   box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
 }
 
-/* Pagination Styles */
-.pagination-container {
+/* User Management Modal Specific Pagination Styles */
+.user-mgmt-pagination-container {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
-  padding: 12px;
+  margin-top: 15px;
+  padding: 10px 15px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: 10px;
   backdrop-filter: blur(10px);
 }
 
-.pagination-controls {
+.user-mgmt-pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  width: 100%;
+  max-width: 500px;
 }
 
-.pagination-button {
-  padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 0.02em;
-  min-width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background: rgba(224, 163, 255, 0.1);
-  border-color: rgba(224, 163, 255, 0.3);
-  transform: translateY(-1px);
-}
-
-.pagination-button:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.pagination-info {
+.user-mgmt-pagination-info {
   color: #e0a3ff;
   font-size: 0.85rem;
   font-weight: 500;
@@ -877,6 +1231,43 @@
   border-radius: 8px;
   backdrop-filter: blur(10px);
   letter-spacing: 0.02em;
+  flex: 0 0 auto;
+  min-width: 200px;
+}
+
+.user-mgmt-pagination-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.user-mgmt-pagination-button {
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-mgmt-pagination-button:hover:not(:disabled) {
+  background: rgba(224, 163, 255, 0.1);
+  border-color: rgba(224, 163, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.user-mgmt-pagination-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Responsive */
@@ -908,25 +1299,26 @@
     align-items: stretch;
   }
   
-  .search-add-row {
+  .user-mgmt-search-add-row {
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
     align-items: stretch;
+    padding: 5px 0;
   }
   
-  .search-input-wrapper {
+  .user-mgmt-search-input-wrapper {
     flex: none;
     order: 2;
   }
   
-  .role-filter-wrapper,
-  .active-filter-wrapper {
+  .user-mgmt-role-filter-wrapper,
+  .user-mgmt-active-filter-wrapper {
     flex: none;
     order: 3;
     min-width: unset;
   }
   
-  .active-filter-wrapper {
+  .user-mgmt-active-filter-wrapper {
     order: 4;
   }
   
@@ -934,19 +1326,20 @@
     order: 1;
     align-self: flex-end;
     width: auto;
-    padding: 10px 15px;
+    padding: 6px 12px;
     font-size: 0;
+    height: 32px;
   }
   
   /* Cambiar texto del botón en móvil */
   .add-user-button::before {
     content: "+Usuario";
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
   
   /* Hide table on mobile, show cards */
-  .table-wrapper {
-    display: none;
+  .user-mgmt-table-wrapper {
+    display: none !important;
   }
   
   /* Ocultar mensajes superiores en móvil (usar mensajes contextuales) */
@@ -956,16 +1349,16 @@
   
   /* Mobile Cards Layout */
   .users-cards-container {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
   }
   
   .user-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 15px;
+    border-radius: 10px;
+    padding: 10px;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     position: relative;
@@ -975,13 +1368,13 @@
   .user-card-message {
     background: rgba(0, 255, 136, 0.1);
     border: 1px solid rgba(0, 255, 136, 0.3);
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 12px;
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     color: #00ff88;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 600;
     text-align: center;
     animation: slideInFromTop 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -1019,40 +1412,40 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
   
   .user-card-number {
     background: rgba(224, 163, 255, 0.1);
     color: #e0a3ff;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.75rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
     font-weight: 600;
   }
   
   .user-card-info {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
   
   .user-card-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
   
   .user-card-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #e0a3ff;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
   }
   
   .user-card-value {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #ffffff;
     word-break: break-word;
   }
@@ -1061,8 +1454,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: 8px;
+    padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
   
@@ -1072,18 +1465,18 @@
   
   .user-card-buttons {
     display: flex;
-    gap: 8px;
+    gap: 4px;
   }
   
-  .mobile-action-button {
-    padding: 8px 10px;
+  .user-management-modal .mobile-action-button {
+    padding: 6px 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    font-size: 0.8rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    min-width: 36px;
-    height: 36px;
+    min-width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1092,43 +1485,43 @@
     backdrop-filter: blur(10px);
   }
   
-  .mobile-refresh-button {
+  .user-management-modal .mobile-refresh-button {
     background: rgba(255, 255, 255, 0.05);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  .mobile-refresh-button:hover {
+  .user-management-modal .mobile-refresh-button:hover {
+    background: rgba(0, 123, 255, 0.2);
+    border-color: rgba(0, 123, 255, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  .user-management-modal .mobile-edit-button {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .user-management-modal .mobile-edit-button:hover {
     background: rgba(0, 255, 255, 0.2);
     border-color: rgba(0, 255, 255, 0.3);
     transform: translateY(-1px);
   }
   
-  .mobile-edit-button {
+  .user-management-modal .mobile-delete-button {
     background: rgba(255, 255, 255, 0.05);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  .mobile-edit-button:hover {
-    background: rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.3);
-    transform: translateY(-1px);
-  }
-  
-  .mobile-delete-button {
-    background: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .mobile-delete-button:hover {
+  .user-management-modal .mobile-delete-button:hover {
     background: rgba(255, 68, 68, 0.2);
     border-color: rgba(255, 68, 68, 0.3);
     transform: translateY(-1px);
   }
   
-  .mobile-toggle-button {
+  .user-management-modal .mobile-toggle-button {
     background: rgba(255, 255, 255, 0.05);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1139,7 +1532,7 @@
     transition: all 0.3s ease;
   }
   
-  .mobile-toggle-button:hover {
+  .user-management-modal .mobile-toggle-button:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
@@ -1149,7 +1542,7 @@
     backdrop-filter: blur(20px);
   }
   
-  .mobile-toggle-button:active {
+  .user-management-modal .mobile-toggle-button:active {
     transform: translateY(0);
     box-shadow: 
       0 4px 15px rgba(0, 0, 0, 0.15),
@@ -1210,13 +1603,13 @@
     max-height: calc(100vh - 140px);
   }
   
-  .users-table th,
-  .users-table td {
+  .user-mgmt-users-table th,
+  .user-mgmt-users-table td {
     padding: 8px 6px;
     font-size: 0.75rem;
   }
   
-  .role-badge {
+  .user-mgmt-role-badge {
     font-size: 0.7rem;
     padding: 3px 8px;
   }
@@ -1231,72 +1624,79 @@
     font-size: 0.85rem;
   }
   
-  /* Mobile pagination adjustments */
-  .pagination-container {
-    margin-top: 8px;
-    padding: 8px;
-    border-radius: 10px;
+  /* Mobile pagination adjustments for User Management Modal */
+  .user-mgmt-pagination-container {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
   }
   
-  .pagination-controls {
-    display: flex;
+  .user-mgmt-pagination-controls {
     flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
     gap: 8px;
-    width: 100%;
+    align-items: center;
+    justify-content: center;
   }
   
-  .pagination-info {
-    order: 2;
+  .user-mgmt-pagination-info {
     font-size: 0.8rem;
     padding: 6px 10px;
-    flex: 1;
-    margin: 0 8px;
     text-align: center;
     box-sizing: border-box;
+    flex: 0 0 auto;
+    min-width: 180px;
   }
   
-  .pagination-button {
-    padding: 6px 8px;
-    font-size: 1rem;
-    min-width: 30px;
-    height: 30px;
+  .user-mgmt-pagination-buttons {
+    display: flex;
+    gap: 8px;
     flex-shrink: 0;
   }
   
-  .pagination-controls .pagination-button:first-child {
-    order: 1;
-  }
-  
-  .pagination-controls .pagination-button:last-child {
-    order: 3;
+  .user-mgmt-pagination-button {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    min-width: 30px;
+    height: 30px;
+    flex-shrink: 0;
   }
 }
 
 /* Extra small screens (phones in portrait) */
 @media (max-width: 360px) {
-  .pagination-container {
-    margin-top: 6px;
-    padding: 6px;
+  .user-mgmt-pagination-container {
+    margin-top: 8px;
+    padding: 6px 10px;
     border-radius: 8px;
   }
   
-  .pagination-controls {
+  .user-mgmt-pagination-controls {
+    flex-direction: row;
     gap: 6px;
+    align-items: center;
+    justify-content: center;
   }
   
-  .pagination-info {
+  .user-mgmt-pagination-info {
     font-size: 0.75rem;
     padding: 4px 8px;
-    margin: 0 4px;
+    flex: 0 0 auto;
+    min-width: 160px;
+    text-align: center;
   }
   
-  .pagination-button {
-    padding: 4px 6px;
-    font-size: 0.9rem;
+  .user-mgmt-pagination-buttons {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  
+  .user-mgmt-pagination-button {
+    padding: 4px 8px;
+    font-size: 0.85rem;
     min-width: 28px;
     height: 28px;
+    flex-shrink: 0;
   }
   
   /* Extra small mobile cards */
@@ -1338,7 +1738,7 @@
     padding-top: 10px;
   }
   
-  .mobile-action-button {
+  .user-management-modal .mobile-action-button {
     min-width: 32px;
     height: 32px;
     padding: 6px 8px;
@@ -1352,12 +1752,25 @@
   
   /* Extra small mobile layout adjustments */
   .add-user-button {
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: 0;
+    height: 28px;
   }
   
   .add-user-button::before {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+  }
+  
+  .user-mgmt-search-input {
+    height: 32px;
+    font-size: 0.8rem;
+    padding: 6px 30px 6px 10px;
+  }
+  
+  .user-mgmt-dropdown-toggle {
+    height: 32px;
+    font-size: 0.75rem;
+    padding: 6px 10px;
   }
   
   .search-input-wrapper {
@@ -1488,34 +1901,26 @@
   font-style: italic;
 }
 
-/* Estilos para información del jefe en la tabla */
-.jefe-info {
+/* User Management Modal Specific Jefe Info Styles */
+.user-mgmt-jefe-info {
   color: #28a745;
   font-weight: 500;
+  font-size: 0.9rem;
 }
 
-.jefe-info small {
-  color: #6c757d;
-  font-size: 0.8rem;
-}
-
-.no-jefe {
+.user-mgmt-no-jefe {
   color: #dc3545;
   font-style: italic;
   font-size: 0.9rem;
 }
 
-/* Estilos móviles para información del jefe */
+/* Estilos móviles para información del jefe en User Management Modal */
 @media (max-width: 768px) {
-  .jefe-info {
+  .user-mgmt-jefe-info {
     font-size: 0.85rem;
   }
 
-  .jefe-info small {
-    font-size: 0.75rem;
-  }
-
-  .no-jefe {
+  .user-mgmt-no-jefe {
     font-size: 0.8rem;
   }
 }

@@ -1,7 +1,7 @@
 /* History Modal - Neural Glass Style */
 .history-modal {
-  width: 85%;
-  max-width: 800px;
+  width: 90%;
+  max-width: 900px;
   max-height: 90vh;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(25px);
@@ -14,46 +14,177 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: modalEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center center;
 }
 
-/* Estilos para indicadores de horarios laborales */
-.working-hours-badge {
-  margin-left: 8px;
-  font-size: 1.1rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.working-hours-info {
-  margin-top: 8px;
+/* Focus management for accessibility */
+.history-modal:focus-within {
+  outline: none;
+}
+
+/* Enhanced focus styles for interactive elements */
+.history-search-input:focus,
+.history-date-input:focus,
+.dropdown-toggle:focus,
+.history-toggle-btn:focus,
+.history-refresh-button:focus,
+.history-clear-filters-btn:focus,
+.page-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Focus styles for dropdown items */
+.history-dropdown-item:focus {
+  outline: none;
+  background: rgba(224, 163, 255, 0.2);
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
   padding: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  border-left: 3px solid #FF9800;
-  font-size: 0.9rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 10000;
 }
 
-.working-hours-info strong {
-  color: #e0a3ff;
-  font-weight: 600;
+.skip-link:focus {
+  top: 6px;
 }
 
-.working-hours-info span {
-  font-weight: 500;
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .history-modal {
+    border: 2px solid #ffffff;
+    background: rgba(0, 0, 0, 0.8);
+  }
+  
+  .history-item {
+    border: 2px solid #ffffff;
+    background: rgba(0, 0, 0, 0.6);
+  }
+  
+  .dropdown-toggle,
+  .history-search-input,
+  .history-date-input {
+    border: 2px solid #ffffff;
+    background: rgba(0, 0, 0, 0.8);
+  }
 }
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .history-modal {
+    animation: none;
+  }
+  
+  .history-item {
+    animation: none;
+  }
+  
+  .history-details {
+    transition: none;
+  }
+  
+  .toggle-icon {
+    transition: none;
+  }
+  
+  .dropdown-arrow {
+    transition: none;
+  }
+  
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Animación de entrada del modal */
+@keyframes modalEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Animación de salida del modal */
+@keyframes modalExit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+}
+
+/* Animación de entrada de items del historial */
+@keyframes itemEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Animación de skeleton loading */
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Animación de micro-interacción en botones */
+@keyframes buttonPress {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 
 .history-modal .modal-header {
-  padding: 25px 30px;
+  padding: 18px 25px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
@@ -64,7 +195,7 @@
 
 .history-modal .modal-header h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 600;
   background: linear-gradient(135deg, #e0a3ff, #ff69b4);
   -webkit-background-clip: text;
@@ -72,7 +203,7 @@
   -webkit-text-fill-color: transparent;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -108,104 +239,120 @@
 .history-content {
   flex: 1;
   padding: 25px 30px;
-  overflow-y: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  height: 100%;
 }
 
-/* History Search Row - usando la misma estructura que UserManagementModal */
-.history-search-row {
+/* History Filters Container - Compacto y elegante */
+.history-filters-container {
   display: flex;
-  gap: 15px;
-  align-items: center;
+  gap: 12px;
+  align-items: flex-end;
   margin-bottom: 0px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1000;
+  flex-shrink: 0;
 }
 
 .history-search-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  flex: 1;
+  flex: 1.5;
   min-width: 0;
 }
 
-.history-status-filter-wrapper,
-.history-date-filter-wrapper {
+.history-status-filter-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 180px;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.history-date-filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-width: 200px;
   flex-shrink: 0;
 }
 
 /* Estilos para dropdown personalizado - Neural Glass Style */
-.dropdown-wrapper {
+.history-dropdown-wrapper {
   position: relative;
   width: 100%;
+  z-index: 10001;
 }
 
-.dropdown-toggle {
+.history-dropdown-toggle {
   width: 100%;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-size: 0.9rem;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 0.75rem;
   color: #ffffff;
   font-family: inherit;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px);
   transition: all 0.3s ease;
   cursor: pointer;
   box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
   text-align: left;
+  height: 38px;
+  box-sizing: border-box;
 }
 
-.dropdown-toggle:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
+.history-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
   box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.dropdown-toggle:focus {
+.history-dropdown-toggle:focus {
   outline: none;
-  border-color: #e0a3ff;
-  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(224, 163, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.dropdown-toggle:disabled {
+.history-dropdown-toggle:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
-.dropdown-text {
+.history-dropdown-text {
   flex: 1;
   text-align: left;
 }
 
-.dropdown-arrow {
+.history-dropdown-arrow {
   transition: transform 0.3s ease;
   color: #e0a3ff;
   font-size: 0.8rem;
 }
 
-.dropdown-arrow.open {
+.history-dropdown-arrow.open {
   transform: rotate(180deg);
 }
 
-.dropdown-menu {
+.history-dropdown-menu {
   position: absolute;
   top: 100%;
   left: 0;
@@ -217,12 +364,12 @@
   box-shadow: 
     0 8px 25px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  z-index: 1000;
+  z-index: 10000;
   overflow: hidden;
   margin-top: 4px;
 }
 
-.dropdown-item {
+.history-dropdown-item {
   padding: 12px 20px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -231,34 +378,27 @@
   align-items: center;
 }
 
-.dropdown-item:last-child {
+.history-dropdown-item:last-child {
   border-bottom: none;
 }
 
-.dropdown-item:hover {
+.history-dropdown-item:hover {
   background: rgba(224, 163, 255, 0.1);
   color: #e0a3ff;
 }
 
-.dropdown-item.selected {
+.history-dropdown-item.selected {
   background: rgba(224, 163, 255, 0.15);
   color: #e0a3ff;
   font-weight: 600;
 }
 
-.dropdown-item-name {
+.history-dropdown-item-name {
   flex: 1;
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-/* Botón de Refresh - Neural Glass Style */
-.history-refresh-container {
-  display: flex;
-  justify-content: flex-start;
-  margin: 8px 0;
-  padding: 0 0px;
-}
 
 .history-refresh-button {
   display: flex;
@@ -313,68 +453,29 @@
 }
 
 
-/* Responsive para el botón de refresh */
-@media (max-width: 768px) {
-  .history-refresh-container {
-    margin: 6px 0;
-    padding: 0 15px;
-  }
-  
-  .history-refresh-button {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .refresh-icon {
-    font-size: 0.9rem;
-  }
-}
 
-@media (max-width: 480px) {
-  .history-refresh-container {
-    margin: 4px 0;
-    padding: 0 10px;
-  }
-  
-  .history-refresh-button {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .refresh-icon {
-    font-size: 0.8rem;
-  }
-}
 
-/* Ocultar scrollbars en WebKit */
-.history-modal__content::-webkit-scrollbar {
-  display: none;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
 
-/* Filtros individuales sin contenedor - aplicando estilos directamente */
-
-/* History Search Input - estilos específicos para HistoryModal */
+/* History Search Input - Compacto y elegante */
 .history-search-input {
   width: 100%;
-  padding: 12px 45px 12px 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-size: 0.9rem;
+  padding: 10px 40px 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 0.85rem;
   color: #ffffff;
   font-family: inherit;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px);
   transition: all 0.3s ease;
+  height: 38px;
+  box-sizing: border-box;
 }
 
 .history-search-input:focus {
   outline: none;
-  border-color: #e0a3ff;
-  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(224, 163, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .history-search-input::placeholder {
@@ -383,18 +484,18 @@
 
 .history-clear-search-button {
   position: absolute;
-  right: 10px;
-  background: rgba(255, 68, 68, 0.2);
+  right: 8px;
+  background: rgba(255, 68, 68, 0.15);
   color: #ff4444;
-  border: 1px solid rgba(255, 68, 68, 0.3);
+  border: 1px solid rgba(255, 68, 68, 0.25);
   border-radius: 50%;
-  width: 25px;
-  height: 25px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   transition: all 0.3s ease;
 }
 
@@ -403,7 +504,6 @@
   transform: scale(1.1);
 }
 
-/* Estilos duplicados eliminados - ya definidos arriba con prefijos history- */
 
 /* History Dropdown - estilos específicos para HistoryModal */
 .history-dropdown-wrapper {
@@ -418,7 +518,7 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  font-size: 0.9rem;
+  font-size: 0.76rem;
   color: #ffffff;
   font-family: inherit;
   backdrop-filter: blur(10px);
@@ -498,346 +598,88 @@
   color: #e0a3ff;
 }
 
-.history-dropdown-item.selected {
-  background: rgba(224, 163, 255, 0.2);
-  color: #e0a3ff;
-  font-weight: 600;
-}
 
 .history-dropdown-item-name {
-  font-size: 0.9rem;
+  font-size: 0.79rem;
   white-space: nowrap;
 }
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
-}
 
-/* Ajustes específicos para distribución horizontal */
-.filter-group:nth-child(1) {
-  flex: 1.5; /* Búsqueda de usuario más ancha */
-}
-
-.filter-group:nth-child(2) {
-  flex: 1; /* Estado dropdown */
-}
-
-.filter-group:nth-child(3) {
-  flex: 2; /* Rango de fechas más ancho */
-}
-
-.filter-group:nth-child(4) {
-  flex: 0 0 auto; /* Botón limpiar fijo */
-}
-
-.filter-label {
-  color: #e0a3ff;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 5px;
-}
-
-/* Estilos para dropdowns personalizados */
-.dropdown-wrapper {
-  position: relative;
-  width: 100%;
-  z-index: 1000;
-}
-
-.dropdown-toggle {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #ffffff;
-  padding: 15px 20px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(15px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.dropdown-toggle:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.dropdown-toggle:focus {
-  outline: none;
-  border-color: #e0a3ff;
-  box-shadow: 
-    0 0 20px rgba(224, 163, 255, 0.3),
-    0 8px 25px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  transform: translateY(-1px);
-}
-
-.dropdown-toggle:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.dropdown-text {
-  flex: 1;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dropdown-arrow {
-  margin-left: 10px;
-  transition: transform 0.3s ease;
-  font-size: 0.8rem;
-  color: #e0a3ff;
-}
-
-.dropdown-arrow.open {
-  transform: rotate(180deg);
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: rgba(15, 23, 42, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  margin-top: 5px;
-  z-index: 9999;
-  backdrop-filter: blur(20px);
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.dropdown-item {
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-}
-
-.dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.dropdown-item.selected {
-  background: rgba(59, 130, 246, 0.2);
-  border-left: 3px solid #3b82f6;
-}
-
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.dropdown-item-name {
-  color: #ffffff;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
 
 /* Asegurar que los dropdowns abiertos estén por encima de todo */
-.dropdown-wrapper:has(.dropdown-menu) {
-  z-index: 10000;
+.history-dropdown-wrapper:has(.history-dropdown-menu) {
+  z-index: 10001;
 }
 
 /* Fallback para navegadores que no soportan :has() */
-.dropdown-wrapper .dropdown-menu {
+.history-dropdown-wrapper .history-dropdown-menu {
   z-index: 10000 !important;
 }
 
-.filter-buttons {
+/* Asegurar que el contenedor de filtros tenga z-index apropiado */
+.history-filters-container {
+  position: relative;
+  z-index: 1000;
+}
+
+/* Asegurar que el contenedor de filtros mantenga su z-index en móvil */
+@media (max-width: 768px) {
+  .history-filters-container {
+    position: relative;
+    z-index: 1000;
+  }
+}
+
+
+
+
+/* History Date Range - Compacto y elegante */
+.history-date-range-wrapper {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: flex-end;
 }
 
-.user-search-input {
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  color: #ffffff;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.user-search-input::placeholder {
-  color: #888;
-  font-style: italic;
-}
-
-.user-search-input:focus {
-  outline: none;
-  border-color: rgba(224, 163, 255, 0.3);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 
-    0 0 0 2px rgba(224, 163, 255, 0.2),
-    0 6px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-/* Dropdown de Estado */
-.history-modal .status-dropdown {
-  padding: 12px 16px !important;
-  border-radius: 12px !important;
-  border: 2px solid rgba(255, 255, 255, 0.1) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(15px) !important;
-  color: #ffffff !important;
-  font-size: 14px !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  cursor: pointer !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0a3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 12px center !important;
-  background-size: 16px !important;
-  padding-right: 40px !important;
-}
-
-.history-modal .status-dropdown:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(-2px);
-  box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.history-modal .status-dropdown:focus {
-  outline: none;
-  border-color: rgba(224, 163, 255, 0.3) !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 
-    0 0 0 2px rgba(224, 163, 255, 0.2),
-    0 6px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.history-modal .status-dropdown option {
-  background: rgba(15, 23, 42, 0.98) !important;
-  color: #ffffff;
-  padding: 12px 20px;
-  border: none;
-  backdrop-filter: blur(20px) !important;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.history-modal .status-dropdown option:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #ffffff;
-}
-
-.history-modal .status-dropdown option:checked {
-  background: rgba(59, 130, 246, 0.2) !important;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-/* Rango de Fechas - Layout Horizontal */
-.date-range-inputs {
-  display: flex;
-  gap: 10px;
-  align-items: end;
-}
-
-.date-input-group {
+.history-date-input-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   flex: 1;
   min-width: 0;
 }
 
-.date-input-label {
+.history-date-input-label {
+  font-size: 0.7rem;
   color: #e0a3ff;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* History Date Range - estilos específicos para HistoryModal */
-.history-date-range-wrapper {
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.date-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.date-input-label {
-  font-size: 0.65rem;
-  color: #e0a3ff;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 2px;
+  margin-bottom: 0;
+  line-height: 1.2;
 }
 
 .history-date-input {
   width: 100%;
-  padding: 6px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
   color: #ffffff;
-  font-size: 14px;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  height: 38px;
+  box-sizing: border-box;
 }
 
 .history-date-input:focus {
   outline: none;
-  border-color: #e0a3ff;
-  box-shadow: 0 0 15px rgba(224, 163, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(224, 163, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .history-date-input::-webkit-calendar-picker-indicator {
@@ -853,33 +695,101 @@
 }
 
 .history-clear-filters-btn {
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 68, 68, 0.3);
-  background: rgba(255, 68, 68, 0.1);
-  backdrop-filter: blur(10px);
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 16px;
+  border: 1px solid rgba(255, 68, 68, 0.25);
+  background: rgba(255, 68, 68, 0.08);
+  backdrop-filter: blur(8px);
   color: #ff4444;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   white-space: nowrap;
   flex-shrink: 0;
+  height: 36px;
+  width: 36px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .history-clear-filters-btn:hover {
-  background: rgba(255, 68, 68, 0.2);
-  border-color: rgba(255, 68, 68, 0.5);
-  transform: translateY(-2px);
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.4);
+  transform: translateY(-1px);
   box-shadow: 
-    0 8px 25px rgba(255, 68, 68, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    0 4px 12px rgba(255, 68, 68, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.date-input:focus {
+/* Fila de búsqueda y dropdown */
+.history-search-dropdown-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.history-search-input-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-status-filter-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Contenedor de botones de acción */
+.history-action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.history-refresh-button {
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  height: 36px;
+  width: 36px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-refresh-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.history-refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.history-date-input:focus {
   outline: none;
   border-color: rgba(224, 163, 255, 0.3);
   background: rgba(255, 255, 255, 0.08);
@@ -890,105 +800,72 @@
 }
 
 /* Estilos para el input de fecha en diferentes navegadores */
-.date-input::-webkit-calendar-picker-indicator {
+.history-date-input::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
 }
 
-.date-input::-webkit-datetime-edit-text {
+.history-date-input::-webkit-datetime-edit-text {
   color: #ffffff;
 }
 
-.date-input::-webkit-datetime-edit-month-field,
-.date-input::-webkit-datetime-edit-day-field,
-.date-input::-webkit-datetime-edit-year-field {
+.history-date-input::-webkit-datetime-edit-month-field,
+.history-date-input::-webkit-datetime-edit-day-field,
+.history-date-input::-webkit-datetime-edit-year-field {
   color: #ffffff;
 }
 
-.clear-filters-btn {
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 68, 68, 0.3);
-  background: rgba(255, 68, 68, 0.1);
-  backdrop-filter: blur(10px);
-  color: #ff4444;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
 
-.clear-filters-btn:hover {
-  background: rgba(255, 68, 68, 0.2);
-  border-color: rgba(255, 68, 68, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 
-    0 6px 20px rgba(255, 68, 68, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.filter-btn {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  color: #e0a3ff;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.filter-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.filter-btn.active {
-  background: linear-gradient(135deg, #e0a3ff, #ff69b4);
-  color: #000;
-  border-color: transparent;
-  box-shadow: 
-    0 4px 15px rgba(224, 163, 255, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
 
 /* Lista de historial */
 .history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  display: block;
   flex: 1;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  padding: 5px 0;
+}
+
+/* Ocultar scrollbars en WebKit para history-list */
+.history-list::-webkit-scrollbar {
+  display: none;
 }
 
 .history-item {
   background: rgba(255, 255, 255, 0.03);
   border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-  padding: 20px;
-  transition: all 0.3s ease;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 15px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
+  animation: itemEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-fill-mode: both;
 }
+
+.history-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Staggered animation para items del historial */
+.history-item:nth-child(1) { animation-delay: 0.1s; }
+.history-item:nth-child(2) { animation-delay: 0.15s; }
+.history-item:nth-child(3) { animation-delay: 0.2s; }
+.history-item:nth-child(4) { animation-delay: 0.25s; }
+.history-item:nth-child(5) { animation-delay: 0.3s; }
+.history-item:nth-child(6) { animation-delay: 0.35s; }
+.history-item:nth-child(7) { animation-delay: 0.4s; }
+.history-item:nth-child(8) { animation-delay: 0.45s; }
+.history-item:nth-child(9) { animation-delay: 0.5s; }
+.history-item:nth-child(10) { animation-delay: 0.55s; }
 
 /* Colores de fondo neural glass para diferentes tipos de acceso */
 .history-item[style*="rgba(76, 175, 80, 0.05)"] {
@@ -1026,7 +903,7 @@
 .history-item:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.01);
   box-shadow: 
     0 8px 25px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -1064,7 +941,7 @@
 }
 
 .history-toggle-btn:active {
-  transform: scale(0.95);
+  animation: buttonPress 0.2s ease;
 }
 
 .toggle-icon {
@@ -1081,15 +958,19 @@
 .history-details {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.3s ease;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
   margin-top: 0;
+  transform: translateY(-10px);
 }
 
 .history-details.expanded {
   max-height: 500px;
   opacity: 1;
   margin-top: 15px;
+  transform: translateY(0);
 }
 
 .history-header {
@@ -1099,27 +980,48 @@
   margin-bottom: 15px;
 }
 
-.history-user {
+
+.history-header {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
-.user-name-container {
+.history-info-row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.history-right-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.history-timestamp {
+  font-size: 12px;
+  color: #ffffff;
+  opacity: 0.8;
+  white-space: nowrap;
 }
 
 .user-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #ffffff;
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
-  line-height: 1.3;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .user-role {
@@ -1127,28 +1029,10 @@
   color: #e0a3ff;
   font-weight: 500;
   align-self: flex-start;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.history-status {
-  display: flex;
-  align-items: center;
-}
-
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 15px;
-  font-size: 12px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  box-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
 
 .history-details {
   display: flex;
@@ -1250,60 +1134,6 @@
   font-size: 12px;
 }
 
-/* Timestamp en header */
-.history-timestamp {
-  font-size: 12px;
-  color: #cccccc;
-  font-family: 'Courier New', monospace;
-  margin-top: 4px;
-}
-
-.history-details strong {
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.history-date {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.history-location {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.location-coords {
-  font-family: 'Courier New', monospace;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
-}
-
-.location-accuracy {
-  font-size: 11px;
-  color: #999;
-  font-style: italic;
-}
-
-.history-message {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.history-ip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-}
 
 /* Estados de carga y error */
 .loading-state {
@@ -1376,34 +1206,35 @@
 .history-pagination {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
-  padding: 12px;
+  margin-top: 1px;
+  padding: 6px 12px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: 8px;
   backdrop-filter: blur(10px);
+  flex-shrink: 0;
 }
 
 .pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .page-btn {
-  padding: 6px 8px;
+  padding: 4px 6px;
   background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.02em;
-  min-width: 32px;
-  height: 32px;
+  min-width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1423,160 +1254,20 @@
 
 .page-info {
   color: #e0a3ff;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
   text-align: center;
-  padding: 6px 12px;
+  padding: 4px 10px;
   background: rgba(224, 163, 255, 0.05);
   border: 1px solid rgba(224, 163, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   backdrop-filter: blur(10px);
   letter-spacing: 0.02em;
 }
 
-/* Desktop Layout - Botón al lado del nombre */
-@media (min-width: 769px) {
-  .user-name-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    justify-content: space-between;
-    margin-bottom: 0;
-  }
-  
-  .user-role-container {
-    display: block;
-  }
-  
-  .user-name {
-    flex: 1;
-  }
-  
-  .history-toggle-btn {
-    flex-shrink: 0;
-  }
-}
 
-/* Responsive para pantallas grandes (PC) */
-@media (min-width: 1400px) {
-  .history-modal {
-    max-width: 900px;
-  }
-  
-  .history-filters {
-    gap: 25px;
-    padding: 25px;
-  }
-  
-  .filter-group:nth-child(1) {
-    flex: 1.8; /* Búsqueda de usuario más ancha en PC */
-  }
-  
-  .filter-group:nth-child(2) {
-    flex: 1.2; /* Estado dropdown más ancho */
-  }
-  
-  .filter-group:nth-child(3) {
-    flex: 2.5; /* Rango de fechas mucho más ancho */
-  }
-  
-  .filter-group:nth-child(4) {
-    flex: 0 0 auto;
-  }
-  
-  .filter-group:nth-child(5) {
-    flex: 0 0 auto;
-  }
-  
-  .filter-label {
-    font-size: 15px;
-    margin-bottom: 8px;
-  }
-  
-  .dropdown-toggle {
-    padding: 18px 25px;
-    font-size: 1.1rem;
-  }
-  
-  .user-search-input {
-    padding: 18px 25px;
-    font-size: 1.1rem;
-  }
-  
-  .date-input {
-    padding: 18px 20px;
-    font-size: 1.1rem;
-  }
-  
-  .clear-filters-btn {
-    padding: 18px 25px;
-    font-size: 1.1rem;
-  }
-}
 
-/* Responsive para pantallas medianas-grandes */
-@media (max-width: 1399px) and (min-width: 1200px) {
-  .history-modal {
-    max-width: 850px;
-  }
-  
-  .history-filters {
-    gap: 22px;
-    padding: 22px;
-  }
-  
-  .filter-group:nth-child(1) {
-    flex: 1.6;
-  }
-  
-  .filter-group:nth-child(2) {
-    flex: 1.1;
-  }
-  
-  .filter-group:nth-child(3) {
-    flex: 2.2;
-  }
-  
-  .filter-label {
-    font-size: 14px;
-    margin-bottom: 7px;
-  }
-  
-  .dropdown-toggle {
-    padding: 16px 22px;
-    font-size: 1.05rem;
-  }
-  
-  .user-search-input {
-    padding: 16px 22px;
-    font-size: 1.05rem;
-  }
-  
-  .date-input {
-    padding: 16px 18px;
-    font-size: 1.05rem;
-  }
-  
-  .clear-filters-btn {
-    padding: 16px 22px;
-    font-size: 1.05rem;
-  }
-}
 
-/* Responsive para pantallas medianas */
-@media (max-width: 1024px) and (min-width: 769px) {
-  .history-filters {
-    gap: 15px;
-  }
-  
-  .filter-group:nth-child(1) {
-    flex: 1.2;
-  }
-  
-  .filter-group:nth-child(3) {
-    flex: 1.8;
-  }
-}
 
 /* Responsive para pantallas pequeñas - Optimizado para Móvil */
 @media (max-width: 768px) {
@@ -1587,39 +1278,59 @@
   }
   
   .history-modal .modal-header {
-    padding: 15px 20px;
+    padding: 12px 16px;
   }
   
   .history-modal .modal-header h2 {
-    font-size: 18px;
+    font-size: 16px;
   }
   
   .history-content {
     padding: 15px;
   }
   
-  /* History Search Row móvil - usando la misma estructura que UserManagementModal */
-  .history-search-row {
+  /* History Filters Container móvil - usando la misma estructura que UserManagementModal */
+  .history-filters-container {
     flex-direction: column;
-    gap: 15px;
+    gap: 6px;
     align-items: stretch;
+    padding: 8px 12px;
   }
   
-  .history-search-input-wrapper {
-    flex: none;
+  /* Asegurar el orden correcto de los elementos */
+  .history-search-dropdown-row {
     order: 1;
   }
   
-  .history-status-filter-wrapper {
-    flex: none;
+  .history-date-filter-wrapper {
     order: 2;
-    min-width: unset;
+  }
+  
+  .history-action-buttons {
+    order: 3;
+  }
+  
+  /* Fila de búsqueda y dropdown en móvil - mantener en la misma fila */
+  .history-search-dropdown-row {
+    flex-direction: row;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  
+  .history-search-input-wrapper {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .history-status-filter-wrapper {
+    flex: 1;
+    min-width: 0;
   }
   
   .history-date-filter-wrapper {
     flex: none;
-    order: 3;
     min-width: unset;
+    width: 100%;
   }
   
   .history-date-range-wrapper {
@@ -1628,15 +1339,16 @@
     flex: 1;
   }
   
-  .date-input-group {
+  .history-date-input-group {
     gap: 3px;
     flex: 1;
     min-width: 0;
   }
   
-  .date-input-label {
-    font-size: 0.7rem;
+  .history-date-input-label {
+    font-size: 0.65rem;
     margin-bottom: 1px;
+    font-weight: 500;
   }
   
   .history-date-input {
@@ -1652,14 +1364,26 @@
     padding: 10px 15px;
   }
   
-  /* Ajustes para el botón toggle en móvil */
-  .user-name-container {
-    gap: 3px;
-    margin-bottom: 6px;
+  
+  .history-header {
+    gap: 6px;
+  }
+  
+  .history-info-row {
+    gap: 8px;
+  }
+  
+  .history-right-section {
+    gap: 6px;
+    margin-left: auto;
+  }
+  
+  .history-timestamp {
+    font-size: 11px;
   }
   
   .user-name {
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1.3;
   }
   
@@ -1679,41 +1403,29 @@
     font-size: 0.6rem;
   }
   
-  .filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: none;
-    width: 100%;
-  }
-  
-  .filter-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #e0a3ff;
-    margin-bottom: 2px;
-  }
   
   /* Búsqueda de usuario móvil */
-  .user-search-input {
-    padding: 12px 14px;
-    font-size: 16px; /* Evita zoom en iOS */
-    border-radius: 10px;
+  .history-search-input {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 6px;
     width: 100%;
     box-sizing: border-box;
+    height: 28px;
   }
   
   /* Dropdown móvil */
-  .status-dropdown {
-    padding: 12px 14px;
-    font-size: 16px; /* Evita zoom en iOS */
-    border-radius: 10px;
+  .history-dropdown-toggle {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 6px;
     width: 100%;
     box-sizing: border-box;
+    height: 28px;
   }
   
   /* Rango de fechas móvil - Layout horizontal compacto */
-  .date-range-inputs {
+  .history-date-range-wrapper {
     display: flex;
     flex-direction: row;
     gap: 8px;
@@ -1721,7 +1433,7 @@
     width: 100%;
   }
   
-  .date-input-group {
+  .history-date-input-group {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1729,44 +1441,45 @@
     min-width: 0;
   }
   
-  .date-input-label {
-    font-size: 11px;
+  .history-date-input-label {
+    font-size: 9px;
     font-weight: 500;
     color: #e0a3ff;
     text-align: center;
   }
   
-  .date-input {
-    padding: 12px 10px;
-    font-size: 14px;
-    border-radius: 10px;
-    width: 100%;
-    box-sizing: border-box;
+  .history-date-input {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+    height: 28px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   
   /* Botón limpiar móvil */
-  .clear-filters-btn {
-    padding: 12px 20px;
-    font-size: 14px;
-    border-radius: 10px;
+  .history-clear-filters-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 6px;
     width: 100%;
     justify-content: center;
-    margin-top: 5px;
-    min-height: 44px; /* Tamaño mínimo táctil */
+    margin-top: 3px;
+    height: 28px;
   }
   
   /* Mejoras táctiles para móvil */
-  .user-search-input,
-  .status-dropdown,
-  .date-input {
-    min-height: 44px; /* Tamaño mínimo táctil recomendado */
+  .history-search-input,
+  .history-dropdown-toggle,
+  .history-date-input {
+    height: 28px;
     touch-action: manipulation; /* Evita delay en touch */
   }
   
   /* Estilos específicos para inputs de fecha en móvil */
-  .date-input::-webkit-calendar-picker-indicator {
-    width: 20px;
-    height: 20px;
+  .history-date-input::-webkit-calendar-picker-indicator {
+    width: 16px;
+    height: 16px;
     filter: invert(1);
   }
   
@@ -1775,12 +1488,12 @@
     line-height: 1.2;
   }
   
-  .date-input-label {
+  .history-date-input-label {
     line-height: 1.1;
   }
   
   .history-item {
-    padding: 15px;
+    padding: 10px 12px;
   }
   
   /* Responsive para nuevos badges */
@@ -1838,6 +1551,39 @@
     font-size: 11px;
     margin-top: 2px;
   }
+  
+  /* Dropdown más compacto para móvil */
+  .history-dropdown-menu {
+    border-radius: 6px;
+    margin-top: 1px;
+  }
+  
+  .history-dropdown-item {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-height: 24px;
+  }
+  
+  .history-dropdown-item-name {
+    font-size: 11px;
+  }
+  
+  /* Botones de acción compactos para móvil */
+  .history-action-buttons {
+    gap: 6px;
+    margin-top: 6px;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .history-refresh-button,
+  .history-clear-filters-btn {
+    height: 28px !important;
+    width: 28px !important;
+    padding: 6px !important;
+    font-size: 14px !important;
+    border-radius: 6px !important;
+  }
 }
 
 /* Pantallas muy pequeñas - Optimización adicional */
@@ -1849,56 +1595,31 @@
   }
   
   .history-modal .modal-header {
-    padding: 12px 15px;
+    padding: 8px 12px;
   }
   
   .history-modal .modal-header h2 {
-    font-size: 16px;
+    font-size: 14px;
   }
   
   .history-content {
-    padding: 12px;
+    padding: 8px;
   }
   
-  /* Filtros ultra compactos */
-  .search-input-wrapper,
-  .status-filter-wrapper,
-  .date-filter-wrapper {
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .clear-filters-btn {
-    padding: 10px 16px;
-    margin-bottom: 10px;
-  }
-  
-  .filter-group {
-    gap: 5px;
-  }
-  
-  .filter-label {
-    font-size: 11px;
-  }
   
   /* Inputs más compactos */
-  .user-search-input,
-  .status-dropdown {
-    padding: 10px 12px;
-    font-size: 16px;
-    min-height: 42px;
+  .history-search-input,
+  .history-dropdown-toggle {
+    padding: 5px 8px;
+    font-size: 11px;
+    height: 24px;
   }
   
   /* Fechas lado a lado pero más compactas */
-  .date-range-inputs {
+  .history-date-range-wrapper {
     gap: 6px;
   }
   
-  .date-input {
-    padding: 10px 8px;
-    font-size: 13px;
-    min-height: 42px;
-  }
   
   /* Datepickers específicos para móvil */
   .history-date-range-wrapper {
@@ -1907,28 +1628,35 @@
     flex: 1;
   }
   
-  .date-input-group {
+  .history-date-input-group {
     flex: 1;
     min-width: 0;
   }
   
   .history-date-input {
-    width: 100%;
-    min-width: 0;
-    flex: 1;
-    padding: 8px 6px;
-    font-size: 12px;
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+    box-sizing: border-box !important;
   }
   
-  .date-input-label {
-    font-size: 10px;
+  .history-date-input-label {
+    font-size: 9px !important;
+    font-weight: 500 !important;
+    color: #e0a3ff !important;
+    text-align: center !important;
   }
   
   /* Botón más compacto */
-  .clear-filters-btn {
-    padding: 10px 16px;
-    font-size: 13px;
-    min-height: 42px;
+  .history-clear-filters-btn {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
   }
   
   .history-header {
@@ -1937,18 +1665,6 @@
     align-items: flex-start;
   }
   
-  /* Responsive para indicadores de horarios */
-  .working-hours-badge {
-    font-size: 1rem;
-    margin-left: 4px;
-    min-width: 20px;
-    height: 20px;
-  }
-  
-  .working-hours-info {
-    font-size: 0.8rem;
-    padding: 6px;
-  }
   
   /* Mobile pagination adjustments */
   .history-pagination {
@@ -2017,5 +1733,32 @@
     font-size: 0.9rem;
     min-width: 28px;
     height: 28px;
+  }
+}
+
+/* Estilos móviles con máxima prioridad - Sobrescribe todos los demás */
+@media (max-width: 768px) {
+  .history-date-input {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+    height: 28px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-height: 28px !important;
+  }
+  
+  .history-date-input-label {
+    font-size: 9px !important;
+    font-weight: 500 !important;
+    color: #e0a3ff !important;
+    text-align: center !important;
+  }
+  
+  .history-clear-filters-btn {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
   }
 }

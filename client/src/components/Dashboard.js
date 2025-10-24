@@ -392,28 +392,37 @@ const Dashboard = ({ user, onLogout }) => {
             {user.role === 'admin' && (
               <>
                 <button 
-                  className="notifications-button"
+                  className="notifications-button dashboard-tooltip"
                   onClick={() => setShowNotificationsModal(true)}
-                  title="Ver actividad de login/logout"
+                  data-tooltip="Ver actividad de login/logout"
                 >
                   🔐
                 </button>
                 <button
-                  className="history-button"
+                  className="history-button dashboard-tooltip"
                   onClick={() => setShowHistoryModal(true)}
-                  title="Ver histórico de aperturas"
+                  data-tooltip="Ver histórico de aperturas"
                 >
                   📋
                 </button>
                  <button 
-                   className="user-management-button"
+                   className="user-management-button dashboard-tooltip"
                    onClick={() => setShowUserManagementModal(true)}
+                   data-tooltip="Gestionar usuarios del sistema"
                  >
                    👥
                  </button>
                  <button 
-                   className="config-button"
+                   className="admin-permisos-button dashboard-tooltip"
+                   onClick={() => setShowAdminPermisosModal(true)}
+                   data-tooltip="Administrar permisos especiales"
+                 >
+                   🔑
+                 </button>
+                 <button 
+                   className="config-button dashboard-tooltip"
                    onClick={() => setShowConfigModal(true)}
+                   data-tooltip="Configuración del sistema"
                  >
                    ⚙️
                  </button>
@@ -423,20 +432,9 @@ const Dashboard = ({ user, onLogout }) => {
             {/* Botón de permisos para jefes */}
             {user.role === 'jefe' && (
               <button 
-                className="permisos-button"
+                className="permisos-button dashboard-tooltip"
                 onClick={() => setShowPermisosModal(true)}
-                title="Gestionar permisos de acceso"
-              >
-                🔑
-              </button>
-            )}
-
-            {/* Botón de permisos especiales para administradores */}
-            {user.role === 'admin' && (
-              <button 
-                className="admin-permisos-button"
-                onClick={() => setShowAdminPermisosModal(true)}
-                title="Administrar permisos especiales"
+                data-tooltip="Gestionar permisos de acceso"
               >
                 🔑
               </button>
@@ -536,6 +534,13 @@ const Dashboard = ({ user, onLogout }) => {
                <span className="nav-icon">👥</span>
                <span className="nav-label"></span>
              </button>
+             <button
+               className="mobile-nav-button"
+               onClick={() => setShowAdminPermisosModal(true)}
+             >
+               <span className="nav-icon">🔑</span>
+               <span className="nav-label"></span>
+             </button>
              <button 
                className="mobile-nav-button"
                onClick={() => setShowConfigModal(true)}
@@ -551,17 +556,6 @@ const Dashboard = ({ user, onLogout }) => {
            <button
              className="mobile-nav-button"
              onClick={() => setShowPermisosModal(true)}
-           >
-             <span className="nav-icon">🔑</span>
-             <span className="nav-label"></span>
-           </button>
-         )}
-
-         {/* Botón de permisos especiales para administradores */}
-         {user.role === 'admin' && (
-           <button
-             className="mobile-nav-button"
-             onClick={() => setShowAdminPermisosModal(true)}
            >
              <span className="nav-icon">🔑</span>
              <span className="nav-label"></span>

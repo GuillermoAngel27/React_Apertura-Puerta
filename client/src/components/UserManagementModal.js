@@ -37,7 +37,9 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
   // Cerrar dropdowns al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown-wrapper')) {
+      if (!event.target.closest('.user-mgmt-filter-dropdown-wrapper') && 
+          !event.target.closest('.user-mgmt-form-dropdown-wrapper') && 
+          !event.target.closest('.user-mgmt-jefe-dropdown-wrapper')) {
         setRoleDropdownOpen(false);
         setActiveDropdownOpen(false);
         setFormRoleDropdownOpen(false);
@@ -685,27 +687,29 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       <div className="modal-content user-management-modal">
         <div className="modal-header">
           <h2>👥 Administración de Usuarios</h2>
-          <button className="close-button" onClick={onClose}>
-            ✕
-          </button>
+          {!showAddForm && !editingUser && (
+            <button className="close-button" onClick={onClose}>
+              ✕
+            </button>
+          )}
         </div>
 
         <div className="user-management-content">
           {!showAddForm ? (
             <div className="users-table-container">
               {/* Search Bar, Filters and Add Button Row */}
-              <div className="search-add-row">
-                <div className="search-input-wrapper">
+              <div className="user-mgmt-search-add-row">
+                <div className="user-mgmt-search-input-wrapper">
                   <input
                     type="text"
                     placeholder="🔍 Buscar usuarios por nombre, usuario o rol..."
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    className="search-input"
+                    className="user-mgmt-search-input"
                   />
                   {searchTerm && (
                     <button 
-                      className="clear-search-button"
+                      className="user-mgmt-clear-search-button"
                       onClick={() => setSearchTerm('')}
                       title="Limpiar búsqueda"
                     >
@@ -713,86 +717,86 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                     </button>
                   )}
                 </div>
-                <div className="role-filter-wrapper">
-                  <div className="dropdown-wrapper">
+                <div className="user-mgmt-role-filter-wrapper">
+                  <div className="user-mgmt-filter-dropdown-wrapper">
                     <button 
-                      className="dropdown-toggle"
+                      className="user-mgmt-filter-dropdown-toggle"
                       onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
                       disabled={loading}
                     >
-                      <span className="dropdown-text">
+                      <span className="user-mgmt-filter-dropdown-text">
                         {roleFilter === 'user' ? '👤 Usuario' :
                          roleFilter === 'jefe' ? '👔 Jefe de Departamento' :
                          roleFilter === 'admin' ? '👑 Administrador' :
                          '👥 Todos los roles'}
                       </span>
-                      <span className={`dropdown-arrow ${roleDropdownOpen ? 'open' : ''}`}>▼</span>
+                      <span className={`user-mgmt-filter-dropdown-arrow ${roleDropdownOpen ? 'open' : ''}`}>▼</span>
                     </button>
                     
                     {roleDropdownOpen && (
-                      <div className="dropdown-menu">
+                      <div className="user-mgmt-filter-dropdown-menu">
                         <div 
-                          className={`dropdown-item ${roleFilter === '' ? 'selected' : ''}`}
+                          className={`user-mgmt-filter-dropdown-item ${roleFilter === '' ? 'selected' : ''}`}
                           onClick={() => handleRoleSelect('')}
                         >
-                          <span className="dropdown-item-name">👥 Todos los roles</span>
+                          <span className="user-mgmt-filter-dropdown-item-name">👥 Todos los roles</span>
                         </div>
                         <div 
-                          className={`dropdown-item ${roleFilter === 'user' ? 'selected' : ''}`}
+                          className={`user-mgmt-filter-dropdown-item ${roleFilter === 'user' ? 'selected' : ''}`}
                           onClick={() => handleRoleSelect('user')}
                         >
-                          <span className="dropdown-item-name">👤 Usuario</span>
+                          <span className="user-mgmt-filter-dropdown-item-name">👤 Usuario</span>
                         </div>
                         <div 
-                          className={`dropdown-item ${roleFilter === 'jefe' ? 'selected' : ''}`}
+                          className={`user-mgmt-filter-dropdown-item ${roleFilter === 'jefe' ? 'selected' : ''}`}
                           onClick={() => handleRoleSelect('jefe')}
                         >
-                          <span className="dropdown-item-name">👔 Jefe de Departamento</span>
+                          <span className="user-mgmt-filter-dropdown-item-name">👔 Jefe de Departamento</span>
                         </div>
                         <div 
-                          className={`dropdown-item ${roleFilter === 'admin' ? 'selected' : ''}`}
+                          className={`user-mgmt-filter-dropdown-item ${roleFilter === 'admin' ? 'selected' : ''}`}
                           onClick={() => handleRoleSelect('admin')}
                         >
-                          <span className="dropdown-item-name">👑 Administrador</span>
+                          <span className="user-mgmt-filter-dropdown-item-name">👑 Administrador</span>
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="active-filter-wrapper">
-                  <div className="dropdown-wrapper">
+                <div className="user-mgmt-active-filter-wrapper">
+                  <div className="user-mgmt-filter-dropdown-wrapper">
                     <button 
-                      className="dropdown-toggle"
+                      className="user-mgmt-filter-dropdown-toggle"
                       onClick={() => setActiveDropdownOpen(!activeDropdownOpen)}
                       disabled={loading}
                     >
-                      <span className="dropdown-text">
+                      <span className="user-mgmt-filter-dropdown-text">
                         {activeFilter === 'true' ? '✅ Activos' :
                          activeFilter === 'false' ? '❌ Inactivos' :
                          '🔄 Todos los estados'}
                       </span>
-                      <span className={`dropdown-arrow ${activeDropdownOpen ? 'open' : ''}`}>▼</span>
+                      <span className={`user-mgmt-filter-dropdown-arrow ${activeDropdownOpen ? 'open' : ''}`}>▼</span>
                     </button>
                     
                     {activeDropdownOpen && (
-                      <div className="dropdown-menu">
+                      <div className="user-mgmt-filter-dropdown-menu">
                         <div 
-                          className={`dropdown-item ${activeFilter === '' ? 'selected' : ''}`}
+                          className={`user-mgmt-filter-dropdown-item ${activeFilter === '' ? 'selected' : ''}`}
                           onClick={() => handleActiveSelect('')}
                         >
-                          <span className="dropdown-item-name">🔄 Todos los estados</span>
+                          <span className="user-mgmt-filter-dropdown-item-name">🔄 Todos los estados</span>
                         </div>
                         <div 
-                          className={`dropdown-item ${activeFilter === 'true' ? 'selected' : ''}`}
+                          className={`user-mgmt-filter-dropdown-item ${activeFilter === 'true' ? 'selected' : ''}`}
                           onClick={() => handleActiveSelect('true')}
                         >
-                          <span className="dropdown-item-name">✅ Activos</span>
+                          <span className="user-mgmt-filter-dropdown-item-name">✅ Activos</span>
                         </div>
                         <div 
-                          className={`dropdown-item ${activeFilter === 'false' ? 'selected' : ''}`}
+                          className={`user-mgmt-filter-dropdown-item ${activeFilter === 'false' ? 'selected' : ''}`}
                           onClick={() => handleActiveSelect('false')}
                         >
-                          <span className="dropdown-item-name">❌ Inactivos</span>
+                          <span className="user-mgmt-filter-dropdown-item-name">❌ Inactivos</span>
                         </div>
                       </div>
                     )}
@@ -810,8 +814,8 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
               {success && <div className="success-message desktop-only-message">{success}</div>}
               {loading && <div className="loading-message desktop-only-message">⏳ Cargando usuarios...</div>}
 
-              <div className="table-wrapper">
-                <table className="users-table">
+              <div className="user-mgmt-table-wrapper">
+                <table className="user-mgmt-users-table">
                   <thead>
                     <tr>
                       <th>#</th>
@@ -831,7 +835,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                         <td>{user.nombre} {user.apellido}</td>
                         <td>{user.username}</td>
                         <td>
-                          <span className={`role-badge ${user.role}`}>
+                          <span className={`user-mgmt-role-badge ${user.role}`}>
                             {user.role === 'admin' ? '👑 Admin' : 
                              user.role === 'jefe' ? '👔 Jefe de Departamento' :
                              '👤 Usuario'}
@@ -840,22 +844,20 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                         <td>
                           {user.role === 'user' ? (
                             user.jefe_nombre && user.jefe_apellido ? (
-                              <span className="jefe-info">
+                              <span className="user-mgmt-jefe-info">
                                 {user.jefe_nombre} {user.jefe_apellido}
-                                <br />
-                                <small>({user.jefe_username})</small>
                               </span>
                             ) : (
-                              <span className="no-jefe">Sin jefe asignado</span>
+                              <span className="user-mgmt-no-jefe">Sin jefe asignado</span>
                             )
                           ) : (
-                            <span className="no-jefe">-</span>
+                            <span className="user-mgmt-no-jefe">-</span>
                           )}
                         </td>
                         <td>
-                          <div className="action-buttons">
+                          <div className="user-mgmt-action-buttons">
                             <button 
-                              className="refresh-token-button" 
+                              className="user-mgmt-refresh-token-button" 
                               onClick={() => handleRefreshToken(user.id, user.username)} 
                               title="🔄 Refrescar Token de Dispositivo"
                               style={{
@@ -872,21 +874,21 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                               🔄
                             </button>
                             <button 
-                              className="toggle-status-button" 
+                              className="user-mgmt-toggle-status-button" 
                               onClick={() => handleToggleUserStatus(user.id, user.username, user.activo)} 
                               title={user.activo ? "Desactivar usuario" : "Activar usuario"}
                             >
                               {user.activo ? '⬇️' : '✔️'}
                             </button>
                             <button 
-                              className="edit-button" 
+                              className="user-mgmt-edit-button" 
                               onClick={() => handleEdit(user)} 
                               title="Editar usuario"
                             >
                               ✏️
                             </button>
                             <button 
-                              className="delete-button" 
+                              className="user-mgmt-delete-button" 
                               onClick={() => handleDelete(user.id, user.username)} 
                               title="Eliminar usuario"
                             >
@@ -934,13 +936,11 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                           <div className="user-card-label">Jefe</div>
                           <div className="user-card-value">
                             {user.jefe_nombre && user.jefe_apellido ? (
-                              <span className="jefe-info">
+                              <span className="user-mgmt-jefe-info">
                                 {user.jefe_nombre} {user.jefe_apellido}
-                                <br />
-                                <small>({user.jefe_username})</small>
                               </span>
                             ) : (
-                              <span className="no-jefe">Sin jefe asignado</span>
+                              <span className="user-mgmt-no-jefe">Sin jefe asignado</span>
                             )}
                           </div>
                         </div>
@@ -949,7 +949,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                     
                     <div className="user-card-actions">
                       <div className="user-card-role">
-                        <span className={`role-badge ${user.role}`}>
+                        <span className={`user-mgmt-role-badge ${user.role}`}>
                           {user.role === 'admin' ? '👑 Admin' : 
                            user.role === 'jefe' ? '👔 Jefe de Departamento' :
                            '👤 Usuario'}
@@ -993,37 +993,39 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="pagination-container">
-                  <div className="pagination-controls">
+              <div className="user-mgmt-pagination-container">
+                <div className="user-mgmt-pagination-controls">
+                  {totalPages > 1 && (
                     <button 
-                      className="pagination-button"
+                      className="user-mgmt-pagination-button"
                       onClick={handlePreviousPage}
                       disabled={currentPage === 1 || loading}
                       title="Página anterior"
                     >
                       ◀
                     </button>
-                    
-                    <div className="pagination-info">
-                      {loading ? (
-                        <span>⏳ Cargando...</span>
-                      ) : (
-                        `Página ${currentPage} de ${totalPages}`
-                      )}
-                    </div>
-                    
+                  )}
+                  
+                  <div className="user-mgmt-pagination-info">
+                    {loading ? (
+                      <span>⏳ Cargando...</span>
+                    ) : (
+                      <span>Pág. {currentPage} de {totalPages} • {totalUsers} usuarios</span>
+                    )}
+                  </div>
+                  
+                  {totalPages > 1 && (
                     <button 
-                      className="pagination-button"
+                      className="user-mgmt-pagination-button"
                       onClick={handleNextPage}
                       disabled={currentPage === totalPages || loading}
                       title="Página siguiente"
                     >
                       ▶
                     </button>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="user-form-container">
@@ -1136,41 +1138,41 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
 
                 <div className="form-group">
                   <label htmlFor="role">Rol:</label>
-                  <div className="dropdown-wrapper">
+                  <div className="user-mgmt-form-dropdown-wrapper">
                     <button 
-                      className="dropdown-toggle"
+                      className="user-mgmt-form-dropdown-toggle"
                       onClick={() => setFormRoleDropdownOpen(!formRoleDropdownOpen)}
                       disabled={loading}
                       type="button"
                     >
-                      <span className="dropdown-text">
+                      <span className="user-mgmt-form-dropdown-text">
                         {formData.role === 'user' ? '👤 Usuario' :
                          formData.role === 'jefe' ? '👔 Jefe de Departamento' :
                          formData.role === 'admin' ? '👑 Administrador' :
                          '👤 Usuario'}
                       </span>
-                      <span className={`dropdown-arrow ${formRoleDropdownOpen ? 'open' : ''}`}>▼</span>
+                      <span className={`user-mgmt-form-dropdown-arrow ${formRoleDropdownOpen ? 'open' : ''}`}>▼</span>
                     </button>
                     
                     {formRoleDropdownOpen && (
-                      <div className="dropdown-menu">
+                      <div className="user-mgmt-form-dropdown-menu">
                         <div 
-                          className={`dropdown-item ${formData.role === 'user' ? 'selected' : ''}`}
+                          className={`user-mgmt-form-dropdown-item ${formData.role === 'user' ? 'selected' : ''}`}
                           onClick={() => handleFormRoleSelect('user')}
                         >
-                          <span className="dropdown-item-name">👤 Usuario</span>
+                          <span className="user-mgmt-form-dropdown-item-name">👤 Usuario</span>
                         </div>
                         <div 
-                          className={`dropdown-item ${formData.role === 'jefe' ? 'selected' : ''}`}
+                          className={`user-mgmt-form-dropdown-item ${formData.role === 'jefe' ? 'selected' : ''}`}
                           onClick={() => handleFormRoleSelect('jefe')}
                         >
-                          <span className="dropdown-item-name">👔 Jefe de Departamento</span>
+                          <span className="user-mgmt-form-dropdown-item-name">👔 Jefe de Departamento</span>
                         </div>
                         <div 
-                          className={`dropdown-item ${formData.role === 'admin' ? 'selected' : ''}`}
+                          className={`user-mgmt-form-dropdown-item ${formData.role === 'admin' ? 'selected' : ''}`}
                           onClick={() => handleFormRoleSelect('admin')}
                         >
-                          <span className="dropdown-item-name">👑 Administrador</span>
+                          <span className="user-mgmt-form-dropdown-item-name">👑 Administrador</span>
                         </div>
                       </div>
                     )}
@@ -1181,14 +1183,14 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                 {formData.role === 'user' && (
                   <div className="form-group">
                     <label htmlFor="jefe_id">Jefe Responsable (opcional):</label>
-                    <div className="dropdown-wrapper">
+                    <div className="user-mgmt-jefe-dropdown-wrapper">
                       <button 
-                        className="dropdown-toggle"
+                        className="user-mgmt-jefe-dropdown-toggle"
                         onClick={() => setFormJefeDropdownOpen(!formJefeDropdownOpen)}
                         disabled={loading}
                         type="button"
                       >
-                        <span className="dropdown-text">
+                        <span className="user-mgmt-jefe-dropdown-text">
                           {selectedJefe ? 
                             (() => {
                               const jefe = jefesList.find(j => j.id == selectedJefe);
@@ -1197,24 +1199,24 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                             'Seleccionar jefe...'
                           }
                         </span>
-                        <span className={`dropdown-arrow ${formJefeDropdownOpen ? 'open' : ''}`}>▼</span>
+                        <span className={`user-mgmt-jefe-dropdown-arrow ${formJefeDropdownOpen ? 'open' : ''}`}>▼</span>
                       </button>
                       
                       {formJefeDropdownOpen && (
-                        <div className="dropdown-menu">
+                        <div className="user-mgmt-jefe-dropdown-menu">
                           <div 
-                            className={`dropdown-item ${!selectedJefe ? 'selected' : ''}`}
+                            className={`user-mgmt-jefe-dropdown-item ${!selectedJefe ? 'selected' : ''}`}
                             onClick={() => handleFormJefeSelect('')}
                           >
-                            <span className="dropdown-item-name">Sin jefe asignado</span>
+                            <span className="user-mgmt-jefe-dropdown-item-name">Sin jefe asignado</span>
                           </div>
                           {jefesList.map(jefe => (
                             <div 
                               key={jefe.id}
-                              className={`dropdown-item ${selectedJefe == jefe.id ? 'selected' : ''}`}
+                              className={`user-mgmt-jefe-dropdown-item ${selectedJefe == jefe.id ? 'selected' : ''}`}
                               onClick={() => handleFormJefeSelect(jefe.id)}
                             >
-                              <span className="dropdown-item-name">
+                              <span className="user-mgmt-jefe-dropdown-item-name">
                                 {jefe.nombre} {jefe.apellido} ({jefe.username})
                               </span>
                             </div>

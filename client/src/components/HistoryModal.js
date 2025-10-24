@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import './HistoryModal.css';
 import { apiGet } from '../utils/api';
 
@@ -24,7 +24,7 @@ const HistoryModal = ({ onClose }) => {
   // Cerrar dropdowns al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown-wrapper')) {
+      if (!event.target.closest('.history-dropdown-wrapper')) {
         setStatusDropdownOpen(false);
       }
     };
@@ -38,22 +38,15 @@ const HistoryModal = ({ onClose }) => {
   // Debounce para prevenir refreshes excesivos
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      console.log('StatusFilter cambió a:', statusFilter);
       loadHistory();
     }, 300); // 300ms de debounce
 
     return () => clearTimeout(timeoutId);
   }, [statusFilter, dateFrom, dateTo, userSearch, currentPage, workingHoursFilter]);
 
-  // useEffect específico para monitorear cambios en statusFilter
-  useEffect(() => {
-    console.log('useEffect statusFilter:', statusFilter);
-  }, [statusFilter]);
-
   const loadHistory = async () => {
     // Prevenir cargas múltiples simultáneas
     if (loading) {
-      console.log('⚠️ Carga ya en progreso, ignorando nueva solicitud');
       return;
     }
     
@@ -87,15 +80,6 @@ const HistoryModal = ({ onClose }) => {
              });
            }
 
-      console.log('Filtros enviados:', {
-        status: statusFilter,
-        dateFrom,
-        dateTo,
-        user: userSearch,
-        page: currentPage,
-        workingHours: workingHoursFilter
-      });
-      console.log('StatusFilter actual:', statusFilter);
 
       const response = await apiGet(`/api/history?${params}`);
 
@@ -120,19 +104,6 @@ const HistoryModal = ({ onClose }) => {
                  return true;
                });
                
-               console.log('🔍 Filtrado simplificado:', {
-                 statusFilter,
-                 totalRegistros: originalCount,
-                 registrosFiltrados: filteredHistory.length,
-                 tiposIncluidos: statusFilter === 'denegado' ? 
-                   'incorrecto, fuera_de_area, denegado_horario, timeout' :
-                   statusFilter === 'sospechoso' ? 'advertencia, duplicate' : 'correcto',
-                 registrosEncontrados: filteredHistory.map(r => ({ 
-                   id: r.id, 
-                   status: r.status, 
-                   usuario: r.username 
-                 }))
-               });
              }
         
         setHistory(filteredHistory);
@@ -156,13 +127,6 @@ const HistoryModal = ({ onClose }) => {
             setCurrentPage(calculatedTotalPages);
           }
           
-          console.log('📄 Paginación frontend:', {
-            totalFiltrados: totalFiltered,
-            paginaActual: currentPage,
-            totalPaginas: calculatedTotalPages,
-            registrosEnPagina: paginatedHistory.length,
-            rango: `${startIndex + 1}-${Math.min(endIndex, totalFiltered)} de ${totalFiltered}`
-          });
         } else {
           // Para 'all', usar paginación del backend
           setHistory(filteredHistory);
@@ -399,7 +363,6 @@ const HistoryModal = ({ onClose }) => {
 
   // Funciones para dropdowns personalizados
   const handleStatusSelect = (status) => {
-    console.log('Seleccionando status:', status);
     setStatusFilter(status);
     setStatusDropdownOpen(false);
     setCurrentPage(1);
@@ -426,7 +389,6 @@ const HistoryModal = ({ onClose }) => {
   };
 
   const clearFilters = () => {
-    console.log('clearFilters ejecutado - reseteando a all');
     setStatusFilter('all');
     setDateFrom('');
     setDateTo('');
@@ -449,195 +411,268 @@ const HistoryModal = ({ onClose }) => {
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
       <div className="modal-content history-modal">
         <div className="modal-header">
-          <h2>📊 Histórico de Aperturas</h2>
-          <button className="close-button" onClick={onClose}>
+          <h2 id="history-modal-title">📊 Histórico de Aperturas</h2>
+          <button 
+            className="close-button" 
+            onClick={onClose}
+            aria-label="Cerrar modal de historial"
+            title="Cerrar modal de historial"
+          >
             ✕
           </button>
         </div>
 
         <div className="history-content">
           {/* Search Bar, Filters and Clear Button Row - usando la misma estructura que UserManagementModal */}
-          <div className="history-search-row">
-            <div className="history-search-input-wrapper">
-              <input
-                type="text"
-                placeholder="🔍 Buscar por usuario..."
-                value={userSearch}
-                onChange={handleUserSearchChange}
-                className="history-search-input"
-              />
-              {userSearch && (
+          <div className="history-filters-container">
+            {/* Fila de búsqueda y dropdown */}
+            <div className="history-search-dropdown-row">
+              <div className="history-search-input-wrapper">
+                <input
+                  type="text"
+                  placeholder="🔍 Buscar por usuario..."
+                  value={userSearch}
+                  onChange={handleUserSearchChange}
+                  className="history-search-input"
+                  aria-label="Buscar por nombre de usuario"
+                  aria-describedby="search-help"
+                />
+                <div id="search-help" className="sr-only">
+                  Escriba el nombre del usuario para filtrar los resultados
+                </div>
+                {userSearch && (
+                  <button 
+                    className="history-clear-search-button"
+                    onClick={() => setUserSearch('')}
+                    title="Limpiar búsqueda"
+                    aria-label="Limpiar búsqueda de usuario"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <div className="history-status-filter-wrapper">
+              <div className="history-dropdown-wrapper">
                 <button 
-                  className="history-clear-search-button"
-                  onClick={() => setUserSearch('')}
-                  title="Limpiar búsqueda"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            <div className="history-status-filter-wrapper">
-              <div className="dropdown-wrapper">
-                <button 
-                  className="dropdown-toggle"
+                  className="history-dropdown-toggle"
                   onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
                   disabled={loading}
+                  aria-label="Filtrar por estado de acceso"
+                  aria-expanded={statusDropdownOpen}
+                  aria-haspopup="listbox"
                 >
-                  <span className="dropdown-text">
+                  <span className="history-dropdown-text">
                     {statusFilter === 'all' ? '📋 Todos los registros' :
                      statusFilter === 'correcto' ? '✅ Accesos exitosos' :
                      statusFilter === 'denegado' ? '❌ Accesos denegados' :
                      statusFilter === 'sospechoso' ? '⚠️ Accesos sospechosos' :
                      '📋 Todos los registros'}
                   </span>
-                  <span className={`dropdown-arrow ${statusDropdownOpen ? 'open' : ''}`}>▼</span>
+                  <span className={`history-dropdown-arrow ${statusDropdownOpen ? 'open' : ''}`} aria-hidden="true">▼</span>
                 </button>
                 
                 {statusDropdownOpen && (
-                  <div className="dropdown-menu">
+                  <div className="history-dropdown-menu" role="listbox" aria-label="Opciones de filtro de estado">
                     <div 
-                      className={`dropdown-item ${statusFilter === 'all' ? 'selected' : ''}`}
+                      className={`history-dropdown-item ${statusFilter === 'all' ? 'selected' : ''}`}
                       onClick={() => handleStatusSelect('all')}
+                      role="option"
+                      aria-selected={statusFilter === 'all'}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleStatusSelect('all');
+                        }
+                      }}
                     >
-                      <span className="dropdown-item-name">📋 Todos los registros</span>
+                      <span className="history-dropdown-item-name">📋 Todos los registros</span>
                     </div>
                     <div 
-                      className={`dropdown-item ${statusFilter === 'correcto' ? 'selected' : ''}`}
+                      className={`history-dropdown-item ${statusFilter === 'correcto' ? 'selected' : ''}`}
                       onClick={() => handleStatusSelect('correcto')}
+                      role="option"
+                      aria-selected={statusFilter === 'correcto'}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleStatusSelect('correcto');
+                        }
+                      }}
                     >
-                      <span className="dropdown-item-name">✅ Accesos exitosos</span>
+                      <span className="history-dropdown-item-name">✅ Accesos exitosos</span>
                     </div>
                     <div 
-                      className={`dropdown-item ${statusFilter === 'denegado' ? 'selected' : ''}`}
+                      className={`history-dropdown-item ${statusFilter === 'denegado' ? 'selected' : ''}`}
                       onClick={() => handleStatusSelect('denegado')}
+                      role="option"
+                      aria-selected={statusFilter === 'denegado'}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleStatusSelect('denegado');
+                        }
+                      }}
                     >
-                      <span className="dropdown-item-name">❌ Accesos denegados</span>
+                      <span className="history-dropdown-item-name">❌ Accesos denegados</span>
                     </div>
                     <div 
-                      className={`dropdown-item ${statusFilter === 'sospechoso' ? 'selected' : ''}`}
+                      className={`history-dropdown-item ${statusFilter === 'sospechoso' ? 'selected' : ''}`}
                       onClick={() => handleStatusSelect('sospechoso')}
+                      role="option"
+                      aria-selected={statusFilter === 'sospechoso'}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleStatusSelect('sospechoso');
+                        }
+                      }}
                     >
-                      <span className="dropdown-item-name">⚠️ Accesos sospechosos</span>
+                      <span className="history-dropdown-item-name">⚠️ Accesos sospechosos</span>
                     </div>
                   </div>
                 )}
               </div>
             </div>
+            </div>
+            
+            {/* Filtros de fecha */}
             <div className="history-date-filter-wrapper">
               <div className="history-date-range-wrapper">
-                <div className="date-input-group">
-                  <label className="date-input-label">Desde</label>
+                <div className="history-date-input-group">
+                  <label className="history-date-input-label" htmlFor="date-from-input">Desde</label>
                   <input
+                    id="date-from-input"
                     type="date"
                     className="history-date-input"
                     value={dateFrom}
                     onChange={handleDateFromChange}
                     placeholder="Desde"
+                    aria-label="Fecha desde"
                   />
                 </div>
-                <div className="date-input-group">
-                  <label className="date-input-label">Hasta</label>
+                <div className="history-date-input-group">
+                  <label className="history-date-input-label" htmlFor="date-to-input">Hasta</label>
                   <input
+                    id="date-to-input"
                     type="date"
                     className="history-date-input"
                     value={dateTo}
                     onChange={handleDateToChange}
                     placeholder="Hasta"
+                    aria-label="Fecha hasta"
                   />
                 </div>
               </div>
             </div>
+            
+            {/* Botones de acción debajo de los filtros */}
+            <div className="history-action-buttons">
               <button 
-              className="history-clear-filters-btn"
+                className="history-refresh-button"
+                onClick={loadHistory}
+                disabled={loading}
+                title="🔄 Refrescar historial"
+                aria-label="Refrescar lista de historial"
+              >
+                <span className="refresh-icon" aria-hidden="true">🔄</span>
+              </button>
+              
+              <button 
+                className="history-clear-filters-btn"
                 onClick={clearFilters}
                 title="Limpiar todos los filtros"
+                aria-label="Limpiar todos los filtros aplicados"
               >
-                🗑️ Limpiar
+                🗑️
               </button>
             </div>
+          </div>
           {/* Contenido */}
           {loading && (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
+            <div className="loading-state" role="status" aria-live="polite">
+              <div className="loading-spinner" aria-hidden="true"></div>
               <p>Cargando historial...</p>
             </div>
           )}
 
           {error && (
-            <div className="error-message">{error}</div>
+            <div className="error-message" role="alert" aria-live="assertive">
+              {error}
+            </div>
           )}
 
           {!loading && !error && history.length === 0 && (
-            <div className="empty-state">
-              <div className="empty-icon">📊</div>
+            <div className="empty-state" role="status" aria-live="polite">
+              <div className="empty-icon" aria-hidden="true">📊</div>
               <h3>No hay registros</h3>
               <p>No se encontraron registros de apertura con los filtros seleccionados</p>
             </div>
           )}
 
-          {/* Botón de Refresh */}
-          <div className="history-refresh-container">
-            <button 
-              className="history-refresh-button"
-              onClick={loadHistory}
-              disabled={loading}
-              title="🔄 Refrescar historial"
-            >
-              <span className="refresh-icon">🔄</span>
-            </button>
-          </div>
 
           {!loading && !error && history.length > 0 && (
             <>
-              <div className="history-list">
+              <div className="history-list" role="list" aria-label="Lista de registros de historial">
                 {history.map((record) => {
                   const accessBadge = getAccessTypeBadge(record);
                   return (
                     <div 
                       key={record.id} 
                       className="history-item"
+                      role="listitem"
                       style={{ 
                         borderColor: accessBadge.borderColor,
                         backgroundColor: accessBadge.backgroundColor
                       }}
+                      aria-label={`${record.nombre || record.username} - ${accessBadge.text}`}
                     >
                     <div className="history-header">
-                      <div className="history-user">
-                          <div className="user-name-container">
-                        <div className="user-name">
-                          {record.nombre && record.apellido 
-                            ? `${record.nombre} ${record.apellido}`
-                            : record.username
-                          }
-                        </div>
+                      <div className="user-name">
+                        {record.nombre && record.apellido 
+                          ? `${record.nombre} ${record.apellido}`
+                          : record.username
+                        }
+                      </div>
+                      <div className="history-info-row">
                         <div className="user-role">
                           {record.role === 'admin' ? '👑 Admin' : 
                            record.role === 'jefe' ? '👔 Jefe' : 
                            '👤 Usuario'}
                         </div>
-                      </div>
+                        <div className="history-right-section">
                           <div className="history-timestamp">
                             {formatDate(record.timestamp)}
                           </div>
+                          <button 
+                            className="history-toggle-btn"
+                            onClick={() => toggleExpanded(record.id)}
+                            title={expandedItems.has(record.id) ? "Ocultar detalles" : "Mostrar detalles"}
+                            aria-label={expandedItems.has(record.id) ? "Ocultar detalles del registro" : "Mostrar detalles del registro"}
+                            aria-expanded={expandedItems.has(record.id)}
+                          >
+                            <span className={`toggle-icon ${expandedItems.has(record.id) ? 'open' : ''}`} aria-hidden="true">
+                              ▼
+                            </span>
+                          </button>
                         </div>
-                        <button 
-                          className="history-toggle-btn"
-                          onClick={() => toggleExpanded(record.id)}
-                          title={expandedItems.has(record.id) ? "Ocultar detalles" : "Mostrar detalles"}
-                        >
-                          <span className={`toggle-icon ${expandedItems.has(record.id) ? 'open' : ''}`}>
-                            ▼
-                        </span>
-                        </button>
+                      </div>
                     </div>
                     
-                    <div className={`history-details ${expandedItems.has(record.id) ? 'expanded' : ''}`}>
+                    <div 
+                      className={`history-details ${expandedItems.has(record.id) ? 'expanded' : ''}`}
+                      role="region"
+                      aria-label="Detalles del registro"
+                    >
                       {/* Badge Principal de Tipo de Acceso */}
                       <div className="access-type-badge" style={{ borderColor: accessBadge.color }}>
-                        <span className="access-icon">{accessBadge.icon}</span>
+                        <span className="access-icon" aria-hidden="true">{accessBadge.icon}</span>
                         <span className="access-text">{accessBadge.text}</span>
                         <span className="access-description">{accessBadge.description}</span>
                       </div>
@@ -709,11 +744,12 @@ const HistoryModal = ({ onClose }) => {
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                       title="Página anterior"
+                      aria-label="Ir a la página anterior"
                     >
-                      ◀
+                      <span aria-hidden="true">◀</span>
                     </button>
                     
-                    <div className="page-info">
+                    <div className="page-info" role="status" aria-live="polite">
                       Página {currentPage} de {totalPages}
                     </div>
                     
@@ -722,8 +758,9 @@ const HistoryModal = ({ onClose }) => {
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
                       title="Página siguiente"
+                      aria-label="Ir a la página siguiente"
                     >
-                      ▶
+                      <span aria-hidden="true">▶</span>
                     </button>
                   </div>
                 </div>
