@@ -1,7 +1,7 @@
-/* PermisosModal Component - Neural Glass Style */
+/* PermisosModal Component - Neural Glass Style con clases únicas */
 
-/* Modal Overlay - Específico para PermisosModal */
-.permisos-modal .modal-overlay {
+/* Modal Overlay con prefijo permisos- */
+.permisos-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -15,74 +15,201 @@
   backdrop-filter: blur(8px);
 }
 
-/* Modal Content - Específico para PermisosModal */
-.permisos-modal .modal-content {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+/* Modal Content Container */
+.permisos-content-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 
-              0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(224, 163, 255, 0.1);
   backdrop-filter: blur(25px);
   position: relative;
   max-width: 95vw;
   max-height: 95vh;
   overflow: hidden;
-}
-
-.permisos-modal {
-  max-width: 1000px;
+  animation: modalEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center center;
+  max-width: 1100px;
+  width: 43%;
   min-height: 600px;
   max-height: 90vh;
   height: auto;
 }
 
-/* Contenido del modal - Específico para PermisosModal */
-.permisos-modal .permisos-content {
-  padding: 20px;
+/* Header del modal */
+.permisos-header {
+  padding: 18px 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.permisos-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #e0a3ff, #ff69b4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.permisos-close-btn {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.permisos-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Body del modal */
+.permisos-body {
+  padding: 18px 22px;
+  flex: 1;
   min-height: 400px;
-  max-height: 80vh;
+  max-height: calc(95vh - 100px);
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
   display: flex;
   flex-direction: column;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.01);
 }
 
-/* Información de roles */
+/* Modal Content - Específico para PermisosModal con estilo neural glass compacto */
+.permisos-modal .modal-content {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(224, 163, 255, 0.1);
+  backdrop-filter: blur(25px);
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  overflow: hidden;
+  animation: modalEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center center;
+}
+
+@keyframes modalEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.permisos-modal {
+  max-width: 1100px;
+  width: 43%;
+  min-height: 600px;
+  max-height: 90vh;
+  height: auto;
+}
+
+/* Contenido del modal - compacto y neural glass */
+.permisos-modal .permisos-content {
+  padding: 18px 22px;
+  min-height: 400px;
+  max-height: calc(95vh - 100px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+/* Información de roles - más compacto con neural glass */
 .roles-info {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 25px;
-  backdrop-filter: blur(10px);
+  padding: 15px 18px;
+  margin-bottom: 18px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .roles-info h3 {
   color: #ffffff;
-  margin: 0 0 20px 0;
-  font-size: 1.1rem;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .roles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
 }
 
 .role-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 15px;
+  padding: 12px 14px;
   transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .role-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(224, 163, 255, 0.3);
   transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .role-card.admin {
@@ -103,31 +230,31 @@
 .role-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .role-icon {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 .role-title {
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
 }
 
 .role-description {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .role-description p {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .role-description strong {
@@ -153,93 +280,110 @@
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* Horarios globales */
-.horarios-globales {
-  background: rgba(255, 255, 255, 0.05);
+/* Horarios globales - más compacto con neural glass con prefijo permisos- */
+.permisos-horarios-globales {
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 25px;
-  backdrop-filter: blur(10px);
+  padding: 15px 18px;
+  margin-bottom: 18px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.horarios-globales h3 {
+.permisos-horarios-globales h3 {
   color: #ffffff;
-  margin: 0 0 15px 0;
-  font-size: 1.1rem;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
   font-weight: 600;
 }
 
-.horarios-info {
+.permisos-horarios-info {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.horario-item {
+.permisos-horario-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
 }
 
-.horario-label {
+.permisos-horario-label {
   color: #ffffff;
   font-weight: 500;
   font-size: 0.9rem;
 }
 
-.horario-value {
+.permisos-horario-value {
   font-weight: 600;
   font-size: 0.9rem;
 }
 
-.horario-value.habilitado {
+.permisos-horario-value.habilitado {
   color: #28a745;
 }
 
-.horario-value.deshabilitado {
+.permisos-horario-value.deshabilitado {
   color: #dc3545;
 }
 
-/* Sección de usuarios */
-.section-header {
+/* Sección de usuarios - más compacto con neural glass con prefijo permisos- */
+.permisos-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
+  width: 100%;
+  gap: 12px;
 }
 
-.usuarios-section h3 {
+.permisos-usuarios-section h3 {
   color: #ffffff;
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
-.refresh-button {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
+.permisos-refresh-button {
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.03);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  font-size: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.refresh-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+.permisos-refresh-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(224, 163, 255, 0.4);
   transform: translateY(-1px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.refresh-button:disabled {
+.permisos-refresh-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* Búsqueda */
@@ -442,8 +586,8 @@
   transform: none !important;
 }
 
-/* Mensajes */
-.no-users {
+/* Mensajes con prefijo permisos- */
+.permisos-no-users {
   text-align: center;
   color: rgba(255, 255, 255, 0.6);
   font-style: italic;
@@ -453,25 +597,33 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.error-message {
-  background: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-  border: 1px solid rgba(220, 53, 69, 0.2);
-  border-radius: 8px;
-  padding: 12px 15px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
+.permisos-error-message {
+  background: rgba(220, 53, 69, 0.08);
+  border: 1px solid rgba(220, 53, 69, 0.4);
+  border-radius: 10px;
+  color: #ff6b6b;
+  padding: 10px 14px;
+  margin-bottom: 15px;
+  font-size: 0.8rem;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(220, 53, 69, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.loading-message {
-  background: rgba(0, 123, 255, 0.1);
-  color: #007bff;
-  border: 1px solid rgba(0, 123, 255, 0.2);
-  border-radius: 8px;
-  padding: 12px 15px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
+.permisos-loading-message {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 10px;
+  color: #74c0fc;
+  padding: 10px 14px;
+  margin-bottom: 15px;
+  font-size: 0.8rem;
   text-align: center;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Footer del modal */
@@ -510,6 +662,7 @@
 @media (max-width: 768px) {
   .permisos-modal {
     margin: 10px;
+    width: 95%;
     min-height: 500px;
     max-height: 95vh;
   }
@@ -608,11 +761,12 @@
 
 @media (max-width: 480px) {
   .permisos-modal {
+    width: 100%;
     min-height: 450px;
   }
 
   .permisos-content {
-    padding: 10px;
+    padding: 12px;
     min-height: 350px;
   }
 
@@ -673,194 +827,482 @@
 /* NUEVOS ESTILOS PARA DROPDOWN Y CUADRO */
 /* ======================================== */
 
-/* Contenedor del selector de usuario */
-.user-selector-container {
+/* Contenedor del selector de usuario con prefijo permisos- */
+.permisos-user-selector-container {
   margin-bottom: 25px;
 }
 
-/* Dropdown wrapper */
-.dropdown-wrapper {
+/* Dropdown wrapper con prefijo permisos- */
+.permisos-dropdown-wrapper {
   position: relative;
   width: 100%;
 }
 
-/* Botón del dropdown */
-.dropdown-toggle {
+/* Botón del dropdown - neural glass compacto con prefijo permisos- */
+.permisos-dropdown-toggle {
   width: 100%;
-  padding: 15px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.dropdown-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+.permisos-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(224, 163, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.dropdown-toggle:disabled {
+.permisos-dropdown-toggle:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.dropdown-text {
+.permisos-dropdown-text {
   flex: 1;
   text-align: left;
 }
 
-.dropdown-arrow {
+.permisos-dropdown-arrow {
   transition: transform 0.3s ease;
   font-size: 0.8rem;
   color: #e0a3ff;
 }
 
-.dropdown-arrow.open {
+.permisos-dropdown-arrow.open {
   transform: rotate(180deg);
 }
 
 /* Menú del dropdown */
-.dropdown-menu {
+.permisos-dropdown-menu {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(15, 23, 42, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
+  border-radius: 12px;
   margin-top: 5px;
   max-height: 250px;
   min-height: 120px;
   overflow-y: auto;
   z-index: 1000;
   backdrop-filter: blur(20px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Items del dropdown */
-.dropdown-item {
-  padding: 12px 20px;
+.permisos-dropdown-item {
+  padding: 10px 16px;
   cursor: pointer;
   transition: all 0.3s ease;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
 }
 
-.dropdown-item:last-child {
+.permisos-dropdown-item:last-child {
   border-bottom: none;
 }
 
-.dropdown-item:hover {
-  background: rgba(224, 163, 255, 0.1);
+.permisos-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.dropdown-item.selected {
-  background: rgba(224, 163, 255, 0.2);
+.permisos-dropdown-item.selected {
+  background: rgba(59, 130, 246, 0.2);
+  border-left: 3px solid #3b82f6;
 }
 
-.dropdown-item-name {
+.permisos-dropdown-item-name {
   color: #ffffff;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
-/* Cuadro de usuario seleccionado */
-.selected-user-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  padding: 25px;
+/* Cuadro de usuario seleccionado - neural glass compacto con prefijo permisos- */
+.permisos-selected-user-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 18px 20px;
   backdrop-filter: blur(20px);
-  margin-top: 20px;
+  margin-top: 15px;
   transition: all 0.3s ease;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1),
-              0 0 0 1px rgba(255, 255, 255, 0.03);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(224, 163, 255, 0.05);
 }
 
-.selected-user-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+.permisos-selected-user-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(224, 163, 255, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(224, 163, 255, 0.15),
-              0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(224, 163, 255, 0.15);
 }
 
-/* Contenido del cuadro de usuario simplificado */
-.user-card-content {
+/* Contenido del cuadro de usuario simplificado con prefijo permisos- */
+.permisos-user-card-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 15px;
 }
 
-.user-card-info {
+.permisos-user-card-info {
   flex: 1;
   min-width: 200px;
 }
 
-.user-card-info h4 {
+.permisos-user-card-info h4 {
   color: #ffffff;
-  margin: 0 0 5px 0;
-  font-size: 1.3rem;
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
-.user-card-username {
+.permisos-user-card-username {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-style: italic;
 }
 
-/* Acciones del cuadro de usuario */
-.user-card-actions {
+/* Acciones del cuadro de usuario - neural glass con prefijo permisos- */
+.permisos-user-card-actions {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 12px;
 }
 
-/* Responsive para el nuevo diseño */
+/* Título en móvil (solo visible en modo responsivo) */
+.permisos-usuarios-section-title-mobile {
+  display: none;
+}
+
+/* Botón de actualizar en móvil (solo visible en modo responsivo) */
+.permisos-refresh-button-wrapper-mobile {
+  display: none;
+}
+
+.permisos-action-button {
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  backdrop-filter: blur(20px);
+  color: #ffffff;
+}
+
+.permisos-action-button.primary {
+  background: rgba(0, 123, 255, 0.15);
+  border-color: rgba(0, 123, 255, 0.4);
+  box-shadow: 
+    0 4px 15px rgba(0, 123, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.permisos-action-button.primary:hover {
+  background: rgba(0, 123, 255, 0.25);
+  border-color: rgba(0, 123, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 123, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.permisos-action-button.secondary {
+  background: rgba(108, 117, 125, 0.15);
+  border-color: rgba(108, 117, 125, 0.4);
+  box-shadow: 
+    0 4px 15px rgba(108, 117, 125, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.permisos-action-button.secondary:hover {
+  background: rgba(108, 117, 125, 0.25);
+  border-color: rgba(108, 117, 125, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(108, 117, 125, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.permisos-action-button.info {
+  background: rgba(23, 162, 184, 0.15);
+  border-color: rgba(23, 162, 184, 0.4);
+  box-shadow: 
+    0 4px 15px rgba(23, 162, 184, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.permisos-action-button.info:hover {
+  background: rgba(23, 162, 184, 0.25);
+  border-color: rgba(23, 162, 184, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(23, 162, 184, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.permisos-action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Responsive para el nuevo diseño con prefijos permisos- */
 @media (max-width: 768px) {
-  .dropdown-toggle {
-    padding: 12px 16px;
-    font-size: 0.9rem;
+  .permisos-content-container {
+    width: 95%;
+    margin: 10px;
+    min-height: 500px;
+    max-height: 95vh;
+    border-radius: 20px;
   }
-  
-  .dropdown-item {
-    padding: 10px 16px;
+
+  .permisos-body {
+    padding: 15px;
+    min-height: 400px;
   }
-  
-  .dropdown-item-name {
-    font-size: 0.9rem;
+
+  .permisos-header {
+    padding: 12px 15px;
   }
-  
-  .selected-user-card {
-    padding: 20px;
+
+  .permisos-header h2 {
+    font-size: 1rem;
   }
-  
-  .user-card-content {
+
+  .permisos-section-header {
+    display: none !important;
+  }
+
+  .permisos-usuarios-section-title-mobile {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+
+  .permisos-usuarios-section-title-mobile h3 {
+    color: #ffffff;
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .permisos-user-selector-container {
+    margin-bottom: 15px;
+  }
+
+  .permisos-usuarios-section-title-mobile .permisos-refresh-button-wrapper-mobile {
+    display: flex !important;
+    margin: 0;
+  }
+
+  .permisos-usuarios-section-title-mobile .permisos-refresh-button-wrapper-mobile .permisos-refresh-button {
+    width: auto;
+    min-width: 100px;
+  }
+
+  .permisos-horarios-globales {
+    padding: 12px 15px;
+    margin-bottom: 15px;
+  }
+
+  .permisos-horarios-info {
+    gap: 6px;
+  }
+
+  .permisos-horario-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
+    gap: 4px;
+    padding: 6px 10px;
+  }
+
+  .permisos-dropdown-toggle {
+    padding: 10px 14px;
+    font-size: 0.85rem;
   }
   
-  .user-card-info h4 {
-    font-size: 1.1rem;
+  .permisos-dropdown-item {
+    padding: 8px 14px;
   }
   
-  .user-card-actions {
+  .permisos-dropdown-item-name {
+    font-size: 0.85rem;
+  }
+  
+  .permisos-selected-user-card {
+    padding: 15px;
+  }
+  
+  .permisos-user-card-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .permisos-user-card-info h4 {
+    font-size: 1rem;
+  }
+
+  .permisos-user-card-username {
+    font-size: 0.75rem;
+  }
+  
+  .permisos-user-card-actions {
     width: 100%;
   }
   
-  .user-card-actions .action-button {
+  .permisos-action-button {
     width: 100%;
+  }
+
+  .permisos-no-users {
+    padding: 30px 15px;
+    font-size: 0.85rem;
+  }
+
+  .permisos-error-message,
+  .permisos-loading-message {
+    font-size: 0.75rem;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .permisos-content-container {
+    width: 100%;
+    min-height: 450px;
+    max-height: 100vh;
+    border-radius: 20px 20px 15px 15px;
+    margin: 5px 0 0 0;
+  }
+
+  .permisos-body {
+    padding: 12px;
+    min-height: 350px;
+  }
+
+  .permisos-header {
+    padding: 10px 12px;
+  }
+
+  .permisos-header h2 {
+    font-size: 0.9rem;
+  }
+
+  .permisos-horarios-globales {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+
+  .permisos-horarios-globales h3 {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+
+  .permisos-horario-label,
+  .permisos-horario-value {
+    font-size: 0.8rem;
+  }
+
+  .permisos-section-header h3 {
+    font-size: 0.85rem;
+  }
+
+  .permisos-usuarios-section-title-mobile {
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+
+  .permisos-usuarios-section-title-mobile h3 {
+    font-size: 0.85rem;
+  }
+
+  .permisos-usuarios-section-title-mobile .permisos-refresh-button-wrapper-mobile {
+    display: flex !important;
+  }
+
+  .permisos-usuarios-section-title-mobile .permisos-refresh-button-wrapper-mobile .permisos-refresh-button {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    min-width: 90px;
+  }
+
+  .permisos-dropdown-toggle {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .permisos-dropdown-item {
+    padding: 6px 12px;
+  }
+
+  .permisos-dropdown-item-name {
+    font-size: 0.8rem;
+  }
+
+  .permisos-selected-user-card {
+    padding: 12px;
+  }
+
+  .permisos-user-card-info h4 {
+    font-size: 0.95rem;
+  }
+
+  .permisos-user-card-username {
+    font-size: 0.7rem;
+  }
+
+  .permisos-action-button {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    min-width: auto;
+  }
+
+  .permisos-no-users {
+    padding: 20px 12px;
+    font-size: 0.8rem;
+  }
+
+  .permisos-error-message,
+  .permisos-loading-message {
+    font-size: 0.7rem;
+    padding: 6px 10px;
   }
 }

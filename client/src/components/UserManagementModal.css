@@ -39,6 +39,8 @@
   overflow-y: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
 }
 
 /* Ocultar scrollbars en WebKit */
@@ -53,11 +55,56 @@
 @keyframes modalSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-30px) scale(0.95);
+    transform: translateY(-40px) scale(0.92);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+/* Animaciones para los contenidos del modal */
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -66,15 +113,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 11px 30px 11px;
+  padding: 8px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(224, 163, 255, 0.05);
   border-radius: 25px 25px 0 0;
+  animation: slideDownFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
 .modal-header h2 {
   color: #e0a3ff;
-  font-size: 1.2rem;
+  font-size: 0.96rem;
   font-weight: 600;
   margin: 0;
   text-transform: uppercase;
@@ -87,13 +135,13 @@
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 37px;
+  height: 37px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   opacity: 1;
@@ -121,18 +169,64 @@
   width: 95vw;
 }
 
+/* Modal más estrecho cuando se muestra el formulario */
+.user-management-modal.showing-form {
+  max-width: 650px;
+  width: 85vw;
+  max-height: 95vh;
+}
+
+/* Form container - solo para móvil */
+.user-management-modal .user-form-container {
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Contenido específico cuando se muestra el formulario */
+.user-management-modal.showing-form .user-management-content {
+  max-height: calc(95vh - 50px);
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
 .user-management-content {
   padding: 25px;
-  max-height: calc(90vh - 120px);
+  max-height: calc(90vh - 60px);
   overflow-y: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
-/* Ocultar scrollbars en WebKit */
-.user-management-modal__content::-webkit-scrollbar,
-.user-management-modal__form::-webkit-scrollbar {
-  display: none;
+/* Scrollbar personalizado para el formulario */
+.user-management-modal.showing-form .user-management-content::-webkit-scrollbar,
+.user-form-container::-webkit-scrollbar,
+.user-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-management-modal.showing-form .user-management-content::-webkit-scrollbar-track,
+.user-form-container::-webkit-scrollbar-track,
+.user-form::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.user-management-modal.showing-form .user-management-content::-webkit-scrollbar-thumb,
+.user-form-container::-webkit-scrollbar-thumb,
+.user-form::-webkit-scrollbar-thumb {
+  background: rgba(224, 163, 255, 0.5);
+  border-radius: 3px;
+}
+
+.user-management-modal.showing-form .user-management-content::-webkit-scrollbar-thumb:hover,
+.user-form-container::-webkit-scrollbar-thumb:hover,
+.user-form::-webkit-scrollbar-thumb:hover {
+  background: rgba(224, 163, 255, 0.7);
 }
 
 /* Table Styles */
@@ -140,6 +234,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: relative;
 }
 
 /* Hide cards on desktop */
@@ -147,35 +242,77 @@
   display: none;
 }
 
-/* Search, Filter and Add Button Row - User Management Specific - COMPACT */
-.user-mgmt-search-add-row {
+/* User Management Filters Container - Patrón HistoryModal */
+.user-mgmt-filters-container {
   display: flex;
-  gap: 10px;
+  flex-direction: row;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 2px;
-  padding: 8px 0;
+  margin-bottom: 20px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1000;
+  flex-shrink: 0;
+  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+/* Fila 1: Solo Búsqueda */
+.user-mgmt-search-row {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+}
+
+/* Fila 2: Rol + Estado lado a lado */
+.user-mgmt-dropdowns-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
 }
 
 .user-mgmt-search-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 auto;
+  width: 280px;
+  min-width: 280px;
 }
 
-.user-mgmt-role-filter-wrapper,
+.user-mgmt-role-filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 180px;
+}
+
 .user-mgmt-active-filter-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 140px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 180px;
+}
+
+/* Fila 3: Botones de acción */
+.user-mgmt-action-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0;
+  width: 100%;
 }
 
 .user-mgmt-search-input {
   width: 100%;
-  padding: 8px 35px 8px 12px;
+  padding: 8px 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
@@ -231,24 +368,27 @@
   z-index: 1000;
 }
 
-/* Form Dropdowns (z-index: 3000 - highest) */
+/* Form Dropdowns (z-index: 5000 - highest) */
 .user-mgmt-form-dropdown-wrapper {
   position: relative;
   width: 100%;
-  z-index: 3000;
+  z-index: 5000;
 }
 
-/* Jefe Dropdown (z-index: 2000) */
+/* Jefe Dropdown (z-index: 4000) */
 .user-mgmt-jefe-dropdown-wrapper {
   position: relative;
   width: 100%;
-  z-index: 2000;
+  z-index: 4000;
+  /* Asegurar que el wrapper no expanda el contenedor */
+  overflow: visible;
+  contain: layout;
 }
 
 /* Filter Dropdown Toggle */
 .user-mgmt-filter-dropdown-toggle {
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px 28px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
@@ -264,9 +404,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  text-align: left;
   height: 36px;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Form Dropdown Toggle */
@@ -291,6 +433,9 @@
   text-align: left;
   height: 36px;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Jefe Dropdown Toggle */
@@ -315,6 +460,9 @@
   text-align: left;
   height: 36px;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Hover states for all dropdown toggles */
@@ -409,7 +557,7 @@
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  z-index: 3001;
+  z-index: 5001;
   margin-top: 4px;
   overflow: hidden;
   animation: userMgmtDropdownSlideIn 0.2s ease-out;
@@ -418,7 +566,7 @@
 /* Jefe Dropdown Menu */
 .user-mgmt-jefe-dropdown-menu {
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 0;
   right: 0;
   background: rgba(15, 23, 42, 0.98);
@@ -426,40 +574,60 @@
   border-radius: 12px;
   backdrop-filter: blur(20px);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 -8px 32px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  z-index: 2001;
-  margin-top: 4px;
-  max-height: 200px;
+  z-index: 4001;
+  margin-bottom: 4px;
+  /* Altura para mostrar aproximadamente 5 elementos inicialmente (~185px) */
+  /* Cada item tiene ~37px: 8px padding-top + 8px padding-bottom + ~20px texto + 1px border */
+  max-height: 185px;
   overflow-y: auto;
   overflow-x: hidden;
-  animation: userMgmtDropdownSlideIn 0.2s ease-out;
+  animation: userMgmtDropdownSlideInUpward 0.2s ease-out;
+  /* Asegurar que el dropdown no expanda el modal */
+  contain: layout style;
+  /* Forzar el scroll interno */
+  overscroll-behavior: contain;
 }
 
 /* Custom scrollbar for Jefe Dropdown */
 .user-mgmt-jefe-dropdown-menu::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .user-mgmt-jefe-dropdown-menu::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  margin: 4px 0;
 }
 
 .user-mgmt-jefe-dropdown-menu::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
+  background: rgba(224, 163, 255, 0.4);
+  border-radius: 4px;
   transition: background 0.2s ease;
+  border: 1px solid rgba(224, 163, 255, 0.2);
 }
 
 .user-mgmt-jefe-dropdown-menu::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(224, 163, 255, 0.6);
+  border-color: rgba(224, 163, 255, 0.4);
 }
 
 @keyframes userMgmtDropdownSlideIn {
   from {
     opacity: 0;
     transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes userMgmtDropdownSlideInUpward {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -682,23 +850,26 @@
 }
 
 .add-user-button {
-  padding: 8px 16px;
+  padding: 6px 8px;
   background: linear-gradient(135deg, #e0a3ff, #ff69b4);
   color: #000;
   border: none;
-  border-radius: 8px;
-  font-size: 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  flex-shrink: 0;
-  height: 36px;
+  flex: 0.8;
+  height: 30px;
+  min-width: 0;
+  max-width: 40%;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-left: 0;
 }
 
 .add-user-button:hover {
@@ -706,12 +877,134 @@
   box-shadow: 0 6px 20px rgba(224, 163, 255, 0.3);
 }
 
+/* Estilos específicos para el botón de limpiar filtros del UserManagementModal */
+.user-mgmt-clear-filters-btn {
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(255, 68, 68, 0.05));
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  flex: 0 0 auto;
+  height: 36px;
+  min-width: 0;
+  max-width: 80px;
+  width: 80px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 4px 12px rgba(255, 68, 68, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 68, 68, 0.1);
+  margin-left: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto de brillo en hover */
+.user-mgmt-clear-filters-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.user-mgmt-clear-filters-btn:hover::before {
+  left: 100%;
+}
+
+/* Estados del botón */
+.user-mgmt-clear-filters-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.15), rgba(255, 68, 68, 0.08));
+  border-color: rgba(255, 68, 68, 0.4);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 6px 20px rgba(255, 68, 68, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(255, 68, 68, 0.2);
+  color: #ff3333;
+}
+
+.user-mgmt-clear-filters-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 
+    0 2px 8px rgba(255, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.user-mgmt-clear-filters-btn:focus {
+  outline: none;
+  box-shadow: 
+    0 4px 12px rgba(255, 68, 68, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 3px rgba(255, 68, 68, 0.3);
+}
+
+/* Animación de pulso cuando hay filtros activos */
+.user-mgmt-clear-filters-btn.has-active-filters {
+  animation: pulseClear 2s infinite;
+}
+
+@keyframes pulseClear {
+  0%, 100% {
+    box-shadow: 
+      0 4px 12px rgba(255, 68, 68, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 0 1px rgba(255, 68, 68, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 4px 12px rgba(255, 68, 68, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 0 1px rgba(255, 68, 68, 0.3);
+  }
+}
+
+/* Estilos responsivos específicos para el botón de limpiar filtros */
+@media (max-width: 768px) {
+  .user-mgmt-clear-filters-btn {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+    height: 28px;
+    border-radius: 6px;
+    flex: 1;
+    max-width: 50%;
+  }
+  
+  .user-mgmt-clear-filters-btn:hover {
+    transform: translateY(-1px) scale(1.01);
+  }
+}
+
+@media (max-width: 480px) {
+  .user-mgmt-clear-filters-btn {
+    padding: 3px 5px;
+    font-size: 0.7rem;
+    height: 26px;
+    border-radius: 5px;
+  }
+}
+
+/* Estilos .clear-filters-button eliminados - ahora solo se usa .user-mgmt-clear-filters-btn */
+
 .user-mgmt-table-wrapper {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   overflow: hidden;
   backdrop-filter: blur(10px);
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
 }
 
 .user-mgmt-users-table {
@@ -737,6 +1030,35 @@
   color: #ffffff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   font-size: 0.8rem;
+}
+
+.user-mgmt-users-table tr {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Animación escalonada para las filas de la tabla */
+.user-mgmt-users-table tbody tr:nth-child(1) {
+  animation-delay: 0.45s;
+}
+
+.user-mgmt-users-table tbody tr:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.user-mgmt-users-table tbody tr:nth-child(3) {
+  animation-delay: 0.55s;
+}
+
+.user-mgmt-users-table tbody tr:nth-child(4) {
+  animation-delay: 0.6s;
+}
+
+.user-mgmt-users-table tbody tr:nth-child(5) {
+  animation-delay: 0.65s;
+}
+
+.user-mgmt-users-table tbody tr:nth-child(n+6) {
+  animation-delay: 0.7s;
 }
 
 .user-mgmt-users-table tr:hover {
@@ -774,21 +1096,26 @@
 /* User Management Modal Specific Action Buttons */
 .user-mgmt-action-buttons {
   display: flex;
-  gap: 4px;
+  gap: 0px;
 }
 
 .user-mgmt-edit-button,
 .user-mgmt-delete-button,
 .user-mgmt-refresh-token-button {
-  padding: 4px 8px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  height: 36px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-mgmt-edit-button:hover {
@@ -852,24 +1179,40 @@
 .user-form-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
+  min-height: 400px;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
 .form-header {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 0;
+  padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  animation: slideDownFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
 }
 
 .form-header h3 {
   color: #e0a3ff;
-  font-size: 1.3rem;
+  font-size: 0.9rem;
   font-weight: 600;
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  flex: 1;
+  text-align: left;
+  min-width: 0;
 }
 
 .back-button {
@@ -882,6 +1225,12 @@
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.02em;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: fit-content;
+  margin-left: 16px;
 }
 
 .back-button:hover {
@@ -1003,7 +1352,7 @@
 
 .generated-password-display {
   background: rgba(76, 175, 80, 0.1);
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  border: 1px solid rgba(152, 76, 175, 0.3);
   border-radius: 8px;
   padding: 12px;
   margin-top: 8px;
@@ -1014,7 +1363,7 @@
 
 .password-label {
   font-size: 0.8rem;
-  color: #4CAF50;
+  color: #d7c1e4;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1024,7 +1373,7 @@
   font-family: 'Courier New', monospace;
   font-size: 1rem;
   font-weight: bold;
-  color: #2E7D32;
+  color: #d7c1e4;
   background: rgba(255, 255, 255, 0.1);
   padding: 8px;
   border-radius: 4px;
@@ -1053,39 +1402,107 @@
 .user-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
-  padding: 25px;
+  padding: 20px;
   backdrop-filter: blur(10px);
+  min-height: 400px;
+  max-width: 600px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+  margin: 0 auto;
+  align-items: stretch;
+  justify-content: flex-start;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+/* Form rows for PC layout - two columns */
+.form-row {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Animación escalonada para las filas del formulario */
+.form-row:nth-child(1) {
+  animation-delay: 0.35s;
+}
+
+.form-row:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.form-row:nth-child(3) {
+  animation-delay: 0.45s;
+}
+
+.form-row:nth-child(4) {
+  animation-delay: 0.5s;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 0;
+  max-width: calc(50% - 8px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Placeholder para mantener alineación cuando no se muestra el dropdown de jefe */
+.form-group-placeholder {
+  flex: 1;
+  min-width: 0;
+  max-width: calc(50% - 8px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 .form-group label {
   color: #e0a3ff;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
 .form-group input,
 .form-group select:not(.role-filter-select):not(.active-filter-select):not(.form-select) {
-  padding: 12px 15px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
   color: #ffffff;
   font-family: inherit;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: 42px;
 }
 
 .form-group input:focus,
@@ -1108,20 +1525,23 @@
 .form-actions {
   display: flex;
   gap: 12px;
-  margin-top: 10px;
-  justify-content: space-between;
+  margin-top: 20px;
+  justify-content: center;
   width: 100%;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .save-button {
   flex: 1;
-  padding: 12px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 700;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   letter-spacing: 0.02em;
   position: relative;
   overflow: hidden;
@@ -1131,12 +1551,13 @@
   text-align: center;
   background: linear-gradient(135deg, #e0a3ff, #ff69b4);
   color: #000;
-  box-shadow: 0 4px 15px rgba(224, 163, 255, 0.2);
+  box-shadow: 0 3px 12px rgba(224, 163, 255, 0.2);
+  min-height: 40px;
 }
 
 .save-button:hover:not(:disabled) {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 30px rgba(224, 163, 255, 0.3);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(224, 163, 255, 0.3);
 }
 
 .save-button:disabled {
@@ -1147,13 +1568,13 @@
 
 .cancel-button {
   flex: 1;
-  padding: 12px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 700;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   letter-spacing: 0.02em;
   position: relative;
   overflow: hidden;
@@ -1165,13 +1586,14 @@
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  min-height: 40px;
 }
 
 .cancel-button:hover {
   background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
 /* Messages */
@@ -1209,6 +1631,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   backdrop-filter: blur(10px);
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
 }
 
 .user-mgmt-pagination-controls {
@@ -1282,15 +1705,40 @@
     margin: 10px;
   }
   
+  .modal-header {
+    padding: 10px 12px;
+    min-height: auto;
+  }
+  
+  .modal-header h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+  }
+  
+  .close-button {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+  
   .user-management-modal {
     max-width: 95vw;
     max-height: 95vh;
     margin: 10px;
   }
   
+  /* Modal más estrecho cuando se muestra el formulario en móvil */
+  .user-management-modal.showing-form {
+    max-width: 95vw;
+    width: 95vw;
+    margin: 5px auto;
+  }
+  
   .user-management-content {
-    padding: 15px;
+    padding: 8px;
     max-height: calc(95vh - 120px);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   
   .table-header {
@@ -1301,40 +1749,96 @@
   
   .user-mgmt-search-add-row {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     align-items: stretch;
-    padding: 5px 0;
+    padding: 8px 0;
   }
   
+  /* Primera fila: Input de búsqueda */
   .user-mgmt-search-input-wrapper {
-    flex: none;
+    flex: 1;
+    order: 1;
+    min-width: 0;
+    width: 100%;
+  }
+  
+  /* Layout móvil con orden específico */
+  .user-mgmt-filters-container {
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+    padding: 8px 12px;
+  }
+  
+  /* Asegurar el orden correcto de los elementos */
+  .user-mgmt-search-row {
+    order: 1;
+  }
+  
+  .user-mgmt-dropdowns-row {
     order: 2;
   }
   
-  .user-mgmt-role-filter-wrapper,
-  .user-mgmt-active-filter-wrapper {
-    flex: none;
+  .user-mgmt-action-buttons {
     order: 3;
-    min-width: unset;
+  }
+  
+  /* Fila 1: Solo búsqueda */
+  .user-mgmt-search-row {
+    width: 100%;
+  }
+  
+  .user-mgmt-search-input-wrapper {
+    width: 100%;
+  }
+  
+  /* Fila 2: Rol + Estado lado a lado */
+  .user-mgmt-dropdowns-row {
+    flex-direction: row;
+    gap: 8px;
+    align-items: flex-end;
+    width: 100%;
+  }
+  
+  .user-mgmt-role-filter-wrapper {
+    flex: 1;
+    min-width: 0;
   }
   
   .user-mgmt-active-filter-wrapper {
-    order: 4;
+    flex: 1;
+    min-width: 0;
   }
+  
+  /* Fila 3: Botones lado a lado */
+  .user-mgmt-action-buttons {
+    gap: 6px;
+    margin-top: 6px;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  /* Estilos .clear-filters-button eliminados - ahora solo se usa .user-mgmt-clear-filters-btn */
   
   .add-user-button {
-    order: 1;
-    align-self: flex-end;
-    width: auto;
-    padding: 6px 12px;
+    padding: 6px 8px;
     font-size: 0;
-    height: 32px;
+    border-radius: 6px;
+    flex: 1;
+    max-width: 48%;
+    justify-content: center;
+    margin-left: 0;
+    height: 28px;
   }
   
   /* Cambiar texto del botón en móvil */
   .add-user-button::before {
     content: "+Usuario";
     font-size: 0.8rem;
+  }
+  
+  .users-table-container {
+    padding-top: 0;
   }
   
   /* Hide table on mobile, show cards */
@@ -1352,6 +1856,7 @@
     display: flex !important;
     flex-direction: column;
     gap: 8px;
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
   }
   
   .user-card {
@@ -1362,6 +1867,32 @@
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     position: relative;
+    animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  
+  /* Animación escalonada para las tarjetas */
+  .user-card:nth-child(1) {
+    animation-delay: 0.45s;
+  }
+  
+  .user-card:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+  
+  .user-card:nth-child(3) {
+    animation-delay: 0.55s;
+  }
+  
+  .user-card:nth-child(4) {
+    animation-delay: 0.6s;
+  }
+  
+  .user-card:nth-child(5) {
+    animation-delay: 0.65s;
+  }
+  
+  .user-card:nth-child(n+6) {
+    animation-delay: 0.7s;
   }
   
   /* Mensaje específico del usuario en móvil */
@@ -1550,32 +2081,132 @@
   }
   
   .form-header {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+  }
+  
+  .form-header h3 {
+    font-size: 0.8rem;
+    margin: 0;
+    flex: 1;
+    text-align: left;
+    min-width: 0;
   }
   
   .form-header .back-button {
-    align-self: flex-start;
-    order: -1;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-left: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .user-form {
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+    align-items: stretch;
+    justify-content: flex-start;
+    border-radius: 12px;
+  }
+  
+  .form-group {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* Mobile: Convert form rows to single column - Following users-table-container pattern */
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-items: stretch;
+  }
+  
+  .form-row .form-group {
+    flex: none;
+    width: 100%;
+    min-width: unset;
+    max-width: 100%;
+    order: 1;
+  }
+  
+  .form-group-placeholder {
+    display: none; /* Ocultar placeholder en móvil */
+  }
+  
+  /* Reorder form groups for better mobile UX */
+  .form-row .form-group:first-child {
+    order: 1;
+  }
+  
+  .form-row .form-group:last-child {
+    order: 2;
+  }
+  
+  /* Asegurar que los inputs no se desborden */
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    height: 36px;
+    border-radius: 8px;
+  }
+  
+  .form-group label {
+    font-size: 0.75rem;
+  }
+  
+  /* Dropdowns personalizados responsivos */
+  .user-mgmt-form-dropdown-wrapper,
+  .user-mgmt-jefe-dropdown-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .user-mgmt-form-dropdown-toggle,
+  .user-mgmt-jefe-dropdown-toggle {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.85rem;
   }
   
   .form-actions {
     flex-direction: row;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
+    max-width: 100%;
+    margin: 12px auto 0;
   }
   
   .save-button,
   .cancel-button {
     flex: 1;
     max-width: 120px;
-    padding: 12px 20px;
-    font-size: 0.9rem;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    min-height: 40px;
   }
 }
 
@@ -1590,17 +2221,64 @@
     margin: 5px;
   }
   
+  /* Modal más estrecho cuando se muestra el formulario en móvil pequeño */
+  .user-management-modal.showing-form {
+    max-width: calc(100vw - 10px);
+    width: calc(100vw - 10px);
+    margin: 5px auto;
+  }
+  
   .modal-header {
-    padding: 20px 15px 15px;
+    padding: 6px 12px;
+    min-height: auto;
   }
   
   .modal-header h2 {
-    font-size: 1.0rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+  }
+  
+  .close-button {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+  
+  .form-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    margin-bottom: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+  }
+  
+  .form-header h3 {
+    font-size: 0.75rem;
+    margin: 0;
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+  }
+  
+  .form-header .back-button {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .user-management-content {
     padding: 10px;
     max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   
   .user-mgmt-users-table th,
@@ -1615,14 +2293,80 @@
   }
   
   .user-form {
-    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+    align-items: stretch;
+    justify-content: flex-start;
+    border-radius: 10px;
   }
   
+  .form-group {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* Mobile small: Maintain single column layout - Following users-table-container pattern */
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    align-items: stretch;
+  }
+  
+  .form-row .form-group {
+    flex: none;
+    width: 100%;
+    min-width: unset;
+    max-width: 100%;
+    order: 1;
+  }
+  
+  .form-group-placeholder {
+    display: none; /* Ocultar placeholder en móvil pequeño */
+  }
+  
+  /* Reorder form groups for better mobile UX */
+  .form-row .form-group:first-child {
+    order: 1;
+  }
+  
+  .form-row .form-group:last-child {
+    order: 2;
+  }
+  
+  /* Asegurar que los inputs no se desborden en móvil pequeño */
   .form-group input,
   .form-group select {
-    padding: 10px 12px;
-    font-size: 0.85rem;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: 7px 9px;
+    font-size: 0.75rem;
+    height: 34px;
+    border-radius: 8px;
   }
+  
+  .form-group label {
+    font-size: 0.7rem;
+  }
+  
+  /* Dropdowns personalizados responsivos para móvil pequeño */
+  .user-mgmt-form-dropdown-toggle,
+  .user-mgmt-jefe-dropdown-toggle {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+  
   
   /* Mobile pagination adjustments for User Management Modal */
   .user-mgmt-pagination-container {
@@ -1664,6 +2408,127 @@
 
 /* Extra small screens (phones in portrait) */
 @media (max-width: 360px) {
+  /* Modal más estrecho cuando se muestra el formulario en pantallas muy pequeñas */
+  .user-management-modal.showing-form {
+    max-width: calc(100vw - 5px);
+    width: calc(100vw - 5px);
+    margin: 2px auto;
+  }
+  
+  .modal-header {
+    padding: 4px 8px;
+    min-height: auto;
+  }
+  
+  .modal-header h2 {
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+  }
+  
+  .close-button {
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+  }
+  
+  .form-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    margin-bottom: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+  }
+  
+  .form-header h3 {
+    font-size: 0.7rem;
+    margin: 0;
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+  }
+  
+  .form-header .back-button {
+    padding: 3px 6px;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+    align-items: stretch;
+    justify-content: flex-start;
+    border-radius: 8px;
+  }
+  
+  .form-group {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* Mobile extra small: Maintain single column layout - Following users-table-container pattern */
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    align-items: stretch;
+  }
+  
+  .form-row .form-group {
+    flex: none;
+    width: 100%;
+    min-width: unset;
+    max-width: 100%;
+    order: 1;
+  }
+  
+  .form-group-placeholder {
+    display: none; /* Ocultar placeholder en móvil extra pequeño */
+  }
+  
+  /* Reorder form groups for better mobile UX */
+  .form-row .form-group:first-child {
+    order: 1;
+  }
+  
+  .form-row .form-group:last-child {
+    order: 2;
+  }
+  
+  /* Asegurar que los inputs no se desborden en pantallas muy pequeñas */
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: 6px 8px;
+    font-size: 0.7rem;
+    height: 32px;
+    border-radius: 6px;
+  }
+  
+  .form-group label {
+    font-size: 0.65rem;
+  }
+  
   .user-mgmt-pagination-container {
     margin-top: 8px;
     padding: 6px 10px;
@@ -1751,10 +2616,63 @@
   }
   
   /* Extra small mobile layout adjustments */
+  .users-table-container {
+    padding-top: 0;
+  }
+  
+  /* Layout móvil pequeño con orden específico */
+  .user-mgmt-filters-container {
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+    padding: 6px 8px;
+  }
+  
+  /* Fila 1: Solo búsqueda */
+  .user-mgmt-search-row {
+    width: 100%;
+  }
+  
+  .user-mgmt-search-input-wrapper {
+    width: 100%;
+  }
+  
+  /* Fila 2: Rol + Estado lado a lado */
+  .user-mgmt-dropdowns-row {
+    flex-direction: row;
+    gap: 6px;
+    align-items: flex-end;
+    width: 100%;
+  }
+  
+  .user-mgmt-role-filter-wrapper {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .user-mgmt-active-filter-wrapper {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  /* Fila 3: Botones lado a lado */
+  .user-mgmt-action-buttons {
+    gap: 6px;
+    margin-top: 6px;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  /* Estilos .clear-filters-button eliminados - ahora solo se usa .user-mgmt-clear-filters-btn */
+  
   .add-user-button {
-    padding: 6px 10px;
+    padding: 6px 6px;
     font-size: 0;
     height: 28px;
+    flex: 1;
+    max-width: 48%;
+    justify-content: center;
+    margin-left: 0;
   }
   
   .add-user-button::before {
@@ -1773,6 +2691,8 @@
     padding: 6px 10px;
   }
   
+  /* Estilos .clear-filters-button eliminados - ahora solo se usa .user-mgmt-clear-filters-btn */
+  
   .search-input-wrapper {
     order: 2;
   }
@@ -1785,15 +2705,16 @@
   
   /* Extra small mobile form buttons */
   .form-actions {
-    gap: 12px;
-    margin-top: 15px;
+    gap: 8px;
+    margin-top: 12px;
   }
   
   .save-button,
   .cancel-button {
     max-width: 100px;
-    padding: 10px 16px;
-    font-size: 0.85rem;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    min-height: 36px;
   }
   
   /* Extra small mobile password buttons */
@@ -1809,8 +2730,18 @@
   }
   
   /* Extra small modal title */
+  .modal-header {
+    padding: 6px 10px;
+  }
+  
   .modal-header h2 {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+  }
+  
+  .close-button {
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
   }
 }
 
@@ -1914,10 +2845,162 @@
   font-size: 0.9rem;
 }
 
+/* Ultra small screens (very small phones) */
+@media (max-width: 320px) {
+  /* Modal ultra estrecho para pantallas muy pequeñas */
+  .user-management-modal.showing-form {
+    max-width: calc(100vw - 2px);
+    width: calc(100vw - 2px);
+    margin: 1px auto;
+  }
+  
+  .modal-header {
+    padding: 4px 6px;
+  }
+  
+  .modal-header h2 {
+    font-size: 0.7rem;
+  }
+  
+  .close-button {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+  }
+  
+  .form-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+  }
+  
+  .form-header h3 {
+    font-size: 0.65rem;
+    margin: 0;
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+  }
+  
+  .form-header .back-button {
+    padding: 2px 4px;
+    font-size: 0.6rem;
+    flex-shrink: 0;
+    margin-left: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+    align-items: stretch;
+    justify-content: flex-start;
+    border-radius: 6px;
+  }
+  
+  .form-group {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* Mobile ultra small: Maintain single column layout - Following users-table-container pattern */
+  .form-row {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    align-items: stretch;
+  }
+  
+  .form-row .form-group {
+    flex: none;
+    width: 100%;
+    min-width: unset;
+    max-width: 100%;
+    order: 1;
+  }
+  
+  .form-group-placeholder {
+    display: none; /* Ocultar placeholder en móvil ultra pequeño */
+  }
+  
+  /* Reorder form groups for better mobile UX */
+  .form-row .form-group:first-child {
+    order: 1;
+  }
+  
+  .form-row .form-group:last-child {
+    order: 2;
+  }
+  
+  /* Inputs ultra compactos */
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: 5px 7px;
+    font-size: 0.65rem;
+    height: 30px;
+    border-radius: 4px;
+  }
+  
+  .form-group label {
+    font-size: 0.6rem;
+  }
+  
+  /* Botones ultra compactos */
+  .form-actions {
+    gap: 6px;
+    margin-top: 8px;
+  }
+  
+  .save-button,
+  .cancel-button {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+    min-height: 32px;
+  }
+}
+
 /* Estilos móviles para información del jefe en User Management Modal */
 @media (max-width: 768px) {
   .user-mgmt-jefe-info {
     font-size: 0.85rem;
+  }
+
+  /* En móvil, ocultar completamente el otro dropdown cuando uno está abierto */
+  /* Ocultar el form-group del dropdown de jefe cuando el dropdown de rol está abierto */
+  .form-group.hide-on-mobile {
+    display: none;
+  }
+  
+  /* También ocultar solo en móvil usando la clase en el form-group */
+  .form-group.hide-on-mobile .user-mgmt-jefe-dropdown-wrapper,
+  .form-group.hide-on-mobile .user-mgmt-form-dropdown-wrapper {
+    display: none;
+  }
+  
+  /* Ocultar también el label cuando está oculto */
+  .form-group.hide-on-mobile label {
+    display: none;
   }
 
   .user-mgmt-no-jefe {

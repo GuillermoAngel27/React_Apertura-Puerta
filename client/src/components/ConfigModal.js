@@ -122,36 +122,36 @@ const ConfigModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content config-modal">
-        <div className="modal-header">
+    <div className="config-modal-overlay">
+      <div className="config-modal-content-container">
+        <div className="config-modal-header">
           <h2>⚙️ Configuración del Sistema</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="config-modal-close-btn" onClick={onClose}>
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="config-form">
+        <form onSubmit={handleSubmit} className="config-modal-form">
           {loading && (
-            <div className="loading-message">
+            <div className="config-modal-loading-message">
               🔄 Cargando configuración desde base de datos...
             </div>
           )}
           
           {noConfigMessage && (
-            <div className="no-config-message">
+            <div className="config-modal-no-config-message">
               {noConfigMessage}
             </div>
           )}
           
 
-          <div className="config-section">
+          <div className="config-modal-section">
             <h3>🕐 Horarios de Apertura</h3>
             
-            <div className="horario-group">
+            <div className="config-modal-horario-group">
               <h4>Lunes - Viernes</h4>
-              <div className="horario-controls">
-                <label className="checkbox-label">
+              <div className="config-modal-horario-controls">
+                <label className="config-modal-checkbox-label">
                   <input
                     type="checkbox"
                     name="lunesViernes.habilitado"
@@ -160,7 +160,7 @@ const ConfigModal = ({ onClose, onSuccess }) => {
                   />
                   <span>Habilitado</span>
                 </label>
-                <div className="time-inputs">
+                <div className="config-modal-time-inputs">
                   <input
                     type="time"
                     name="lunesViernes.inicio"
@@ -180,10 +180,10 @@ const ConfigModal = ({ onClose, onSuccess }) => {
               </div>
             </div>
 
-            <div className="horario-group">
+            <div className="config-modal-horario-group">
               <h4>Sábados</h4>
-              <div className="horario-controls">
-                <label className="checkbox-label">
+              <div className="config-modal-horario-controls">
+                <label className="config-modal-checkbox-label">
                   <input
                     type="checkbox"
                     name="sabados.habilitado"
@@ -192,7 +192,7 @@ const ConfigModal = ({ onClose, onSuccess }) => {
                   />
                   <span>Habilitado</span>
                 </label>
-                <div className="time-inputs">
+                <div className="config-modal-time-inputs">
                   <input
                     type="time"
                     name="sabados.inicio"
@@ -212,10 +212,10 @@ const ConfigModal = ({ onClose, onSuccess }) => {
               </div>
             </div>
 
-            <div className="horario-group">
+            <div className="config-modal-horario-group">
               <h4>Domingos</h4>
-              <div className="horario-controls">
-                <label className="checkbox-label">
+              <div className="config-modal-horario-controls">
+                <label className="config-modal-checkbox-label">
                   <input
                     type="checkbox"
                     name="domingos.habilitado"
@@ -224,7 +224,7 @@ const ConfigModal = ({ onClose, onSuccess }) => {
                   />
                   <span>Habilitado</span>
                 </label>
-                <div className="time-inputs">
+                <div className="config-modal-time-inputs">
                   <input
                     type="time"
                     name="domingos.inicio"
@@ -245,20 +245,20 @@ const ConfigModal = ({ onClose, onSuccess }) => {
             </div>
           </div>
 
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
+          {error && <div className="config-modal-error-message">{error}</div>}
+          {success && <div className="config-modal-success-message">{success}</div>}
 
-          <div className="form-actions">
+          <div className="config-modal-form-actions">
             <button 
               type="submit" 
-              className="save-button"
+              className="config-modal-save-button"
               disabled={loading}
             >
               {loading ? 'Guardando...' : 'Guardar'}
             </button>
             <button 
               type="button" 
-              className="cancel-button"
+              className="config-modal-cancel-button"
               onClick={onClose}
             >
               Cancelar

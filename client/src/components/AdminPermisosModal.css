@@ -1,7 +1,7 @@
-/* ===== ESTILOS PARA MODAL DE ADMINISTRACIÓN DE PERMISOS ESPECIALES ===== */
+/* ===== ESTILOS PARA MODAL DE ADMINISTRACIÓN DE PERMISOS ESPECIALES - NEURAL GLASS STYLE ===== */
 
-/* Scoped modal styles para evitar conflictos globales */
-.admin-permisos-modal .modal-overlay {
+/* Estilos únicos con prefijo admin-permisos- para evitar conflictos */
+.admin-permisos-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -15,169 +15,211 @@
   backdrop-filter: blur(8px);
 }
 
-.admin-permisos-modal .modal-content {
-  background: rgba(15, 23, 42, 0.95);
+.admin-permisos-content-container {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  max-width: 1000px;
-  width: 95%;
-  max-height: 90vh;
-  min-height: 600px;
-  height: auto;
+  border-radius: 20px;
   box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
+    0 20px 60px rgba(0, 0, 0, 0.5), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(224, 163, 255, 0.1);
+  max-width: 1100px;
+  width: 43%;
+  max-height: 95vh;
+  min-height: 650px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  position: relative;
+  animation: modalEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center center;
 }
 
-.admin-permisos-modal .modal-header {
-  padding: 20px 25px;
+/* Animación de entrada del modal */
+@keyframes modalEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.admin-permisos-header {
+  padding: 15px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.02);
 }
 
-.admin-permisos-modal .modal-header h2 {
+.admin-permisos-header h2 {
   margin: 0;
-  color: #ffffff;
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 600;
+  background: linear-gradient(135deg, #e0a3ff, #ff69b4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.admin-permisos-modal .close-button {
+.admin-permisos-close-btn {
   background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
   color: #ffffff;
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 16px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.admin-permisos-modal .close-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-}
-
-.admin-permisos-modal .admin-permisos-content {
-  padding: 25px;
-  flex: 1;
-  min-height: 500px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.admin-permisos-modal .admin-permisos-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.admin-permisos-modal .admin-permisos-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.admin-permisos-modal .admin-permisos-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
-}
-
-.admin-permisos-modal .admin-permisos-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-/* ===== SECCIÓN DE DROPDOWNS EN FILA ===== */
-.dropdowns-row {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-  align-items: flex-start;
-}
-
-.categoria-section {
-  flex: 1;
-  min-width: 0;
-}
-
-.jefes-section {
-  flex: 1;
-  min-width: 0;
-}
-
-.dropdown-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.dropdown-toggle {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #ffffff;
-  padding: 9px 20px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(15px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.dropdown-toggle:hover {
-  background: rgba(255, 255, 255, 0.08);
+.admin-permisos-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  transform: scale(1.1);
   box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.dropdown-toggle:disabled {
+  .admin-permisos-body {
+    padding: 18px 20px;
+    flex: 1;
+    min-height: 500px;
+    max-height: calc(95vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.01);
+  }
+
+.admin-permisos-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-permisos-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-permisos-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.admin-permisos-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== SECCIÓN DE DROPDOWNS EN FILA ===== */
+.admin-permisos-dropdowns-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-permisos-categoria-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.admin-permisos-jefes-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.admin-permisos-dropdown-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.admin-permisos-dropdown-toggle {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: #ffffff;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(224, 163, 255, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-permisos-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(224, 163, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(224, 163, 255, 0.1);
+}
+
+.admin-permisos-dropdown-toggle:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
-.dropdown-text {
+.admin-permisos-dropdown-text {
   flex: 1;
   text-align: left;
 }
 
-.dropdown-arrow {
-  font-size: 0.8rem;
+.admin-permisos-dropdown-arrow {
+  font-size: 0.75rem;
   transition: transform 0.3s ease;
   color: rgba(255, 255, 255, 0.7);
 }
 
-.dropdown-arrow.open {
+.admin-permisos-dropdown-arrow.open {
   transform: rotate(180deg);
 }
 
-.dropdown-menu {
+.admin-permisos-dropdown-menu {
   position: absolute;
   top: 100%;
   left: 0;
@@ -195,8 +237,8 @@
   overflow-y: auto;
 }
 
-.dropdown-item {
-  padding: 12px 20px;
+.admin-permisos-dropdown-item {
+  padding: 10px 16px;
   cursor: pointer;
   transition: all 0.3s ease;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -204,484 +246,648 @@
   align-items: center;
 }
 
-.dropdown-item:last-child {
+.admin-permisos-dropdown-item:last-child {
   border-bottom: none;
 }
 
-.dropdown-item:hover {
+.admin-permisos-dropdown-item:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.dropdown-item.selected {
+.admin-permisos-dropdown-item.selected {
   background: rgba(59, 130, 246, 0.2);
   border-left: 3px solid #3b82f6;
 }
 
-.dropdown-item-name {
+.admin-permisos-dropdown-item-name {
   color: #ffffff;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
 /* ===== SECCIÓN DE JEFES ===== */
-.jefes-section {
-  margin-bottom: 20px;
-}
-
-.jefes-dropdown-wrapper {
+.admin-permisos-jefes-dropdown-wrapper {
   position: relative;
   width: 100%;
 }
 
-.jefes-dropdown-toggle {
+.admin-permisos-jefes-dropdown-toggle {
   width: 100%;
   background: rgba(255, 255, 255, 0.03);
-  border: 2px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   color: #ffffff;
-  padding: 12px 18px;
+  padding: 10px 16px;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(20px);
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(224, 163, 255, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.jefes-dropdown-toggle:hover {
+.admin-permisos-jefes-dropdown-toggle:hover {
   background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(224, 163, 255, 0.4);
   transform: translateY(-1px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(224, 163, 255, 0.1);
 }
 
-.jefes-dropdown-toggle:disabled {
+.admin-permisos-jefes-dropdown-toggle:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
 /* ===== SECCIÓN DE USUARIOS ===== */
-.usuarios-section {
+.admin-permisos-usuarios-section {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.section-header {
+.admin-permisos-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  gap: 12px;
 }
 
-.header-actions {
+.admin-permisos-header-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
+  width: 100%;
+  justify-content: flex-end;
 }
 
-.users-count {
+.admin-permisos-users-count {
   color: #e0a3ff;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  background: rgba(224, 163, 255, 0.1);
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(224, 163, 255, 0.2);
-  backdrop-filter: blur(10px);
+  background: rgba(224, 163, 255, 0.08);
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(224, 163, 255, 0.3);
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(224, 163, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.section-header h3 {
-  margin: 0;
+.admin-permisos-refresh-button {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
   color: #ffffff;
-  font-size: 1.2rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.refresh-button {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #ffffff;
-  padding: 8px 16px;
-  font-size: 0.85rem;
+  padding: 6px 14px;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.refresh-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+.admin-permisos-refresh-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(224, 163, 255, 0.4);
   transform: translateY(-1px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.refresh-button:disabled {
-  opacity: 0.6;
+.admin-permisos-refresh-button:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.usuarios-list {
+.admin-permisos-usuarios-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  max-height: calc(95vh - 380px);
 }
 
-.no-users-message {
+.admin-permisos-no-users-message {
   text-align: center;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 1rem;
-  padding: 40px 20px;
+  font-size: 0.85rem;
+  padding: 25px 20px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   backdrop-filter: blur(10px);
 }
 
-.usuario-card {
+.admin-permisos-usuario-card {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 18px 20px;
+  padding: 12px 16px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(20px);
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(224, 163, 255, 0.05);
+  min-width: 0;
+  flex-shrink: 0;
 }
 
-.usuario-card:hover {
+.admin-permisos-usuario-card:hover {
   background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(224, 163, 255, 0.3);
   transform: translateY(-2px);
   box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 8px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(224, 163, 255, 0.15);
 }
 
-.usuario-info {
+.admin-permisos-usuario-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.usuario-nombre {
+.admin-permisos-usuario-nombre {
   color: #ffffff;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
 }
 
-.usuario-details {
+.admin-permisos-usuario-details {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
-.usuario-username {
+.admin-permisos-usuario-username {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
-.permisos-count {
+.admin-permisos-permisos-count {
   color: #e0a3ff;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 500;
   background: rgba(224, 163, 255, 0.1);
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 2px 5px;
+  border-radius: 5px;
   border: 1px solid rgba(224, 163, 255, 0.2);
   display: inline-block;
   width: fit-content;
+  line-height: 1.2;
 }
 
-.usuario-actions {
+.admin-permisos-usuario-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.add-permiso-button {
+.admin-permisos-add-permiso-button {
   background: rgba(40, 167, 69, 0.1);
-  border: 2px solid #28a745;
+  border: 1px solid rgba(76, 175, 80, 0.4);
   color: #ffffff;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   white-space: nowrap;
+  flex-shrink: 0;
   box-shadow: 
     0 4px 15px rgba(40, 167, 69, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(76, 175, 80, 0.1);
 }
 
-.add-permiso-button:hover {
-  background: rgba(40, 167, 69, 0.25);
-  border-color: #28a745;
+.admin-permisos-add-permiso-button:hover {
+  background: rgba(40, 167, 69, 0.2);
+  border-color: rgba(76, 175, 80, 0.6);
   transform: translateY(-2px);
   box-shadow: 
-    0 8px 25px rgba(40, 167, 69, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 8px 30px rgba(40, 167, 69, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 1px rgba(76, 175, 80, 0.2);
 }
 
-.add-permiso-button:active {
+.admin-permisos-add-permiso-button:active {
   transform: translateY(0);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 /* ===== PAGINACIÓN ===== */
-.pagination-container {
-  margin-top: 20px;
-  padding-top: 20px;
+.admin-permisos-pagination-container {
+  margin-top: 15px;
+  padding-top: 15px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
-.pagination-controls {
+.admin-permisos-pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 }
 
-.pagination-button {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+.admin-permisos-pagination-button {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
   color: #ffffff;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1rem;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.pagination-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+.admin-permisos-pagination-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(224, 163, 255, 0.4);
   transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.pagination-button:disabled {
-  opacity: 0.5;
+.admin-permisos-pagination-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-permisos-pagination-info {
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-permisos-pagination-numbers {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.admin-permisos-page-number {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #ffffff;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.admin-permisos-page-number:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(224, 163, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.admin-permisos-page-number.active {
+  background: rgba(224, 163, 255, 0.2);
+  border-color: rgba(224, 163, 255, 0.6);
+  color: #e0a3ff;
+  font-weight: 600;
+  box-shadow: 
+    0 4px 15px rgba(224, 163, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.admin-permisos-page-number:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
 }
 
-.pagination-info {
-  color: #ffffff;
-  font-size: 0.9rem;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
 /* ===== MENSAJES ===== */
-.error-message {
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  border-radius: 8px;
+.admin-permisos-error-message {
+  background: rgba(220, 53, 69, 0.08);
+  border: 1px solid rgba(220, 53, 69, 0.4);
+  border-radius: 10px;
   color: #ff6b6b;
-  padding: 12px 16px;
-  font-size: 0.9rem;
+  padding: 10px 14px;
+  font-size: 0.8rem;
   margin-bottom: 15px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(220, 53, 69, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.success-message {
-  background: rgba(40, 167, 69, 0.1);
-  border: 1px solid rgba(40, 167, 69, 0.3);
-  border-radius: 8px;
+.admin-permisos-success-message {
+  background: rgba(40, 167, 69, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  border-radius: 10px;
   color: #51cf66;
-  padding: 12px 16px;
-  font-size: 0.9rem;
+  padding: 10px 14px;
+  font-size: 0.8rem;
   margin-bottom: 15px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 15px rgba(40, 167, 69, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.loading-message {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 8px;
+.admin-permisos-loading-message {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 10px;
   color: #74c0fc;
-  padding: 12px 16px;
-  font-size: 0.9rem;
+  padding: 10px 14px;
+  font-size: 0.8rem;
   margin-bottom: 15px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
   text-align: center;
+  box-shadow: 
+    0 4px 15px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-  .admin-permisos-modal .modal-content {
-    width: 98%;
+  .admin-permisos-content-container {
+    width: 95%;
+    max-width: 95vw;
     max-height: 95vh;
     min-height: 500px;
     margin: 10px;
+    overflow: hidden;
+  }
+  
+  .admin-permisos-body {
+    max-height: calc(95vh - 100px);
+    padding: 12px;
+  }
+  
+  .admin-permisos-usuarios-list {
+    max-height: calc(95vh - 280px);
   }
 
-  .admin-permisos-modal .modal-header {
-    padding: 15px 20px;
+  .admin-permisos-header {
+    padding: 12px 15px;
   }
 
-  .admin-permisos-modal .modal-header h2 {
-    font-size: 1.2rem;
+  .admin-permisos-header h2 {
+    font-size: 1rem;
   }
 
-  .admin-permisos-modal .admin-permisos-content {
-    padding: 20px;
-    gap: 15px;
-    min-height: 400px;
-  }
-
-  .dropdowns-row {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .categoria-section,
-  .jefes-section {
-    flex: none;
-  }
-
-  .section-header {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
-  }
-
-  .header-actions {
-    flex-direction: column;
+  .admin-permisos-dropdowns-row {
     gap: 10px;
-    align-items: stretch;
+    margin-bottom: 15px;
+    flex-direction: row;
   }
 
-  .section-header .refresh-button {
-    align-self: flex-start;
-    order: -1;
+  .admin-permisos-categoria-section,
+  .admin-permisos-jefes-section {
+    flex: 1;
+    min-width: 140px;
   }
 
-  .usuario-card {
+  .admin-permisos-section-header {
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .admin-permisos-header-actions {
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  .admin-permisos-users-count {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .admin-permisos-usuario-card {
     flex-direction: column;
     align-items: stretch;
-    gap: 15px;
-    padding: 15px;
+    gap: 8px;
+    padding: 10px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
 
-  .usuario-actions {
+  .admin-permisos-usuario-actions {
     justify-content: center;
   }
 
-  .add-permiso-button {
+  .admin-permisos-add-permiso-button {
     width: 100%;
     justify-content: center;
   }
 
-  .dropdown-toggle,
-  .jefes-dropdown-toggle {
-    padding: 12px 16px;
-    font-size: 0.9rem;
+  .admin-permisos-dropdown-toggle,
+  .admin-permisos-jefes-dropdown-toggle {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .admin-permisos-dropdown-text {
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
-  .admin-permisos-modal .modal-content {
+  .admin-permisos-content-container {
     width: 100%;
-    height: 100vh;
-    max-height: 100vh;
-    border-radius: 0;
-    margin: 0;
+    max-width: 100vw;
+    height: 95vh;
+    max-height: 95vh;
+    border-radius: 20px 20px 15px 15px;
+    margin: 5px 0 0 0;
+    overflow: hidden;
+  }
+  
+  .admin-permisos-body {
+    max-height: calc(95vh - 80px);
+    padding: 10px;
+  }
+  
+  .admin-permisos-usuarios-list {
+    max-height: calc(95vh - 260px);
   }
 
-  .admin-permisos-modal .modal-header {
-    padding: 12px 15px;
+  .admin-permisos-header {
+    padding: 10px 12px;
   }
 
-  .admin-permisos-modal .modal-header h2 {
-    font-size: 1.1rem;
+  .admin-permisos-header h2 {
+    font-size: 0.9rem;
   }
-
-  .admin-permisos-modal .admin-permisos-content {
-    padding: 15px;
-    gap: 12px;
-    min-height: 350px;
-  }
-
-  .usuario-nombre {
-    font-size: 1rem;
-  }
-
-  .usuario-username {
-    font-size: 0.85rem;
-  }
-
-  .permisos-count {
-    font-size: 0.8rem;
-    padding: 3px 6px;
-  }
-
-  .add-permiso-button {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-  }
-
-  .header-actions {
-    flex-direction: row;
+  
+  .admin-permisos-dropdowns-row {
     gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .admin-permisos-categoria-section,
+  .admin-permisos-jefes-section {
+    min-width: 120px;
+  }
+
+  .admin-permisos-dropdown-toggle,
+  .admin-permisos-jefes-dropdown-toggle {
+    padding: 7px 9px;
+    font-size: 0.7rem;
+  }
+  
+  .admin-permisos-dropdown-text {
+    font-size: 0.7rem;
+  }
+  
+  .admin-permisos-usuario-nombre {
+    font-size: 0.8rem;
+  }
+
+  .admin-permisos-usuario-username {
+    font-size: 0.7rem;
+  }
+
+  .admin-permisos-permisos-count {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+  }
+
+  .admin-permisos-add-permiso-button {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+  }
+
+  .admin-permisos-header-actions {
+    flex-direction: row;
+    gap: 6px;
     align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
   }
 
-  .users-count {
-    font-size: 0.8rem;
-    padding: 4px 8px;
+  .admin-permisos-users-count {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    padding: 3px 7px;
   }
 
-  .pagination-controls {
-    gap: 10px;
+  .admin-permisos-pagination-controls {
+    gap: 8px;
   }
 
-  .pagination-button {
-    width: 35px;
-    height: 35px;
-    font-size: 1rem;
+  .admin-permisos-pagination-button {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
   }
 
-  .pagination-info {
-    font-size: 0.8rem;
-    padding: 6px 12px;
+  .admin-permisos-pagination-info {
+    font-size: 0.65rem;
+    padding: 5px 10px;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .admin-permisos-pagination-numbers {
+    gap: 3px;
+  }
+
+  .admin-permisos-page-number {
+    min-width: 24px;
+    height: 24px;
+    font-size: 0.65rem;
   }
 }

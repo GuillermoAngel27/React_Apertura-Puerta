@@ -201,12 +201,12 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     setShowPasswordGenerator(false);
   };
 
-  // Función para generar contraseña segura de 10 dígitos
+  // Función para generar contraseña segura de 8 caracteres (letras, números, punto y guiones)
   const generateSecurePassword = () => {
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const lowercase = 'abcdefghijklmnopqrstuvwxyz';
     const numbers = '0123456789';
-    const specialChars = '-';
+    const specialChars = '.-'; // Punto y guiones
     
     let password = '';
     
@@ -216,9 +216,9 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     password += numbers[Math.floor(Math.random() * numbers.length)];
     password += specialChars[Math.floor(Math.random() * specialChars.length)];
     
-    // Completar hasta 10 caracteres con caracteres aleatorios
+    // Completar hasta 8 caracteres con caracteres aleatorios
     const allChars = uppercase + lowercase + numbers + specialChars;
-    for (let i = 4; i < 10; i++) {
+    for (let i = 4; i < 8; i++) {
       password += allChars[Math.floor(Math.random() * allChars.length)];
     }
     
@@ -281,6 +281,8 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     });
     setSelectedJefe(null);
     setFormRoleDropdownOpen(false);
+    // También cerrar el dropdown de jefe por si acaso
+    setFormJefeDropdownOpen(false);
   };
 
   const handleFormJefeSelect = (jefeId) => {
@@ -290,6 +292,8 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       jefe_id: jefeId || null
     });
     setFormJefeDropdownOpen(false);
+    // También cerrar el dropdown de rol por si acaso
+    setFormRoleDropdownOpen(false);
   };
 
   const handlePageChange = (pageNumber) => {
@@ -684,7 +688,7 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
       {/* Portal de mensajes - renderiza en document.body */}
       <MessagePortal />
       
-      <div className="modal-content user-management-modal">
+      <div className={`modal-content user-management-modal ${showAddForm ? 'showing-form' : ''}`}>
         <div className="modal-header">
           <h2>👥 Administración de Usuarios</h2>
           {!showAddForm && !editingUser && (
@@ -697,117 +701,142 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
         <div className="user-management-content">
           {!showAddForm ? (
             <div className="users-table-container">
-              {/* Search Bar, Filters and Add Button Row */}
-              <div className="user-mgmt-search-add-row">
-                <div className="user-mgmt-search-input-wrapper">
-                  <input
-                    type="text"
-                    placeholder="🔍 Buscar usuarios por nombre, usuario o rol..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    className="user-mgmt-search-input"
-                  />
-                  {searchTerm && (
-                    <button 
-                      className="user-mgmt-clear-search-button"
-                      onClick={() => setSearchTerm('')}
-                      title="Limpiar búsqueda"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-                <div className="user-mgmt-role-filter-wrapper">
-                  <div className="user-mgmt-filter-dropdown-wrapper">
-                    <button 
-                      className="user-mgmt-filter-dropdown-toggle"
-                      onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                      disabled={loading}
-                    >
-                      <span className="user-mgmt-filter-dropdown-text">
-                        {roleFilter === 'user' ? '👤 Usuario' :
-                         roleFilter === 'jefe' ? '👔 Jefe de Departamento' :
-                         roleFilter === 'admin' ? '👑 Administrador' :
-                         '👥 Todos los roles'}
-                      </span>
-                      <span className={`user-mgmt-filter-dropdown-arrow ${roleDropdownOpen ? 'open' : ''}`}>▼</span>
-                    </button>
-                    
-                    {roleDropdownOpen && (
-                      <div className="user-mgmt-filter-dropdown-menu">
-                        <div 
-                          className={`user-mgmt-filter-dropdown-item ${roleFilter === '' ? 'selected' : ''}`}
-                          onClick={() => handleRoleSelect('')}
-                        >
-                          <span className="user-mgmt-filter-dropdown-item-name">👥 Todos los roles</span>
-                        </div>
-                        <div 
-                          className={`user-mgmt-filter-dropdown-item ${roleFilter === 'user' ? 'selected' : ''}`}
-                          onClick={() => handleRoleSelect('user')}
-                        >
-                          <span className="user-mgmt-filter-dropdown-item-name">👤 Usuario</span>
-                        </div>
-                        <div 
-                          className={`user-mgmt-filter-dropdown-item ${roleFilter === 'jefe' ? 'selected' : ''}`}
-                          onClick={() => handleRoleSelect('jefe')}
-                        >
-                          <span className="user-mgmt-filter-dropdown-item-name">👔 Jefe de Departamento</span>
-                        </div>
-                        <div 
-                          className={`user-mgmt-filter-dropdown-item ${roleFilter === 'admin' ? 'selected' : ''}`}
-                          onClick={() => handleRoleSelect('admin')}
-                        >
-                          <span className="user-mgmt-filter-dropdown-item-name">👑 Administrador</span>
-                        </div>
-                      </div>
+              {/* Search Bar, Filters and Add Button Row - Orden específico */}
+              <div className="user-mgmt-filters-container">
+                {/* Fila 1: Solo Búsqueda */}
+                <div className="user-mgmt-search-row">
+                  <div className="user-mgmt-search-input-wrapper">
+                    <input
+                      type="text"
+                      placeholder="🔍 Buscar usuarios"
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="user-mgmt-search-input"
+                    />
+                    {searchTerm && (
+                      <button 
+                        className="user-mgmt-clear-search-button"
+                        onClick={() => setSearchTerm('')}
+                        title="Limpiar búsqueda"
+                      >
+                        ✕
+                      </button>
                     )}
                   </div>
                 </div>
-                <div className="user-mgmt-active-filter-wrapper">
-                  <div className="user-mgmt-filter-dropdown-wrapper">
-                    <button 
-                      className="user-mgmt-filter-dropdown-toggle"
-                      onClick={() => setActiveDropdownOpen(!activeDropdownOpen)}
-                      disabled={loading}
-                    >
-                      <span className="user-mgmt-filter-dropdown-text">
-                        {activeFilter === 'true' ? '✅ Activos' :
-                         activeFilter === 'false' ? '❌ Inactivos' :
-                         '🔄 Todos los estados'}
-                      </span>
-                      <span className={`user-mgmt-filter-dropdown-arrow ${activeDropdownOpen ? 'open' : ''}`}>▼</span>
-                    </button>
-                    
-                    {activeDropdownOpen && (
-                      <div className="user-mgmt-filter-dropdown-menu">
-                        <div 
-                          className={`user-mgmt-filter-dropdown-item ${activeFilter === '' ? 'selected' : ''}`}
-                          onClick={() => handleActiveSelect('')}
-                        >
-                          <span className="user-mgmt-filter-dropdown-item-name">🔄 Todos los estados</span>
+                
+                {/* Fila 2: Rol + Estado lado a lado */}
+                <div className="user-mgmt-dropdowns-row">
+                  <div className="user-mgmt-role-filter-wrapper">
+                    <div className="user-mgmt-filter-dropdown-wrapper">
+                      <button 
+                        className="user-mgmt-filter-dropdown-toggle"
+                        onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                        disabled={loading}
+                      >
+                        <span className="user-mgmt-filter-dropdown-text">
+                          {roleFilter === 'user' ? '👤 Usuario' :
+                           roleFilter === 'jefe' ? '👔 Jefe de Departamento' :
+                           roleFilter === 'admin' ? '👑 Administrador' :
+                           '👥 Todos los roles'}
+                        </span>
+                        <span className={`user-mgmt-filter-dropdown-arrow ${roleDropdownOpen ? 'open' : ''}`}>▼</span>
+                      </button>
+                      
+                      {roleDropdownOpen && (
+                        <div className="user-mgmt-filter-dropdown-menu">
+                          <div 
+                            className={`user-mgmt-filter-dropdown-item ${roleFilter === '' ? 'selected' : ''}`}
+                            onClick={() => handleRoleSelect('')}
+                          >
+                            <span className="user-mgmt-filter-dropdown-item-name">👥 Todos los roles</span>
+                          </div>
+                          <div 
+                            className={`user-mgmt-filter-dropdown-item ${roleFilter === 'user' ? 'selected' : ''}`}
+                            onClick={() => handleRoleSelect('user')}
+                          >
+                            <span className="user-mgmt-filter-dropdown-item-name">👤 Usuario</span>
+                          </div>
+                          <div 
+                            className={`user-mgmt-filter-dropdown-item ${roleFilter === 'jefe' ? 'selected' : ''}`}
+                            onClick={() => handleRoleSelect('jefe')}
+                          >
+                            <span className="user-mgmt-filter-dropdown-item-name">👔 Jefe de Departamento</span>
+                          </div>
+                          <div 
+                            className={`user-mgmt-filter-dropdown-item ${roleFilter === 'admin' ? 'selected' : ''}`}
+                            onClick={() => handleRoleSelect('admin')}
+                          >
+                            <span className="user-mgmt-filter-dropdown-item-name">👑 Administrador</span>
+                          </div>
                         </div>
-                        <div 
-                          className={`user-mgmt-filter-dropdown-item ${activeFilter === 'true' ? 'selected' : ''}`}
-                          onClick={() => handleActiveSelect('true')}
-                        >
-                          <span className="user-mgmt-filter-dropdown-item-name">✅ Activos</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="user-mgmt-active-filter-wrapper">
+                    <div className="user-mgmt-filter-dropdown-wrapper">
+                      <button 
+                        className="user-mgmt-filter-dropdown-toggle"
+                        onClick={() => setActiveDropdownOpen(!activeDropdownOpen)}
+                        disabled={loading}
+                      >
+                        <span className="user-mgmt-filter-dropdown-text">
+                          {activeFilter === 'true' ? '✅ Activos' :
+                           activeFilter === 'false' ? '❌ Inactivos' :
+                           '🔄 Todos los estados'}
+                        </span>
+                        <span className={`user-mgmt-filter-dropdown-arrow ${activeDropdownOpen ? 'open' : ''}`}>▼</span>
+                      </button>
+                      
+                      {activeDropdownOpen && (
+                        <div className="user-mgmt-filter-dropdown-menu">
+                          <div 
+                            className={`user-mgmt-filter-dropdown-item ${activeFilter === '' ? 'selected' : ''}`}
+                            onClick={() => handleActiveSelect('')}
+                          >
+                            <span className="user-mgmt-filter-dropdown-item-name">🔄 Todos los estados</span>
+                          </div>
+                          <div 
+                            className={`user-mgmt-filter-dropdown-item ${activeFilter === 'true' ? 'selected' : ''}`}
+                            onClick={() => handleActiveSelect('true')}
+                          >
+                            <span className="user-mgmt-filter-dropdown-item-name">✅ Activos</span>
+                          </div>
+                          <div 
+                            className={`user-mgmt-filter-dropdown-item ${activeFilter === 'false' ? 'selected' : ''}`}
+                            onClick={() => handleActiveSelect('false')}
+                          >
+                            <span className="user-mgmt-filter-dropdown-item-name">❌ Inactivos</span>
+                          </div>
                         </div>
-                        <div 
-                          className={`user-mgmt-filter-dropdown-item ${activeFilter === 'false' ? 'selected' : ''}`}
-                          onClick={() => handleActiveSelect('false')}
-                        >
-                          <span className="user-mgmt-filter-dropdown-item-name">❌ Inactivos</span>
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
-                <button 
-                  className="add-user-button"
-                  onClick={() => setShowAddForm(true)}
-                >
-                  ➕ Agregar Usuario
-                </button>
+                
+                {/* Fila 3: Botones de acción */}
+                <div className="user-mgmt-action-buttons">
+                  <button 
+                    className="user-mgmt-clear-filters-btn"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setRoleFilter('');
+                      setActiveFilter('');
+                      setCurrentPage(1);
+                    }}
+                    title="Limpiar todos los filtros"
+                    aria-label="Limpiar todos los filtros aplicados"
+                  >
+                    🗑️
+                  </button>  
+                  <button 
+                    className="add-user-button"
+                    onClick={() => setShowAddForm(true)}
+                  >
+                    ➕ Usuario
+                  </button>
+                </div>
               </div>
 
               {error && <div className="error-message desktop-only-message">{error}</div>}
@@ -1035,202 +1064,224 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                   className="back-button"
                   onClick={resetForm}
                 >
-                  ← Volver
+                  ◀ Volver
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="user-form">
-                <div className="form-group">
-                  <label htmlFor="nombre">Nombre:</label>
-                  <input
-                    type="text"
-                    id="nombre"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ingrese el nombre"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="apellido">Apellido:</label>
-                  <input
-                    type="text"
-                    id="apellido"
-                    name="apellido"
-                    value={formData.apellido}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ingrese el apellido"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="username">Usuario (para login):</label>
-                  <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ingrese el nombre de usuario"
-                  />
-                </div>
-
-
-                <div className="form-group">
-                  <label htmlFor="password">
-                    {editingUser ? 'Nueva Contraseña (opcional):' : 'Contraseña:'}
-                  </label>
-                  <div className="password-input-container">
-                    <div className="password-field-wrapper">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required={!editingUser}
-                        placeholder={editingUser ? "Dejar vacío para mantener la actual" : "Mínimo 6 caracteres"}
-                        className="password-input"
-                      />
-                      {editingUser && formData.password && (
-                        <button 
-                          type="button"
-                          className="toggle-password-btn"
-                          onClick={() => setShowPassword(!showPassword)}
-                          title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                        >
-                          {showPassword ? '🙈' : '👁️'}
-                        </button>
-                      )}
-                    </div>
-                    <div className="password-buttons">
-                      <button 
-                        type="button"
-                        className="generate-password-btn"
-                        onClick={generateSecurePassword}
-                        title="Generar contraseña segura"
-                      >
-                        {editingUser ? '🔄 Actualizar' : '🎲 Crear'}
-                      </button>
-                      {formData.password && (
-                        <button 
-                          type="button"
-                          className="copy-password-btn"
-                          onClick={() => copyToClipboard(formData.password)}
-                          title="Copiar contraseña"
-                        >
-                          📋 Copiar
-                        </button>
-                      )}
-                    </div>
+                {/* Primera fila: Nombre y Apellido */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="nombre">Nombre(s):</label>
+                    <input
+                      type="text"
+                      id="nombre"
+                      name="nombre"
+                      value={formData.nombre}
+                      onChange={handleChange}
+                      required
+                      placeholder="Ingrese el nombre"
+                    />
                   </div>
-                  {showPasswordGenerator && generatedPassword && (
-                    <div className="generated-password-display">
-                      <span className="password-label">Contraseña generada:</span>
-                      <span className="generated-password">{generatedPassword}</span>
-                    </div>
-                  )}
+                  <div className="form-group">
+                    <label htmlFor="apellido">Apellido(s):</label>
+                    <input
+                      type="text"
+                      id="apellido"
+                      name="apellido"
+                      value={formData.apellido}
+                      onChange={handleChange}
+                      required
+                      placeholder="Ingrese el apellido"
+                    />
+                  </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="role">Rol:</label>
-                  <div className="user-mgmt-form-dropdown-wrapper">
-                    <button 
-                      className="user-mgmt-form-dropdown-toggle"
-                      onClick={() => setFormRoleDropdownOpen(!formRoleDropdownOpen)}
-                      disabled={loading}
-                      type="button"
-                    >
-                      <span className="user-mgmt-form-dropdown-text">
-                        {formData.role === 'user' ? '👤 Usuario' :
-                         formData.role === 'jefe' ? '👔 Jefe de Departamento' :
-                         formData.role === 'admin' ? '👑 Administrador' :
-                         '👤 Usuario'}
-                      </span>
-                      <span className={`user-mgmt-form-dropdown-arrow ${formRoleDropdownOpen ? 'open' : ''}`}>▼</span>
-                    </button>
-                    
-                    {formRoleDropdownOpen && (
-                      <div className="user-mgmt-form-dropdown-menu">
-                        <div 
-                          className={`user-mgmt-form-dropdown-item ${formData.role === 'user' ? 'selected' : ''}`}
-                          onClick={() => handleFormRoleSelect('user')}
+                {/* Segunda fila: Usuario y Contraseña */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="username">Usuario (para login):</label>
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                      placeholder="Ingrese el nombre de usuario"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="password">
+                      {editingUser ? 'Nueva Contraseña (opcional):' : 'Contraseña:'}
+                    </label>
+                    <div className="password-input-container">
+                      <div className="password-field-wrapper">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          id="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          required={!editingUser}
+                          placeholder={editingUser ? "Dejar vacío para mantener la actual" : "Mínimo 6 caracteres"}
+                          className="password-input"
+                        />
+                        {editingUser && formData.password && (
+                          <button 
+                            type="button"
+                            className="toggle-password-btn"
+                            onClick={() => setShowPassword(!showPassword)}
+                            title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                          >
+                            {showPassword ? '🙈' : '👁️'}
+                          </button>
+                        )}
+                      </div>
+                      <div className="password-buttons">
+                        <button 
+                          type="button"
+                          className="generate-password-btn"
+                          onClick={generateSecurePassword}
+                          title="Generar contraseña segura"
                         >
-                          <span className="user-mgmt-form-dropdown-item-name">👤 Usuario</span>
-                        </div>
-                        <div 
-                          className={`user-mgmt-form-dropdown-item ${formData.role === 'jefe' ? 'selected' : ''}`}
-                          onClick={() => handleFormRoleSelect('jefe')}
-                        >
-                          <span className="user-mgmt-form-dropdown-item-name">👔 Jefe de Departamento</span>
-                        </div>
-                        <div 
-                          className={`user-mgmt-form-dropdown-item ${formData.role === 'admin' ? 'selected' : ''}`}
-                          onClick={() => handleFormRoleSelect('admin')}
-                        >
-                          <span className="user-mgmt-form-dropdown-item-name">👑 Administrador</span>
-                        </div>
+                          {editingUser ? '🔄 Actualizar' : '🎲 Crear'}
+                        </button>
+                        {formData.password && (
+                          <button 
+                            type="button"
+                            className="copy-password-btn"
+                            onClick={() => copyToClipboard(formData.password)}
+                            title="Copiar contraseña"
+                          >
+                            📋 Copiar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {showPasswordGenerator && generatedPassword && (
+                      <div className="generated-password-display">
+                        <span className="password-label">Contraseña generada:</span>
+                        <span className="generated-password">{generatedPassword}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Dropdown de jefes - solo visible si el rol es 'user' */}
-                {formData.role === 'user' && (
-                  <div className="form-group">
-                    <label htmlFor="jefe_id">Jefe Responsable (opcional):</label>
-                    <div className="user-mgmt-jefe-dropdown-wrapper">
+                {/* Tercera fila: Rol y Jefe */}
+                <div className="form-row">
+                  <div className={`form-group ${formJefeDropdownOpen ? 'hide-on-mobile' : ''}`}>
+                    <label htmlFor="role">Rol:</label>
+                    <div className="user-mgmt-form-dropdown-wrapper">
                       <button 
-                        className="user-mgmt-jefe-dropdown-toggle"
-                        onClick={() => setFormJefeDropdownOpen(!formJefeDropdownOpen)}
+                        className="user-mgmt-form-dropdown-toggle"
+                        onClick={() => {
+                          const willOpen = !formRoleDropdownOpen;
+                          // Siempre cerrar el dropdown de jefe antes de abrir/cerrar el de rol
+                          setFormJefeDropdownOpen(false);
+                          setFormRoleDropdownOpen(willOpen);
+                        }}
                         disabled={loading}
                         type="button"
                       >
-                        <span className="user-mgmt-jefe-dropdown-text">
-                          {selectedJefe ? 
-                            (() => {
-                              const jefe = jefesList.find(j => j.id == selectedJefe);
-                              return jefe ? `${jefe.nombre} ${jefe.apellido} (${jefe.username})` : 'Seleccionar jefe...';
-                            })() :
-                            'Seleccionar jefe...'
-                          }
+                        <span className="user-mgmt-form-dropdown-text">
+                          {formData.role === 'user' ? '👤 Usuario' :
+                           formData.role === 'jefe' ? '👔 Jefe de Departamento' :
+                           formData.role === 'admin' ? '👑 Administrador' :
+                           '👤 Usuario'}
                         </span>
-                        <span className={`user-mgmt-jefe-dropdown-arrow ${formJefeDropdownOpen ? 'open' : ''}`}>▼</span>
+                        <span className={`user-mgmt-form-dropdown-arrow ${formRoleDropdownOpen ? 'open' : ''}`}>▼</span>
                       </button>
                       
-                      {formJefeDropdownOpen && (
-                        <div className="user-mgmt-jefe-dropdown-menu">
+                      {formRoleDropdownOpen && (
+                        <div className="user-mgmt-form-dropdown-menu">
                           <div 
-                            className={`user-mgmt-jefe-dropdown-item ${!selectedJefe ? 'selected' : ''}`}
-                            onClick={() => handleFormJefeSelect('')}
+                            className={`user-mgmt-form-dropdown-item ${formData.role === 'user' ? 'selected' : ''}`}
+                            onClick={() => handleFormRoleSelect('user')}
                           >
-                            <span className="user-mgmt-jefe-dropdown-item-name">Sin jefe asignado</span>
+                            <span className="user-mgmt-form-dropdown-item-name">👤 Usuario</span>
                           </div>
-                          {jefesList.map(jefe => (
-                            <div 
-                              key={jefe.id}
-                              className={`user-mgmt-jefe-dropdown-item ${selectedJefe == jefe.id ? 'selected' : ''}`}
-                              onClick={() => handleFormJefeSelect(jefe.id)}
-                            >
-                              <span className="user-mgmt-jefe-dropdown-item-name">
-                                {jefe.nombre} {jefe.apellido} ({jefe.username})
-                              </span>
-                            </div>
-                          ))}
+                          <div 
+                            className={`user-mgmt-form-dropdown-item ${formData.role === 'jefe' ? 'selected' : ''}`}
+                            onClick={() => handleFormRoleSelect('jefe')}
+                          >
+                            <span className="user-mgmt-form-dropdown-item-name">👔 Jefe de Departamento</span>
+                          </div>
+                          <div 
+                            className={`user-mgmt-form-dropdown-item ${formData.role === 'admin' ? 'selected' : ''}`}
+                            onClick={() => handleFormRoleSelect('admin')}
+                          >
+                            <span className="user-mgmt-form-dropdown-item-name">👑 Administrador</span>
+                          </div>
                         </div>
                       )}
                     </div>
-                    {jefesList.length === 0 && (
-                      <div className="form-help-text">
-                        ℹ️ No hay jefes disponibles. El usuario puede ser creado sin jefe asignado.
+                  </div>
+                  
+                  {/* Dropdown de jefes - solo visible si el rol es 'user' */}
+                  <div className={`form-group ${formRoleDropdownOpen ? 'hide-on-mobile' : ''}`}>
+                    {formData.role === 'user' ? (
+                      <>
+                        <label htmlFor="jefe_id">Jefe Responsable (opcional):</label>
+                        <div className="user-mgmt-jefe-dropdown-wrapper">
+                          <button 
+                            className="user-mgmt-jefe-dropdown-toggle"
+                            onClick={() => {
+                              const willOpen = !formJefeDropdownOpen;
+                              // Siempre cerrar el dropdown de rol antes de abrir/cerrar el de jefe
+                              setFormRoleDropdownOpen(false);
+                              setFormJefeDropdownOpen(willOpen);
+                            }}
+                            disabled={loading}
+                            type="button"
+                          >
+                            <span className="user-mgmt-jefe-dropdown-text">
+                              {selectedJefe ? 
+                                (() => {
+                                  const jefe = jefesList.find(j => j.id == selectedJefe);
+                                  return jefe ? `${jefe.nombre} ${jefe.apellido} (${jefe.username})` : 'Seleccionar jefe...';
+                                })() :
+                                'Seleccionar jefe...'
+                              }
+                            </span>
+                            <span className={`user-mgmt-jefe-dropdown-arrow ${formJefeDropdownOpen ? 'open' : ''}`}>▼</span>
+                          </button>
+                          
+                          {formJefeDropdownOpen && (
+                            <div className="user-mgmt-jefe-dropdown-menu">
+                              <div 
+                                className={`user-mgmt-jefe-dropdown-item ${!selectedJefe ? 'selected' : ''}`}
+                                onClick={() => handleFormJefeSelect('')}
+                              >
+                                <span className="user-mgmt-jefe-dropdown-item-name">Sin jefe asignado</span>
+                              </div>
+                              {jefesList.map(jefe => (
+                                <div 
+                                  key={jefe.id}
+                                  className={`user-mgmt-jefe-dropdown-item ${selectedJefe == jefe.id ? 'selected' : ''}`}
+                                  onClick={() => handleFormJefeSelect(jefe.id)}
+                                >
+                                  <span className="user-mgmt-jefe-dropdown-item-name">
+                                    {jefe.nombre} {jefe.apellido} ({jefe.username})
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {jefesList.length === 0 && (
+                          <div className="form-help-text">
+                            ℹ️ No hay jefes disponibles. El usuario puede ser creado sin jefe asignado.
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="form-group-placeholder">
+                        {/* Espacio vacío para mantener alineación cuando no se muestra el dropdown de jefe */}
                       </div>
                     )}
                   </div>
-                )}
+                </div>
 
                 {error && <div className="error-message">{error}</div>}
                 {success && <div className="success-message">{success}</div>}

@@ -41,8 +41,8 @@
   }
 }
 
-/* Modal Overlay - Específico para PermisoFormModal */
-.permiso-form-modal .modal-overlay {
+/* Modal Overlay - Clases únicas con prefijo permiso-form- */
+.permiso-form-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -56,8 +56,8 @@
   backdrop-filter: blur(8px);
 }
 
-/* Modal Content - Específico para PermisoFormModal */
-.permiso-form-modal .modal-content {
+/* Modal Content Container - Clase única */
+.permiso-form-content-container {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
@@ -68,20 +68,16 @@
   max-width: 95vw;
   max-height: 95vh;
   overflow: hidden;
-}
-
-.permiso-form-modal {
   max-width: 900px;
   max-height: 90vh;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   width: 100%;
 }
 
-/* Modal Header - Específico para PermisoFormModal */
-.permiso-form-modal .modal-header {
-  padding: 25px 30px;
+/* Modal Header - Clase única */
+.permiso-form-header {
+  padding: 15px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
@@ -91,10 +87,10 @@
   flex-shrink: 0;
 }
 
-/* Modal Content - Específico para PermisoFormModal */
-.permiso-form-modal .permiso-content {
+/* Modal Body - Clase única */
+.permiso-form-body {
   flex: 1;
-  padding: 25px 30px;
+  padding: 15px 20px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
@@ -105,9 +101,9 @@
   box-sizing: border-box;
 }
 
-.permiso-form-modal .modal-header h2 {
+.permiso-form-header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.1rem;
   font-weight: 600;
   background: linear-gradient(135deg, #e0a3ff, #ff69b4);
   -webkit-background-clip: text;
@@ -125,63 +121,63 @@
   white-space: nowrap;
 }
 
-/* Form Section Styles */
-.form-section {
+/* Form Section Styles - Clases únicas */
+.permiso-form-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 25px;
+  gap: 8px;
+  margin-bottom: 15px;
 }
 
-.section-label {
+.permiso-form-section-label {
   font-weight: 700;
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.85rem;
   margin: 0;
 }
 
-.field-label {
+.permiso-form-field-label {
   font-weight: 600;
   color: #e0a3ff;
-  font-size: 0.9rem;
-  margin-bottom: 5px;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
   display: block;
 }
 
-.form-row {
+.permiso-form-row {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   width: 100%;
 }
 
-.form-row .form-group {
+.permiso-form-row .permiso-form-group {
   flex: 1;
   min-width: 0;
 }
 
-.form-group {
+.permiso-form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.form-group input,
-.form-group textarea {
-  padding: 12px 16px;
-  border-radius: 12px;
+.permiso-form-group input,
+.permiso-form-group textarea {
+  padding: 8px 12px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   color: #ffffff;
-  font-size: 14px;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.form-group input:focus,
-.form-group textarea:focus {
+.permiso-form-group input:focus,
+.permiso-form-group textarea:focus {
   outline: none;
   border-color: rgba(224, 163, 255, 0.3);
   background: rgba(255, 255, 255, 0.08);
@@ -191,38 +187,38 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.form-group textarea {
+.permiso-form-group textarea {
   resize: vertical;
   min-height: 80px;
 }
 
-/* Form Actions - Buttons on same row */
-.form-actions {
+/* Form Actions - Buttons on same row - Clases únicas */
+.permiso-form-actions {
   display: flex !important;
   flex-direction: row !important;
-  gap: 15px;
+  gap: 10px;
   justify-content: flex-end;
-  margin-top: 20px;
+  margin-top: 15px;
   width: 100%;
 }
 
-.save-button,
-.cancel-button {
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 14px;
+.permiso-form-save-button,
+.permiso-form-cancel-button {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 120px;
+  gap: 6px;
+  min-width: 100px;
   justify-content: center;
 }
 
-.save-button {
+.permiso-form-save-button {
   background: linear-gradient(135deg, #28a745, #1e7e34);
   color: #ffffff;
   box-shadow: 
@@ -230,7 +226,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.save-button:hover:not(:disabled) {
+.permiso-form-save-button:hover:not(:disabled) {
   background: linear-gradient(135deg, #1e7e34, #155724);
   transform: translateY(-2px);
   box-shadow: 
@@ -238,7 +234,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.cancel-button {
+.permiso-form-cancel-button {
   background: rgba(108, 117, 125, 0.2);
   color: #6c757d;
   border: 1px solid rgba(108, 117, 125, 0.3);
@@ -247,7 +243,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.cancel-button:hover {
+.permiso-form-cancel-button:hover {
   background: rgba(108, 117, 125, 0.3);
   color: #ffffff;
   transform: translateY(-2px);
@@ -256,156 +252,161 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.save-button:disabled {
+.permiso-form-save-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none !important;
 }
 
-/* Permisos List */
-.permisos-list {
+/* Permisos List - Clases únicas */
+.permiso-form-permisos-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
-.list-header {
+.permiso-form-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 0;
+  padding: 10px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 20px;
-  gap: 15px;
+  margin-bottom: 15px;
+  gap: 10px;
   width: 100%;
 }
 
 /* Reset específico para botones en list-header */
-.list-header .back-button,
-.list-header .add-button {
-  height: 40px !important;
-  min-height: 40px !important;
-  max-height: 40px !important;
+.permiso-form-list-header .permiso-form-back-button,
+.permiso-form-list-header .permiso-form-add-button {
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
   line-height: 1 !important;
   margin: 0 !important;
-  padding: 10px 20px !important;
+  padding: 6px 14px !important;
   box-sizing: border-box !important;
 }
 
-/* Back Button */
-.back-button {
-  background: rgba(255, 105, 180, 0.1);
-  border: 2px solid #ff69b4;
+/* Back Button - Clase única */
+.permiso-form-back-button {
+  background: rgba(255, 105, 180, 0.08);
+  border: 1px solid rgba(255, 105, 180, 0.3);
   color: #ffffff;
-  padding: 10px 20px;
+  padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   transition: all 0.3s ease;
   backdrop-filter: blur(15px);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
-  min-width: 120px;
-  height: 40px;
+  min-width: 100px;
+  height: 36px;
   box-sizing: border-box;
   box-shadow: 
-    0 4px 15px rgba(255, 105, 180, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 4px 15px rgba(255, 105, 180, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   vertical-align: top;
   line-height: 1;
   margin: 0;
 }
 
-.back-button:hover {
-  background: rgba(255, 105, 180, 0.25);
-  border-color: #ff69b4;
+.permiso-form-back-button:hover {
+  background: rgba(255, 105, 180, 0.15);
+  border-color: rgba(255, 105, 180, 0.5);
   transform: translateY(-2px);
   box-shadow: 
-    0 8px 25px rgba(255, 105, 180, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 8px 25px rgba(255, 105, 180, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
 }
 
-.back-button:active {
+.permiso-form-back-button:active {
   transform: translateY(0);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.add-button {
-  background: rgba(40, 167, 69, 0.1);
-  border: 2px solid #28a745;
+.permiso-form-add-button {
+  background: rgba(40, 167, 69, 0.08);
+  border: 1px solid rgba(40, 167, 69, 0.3);
   color: #ffffff;
-  padding: 10px 20px;
+  padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   transition: all 0.3s ease;
   backdrop-filter: blur(15px);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
-  min-width: 120px;
-  height: 40px;
+  min-width: 100px;
+  height: 36px;
   box-sizing: border-box;
   box-shadow: 
-    0 4px 15px rgba(40, 167, 69, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 4px 15px rgba(40, 167, 69, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   vertical-align: top;
   line-height: 1;
   margin: 0;
 }
 
-.add-button:hover {
-  background: rgba(40, 167, 69, 0.25);
-  border-color: #28a745;
+.permiso-form-add-button:hover {
+  background: rgba(40, 167, 69, 0.15);
+  border-color: rgba(40, 167, 69, 0.5);
   transform: translateY(-2px);
   box-shadow: 
-    0 8px 25px rgba(40, 167, 69, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 8px 25px rgba(40, 167, 69, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
 }
 
-.add-button:active {
+.permiso-form-add-button:active {
   transform: translateY(0);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.add-button:disabled {
+.permiso-form-add-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none !important;
 }
 
-/* Grid de permisos */
-.permisos-grid {
+/* Grid de permisos - Clase única */
+.permiso-form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
 }
 
-.permiso-card {
+.permiso-form-card {
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 15px;
-  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px;
   transition: all 0.3s ease;
   backdrop-filter: blur(20px);
   box-shadow: 
     0 4px 15px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  min-height: 120px;
 }
 
-.permiso-card:hover {
+.permiso-form-card:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
@@ -414,25 +415,26 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.permiso-card.inactivo {
+.permiso-form-inactivo {
   opacity: 0.6;
   background: rgba(255, 255, 255, 0.03);
 }
 
-.permiso-header {
+.permiso-form-card-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
-.permiso-tipo {
+.permiso-form-tipo {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.tipo-badge {
+.permiso-form-tipo-badge {
   background: linear-gradient(135deg, #e0a3ff, #ff69b4);
   color: #000;
   padding: 4px 12px;
@@ -443,7 +445,7 @@
   letter-spacing: 0.05em;
 }
 
-.inactivo-badge {
+.permiso-form-inactivo-badge {
   background: rgba(255, 68, 68, 0.2);
   color: #ff4444;
   padding: 4px 12px;
@@ -454,115 +456,135 @@
   letter-spacing: 0.05em;
 }
 
-.permiso-actions {
+.permiso-form-card-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 15px;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
-.edit-btn, .delete-btn {
-  padding: 6px 10px;
+.permiso-form-edit-btn, .permiso-form-delete-btn {
+  padding: 4px 8px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.75rem;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 32px;
-  height: 32px;
+  min-width: 28px;
+  height: 28px;
 }
 
-.edit-btn {
+.permiso-form-edit-btn {
   background: rgba(255, 193, 7, 0.2);
   color: #ffc107;
   border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
-.edit-btn:hover {
+.permiso-form-edit-btn:hover {
   background: rgba(255, 193, 7, 0.3);
   color: #ffffff;
   transform: translateY(-1px);
 }
 
-.delete-btn {
+.permiso-form-delete-btn {
   background: rgba(220, 53, 69, 0.2);
   color: #dc3545;
   border: 1px solid rgba(220, 53, 69, 0.3);
 }
 
-.delete-btn:hover {
+.permiso-form-delete-btn:hover {
   background: rgba(220, 53, 69, 0.3);
   color: #ffffff;
   transform: translateY(-1px);
 }
 
-.permiso-details {
+.permiso-form-card-details {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
+  flex: 1;
+  align-items: stretch;
 }
 
-.detail-row {
+.permiso-form-detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  flex-shrink: 0;
 }
 
-.detail-row:last-child {
+.permiso-form-detail-row:last-child {
   border-bottom: none;
 }
 
-.detail-row .label {
+.permiso-form-label {
   font-weight: 600;
   color: #e0a3ff;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
-.detail-row .value {
+.permiso-form-value {
   color: #ffffff;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   text-align: right;
   flex: 1;
   margin-left: 10px;
 }
 
-.detail-row .value.observaciones {
+.permiso-form-observaciones {
   text-align: left;
   font-style: italic;
   color: #cccccc;
 }
 
-.no-permisos {
+.permiso-form-no-permisos {
   text-align: center;
-  padding: 40px 20px;
+  padding: 30px 15px;
   color: #cccccc;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  grid-column: 1 / -1;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.no-permisos p {
+.permiso-form-no-permisos p {
   margin: 5px 0;
-  font-size: 14px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
-/* Form Header */
-.form-header {
+/* Form Header - Clase única */
+.permiso-form-wrapper-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
-  padding-bottom: 15px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.form-header h3 {
+.permiso-form-wrapper-header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1rem;
   font-weight: 600;
   color: #ffffff;
   display: flex;
@@ -570,8 +592,8 @@
   gap: 8px;
 }
 
-/* Messages */
-.error-message {
+/* Messages - Clases únicas */
+.permiso-form-error-message {
   background: rgba(255, 68, 68, 0.1);
   color: #ff4444;
   border: 1px solid rgba(255, 68, 68, 0.3);
@@ -582,7 +604,7 @@
   margin-bottom: 15px;
 }
 
-.success-message {
+.permiso-form-success-message {
   background: rgba(40, 167, 69, 0.1);
   color: #28a745;
   border: 1px solid rgba(40, 167, 69, 0.3);
@@ -593,7 +615,7 @@
   margin-bottom: 15px;
 }
 
-.loading-message {
+.permiso-form-loading-message {
   background: rgba(0, 123, 255, 0.1);
   color: #007bff;
   border: 1px solid rgba(0, 123, 255, 0.2);
@@ -605,12 +627,12 @@
 
 /* Responsive Design - Tablet */
 @media (max-width: 1024px) and (min-width: 769px) {
-  .permiso-form-modal {
+  .permiso-form-content-container {
     max-width: 90vw;
     max-height: 90vh;
   }
   
-  .permiso-content {
+  .permiso-form-body {
     padding: 20px;
   }
   
@@ -618,249 +640,391 @@
     gap: 15px;
   }
   
-  .permisos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 15px;
+  .permiso-form-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 }
 
 /* Responsive Design - Móvil */
 @media (max-width: 768px) {
-  .modal-overlay {
+  .permiso-form-overlay {
     padding: 10px;
   }
   
-  .permiso-form-modal {
+  .permiso-form-content-container {
     max-width: 95vw;
     max-height: 95vh;
     margin: 10px;
   }
 
-  .permiso-content {
-    padding: 15px;
+  .permiso-form-body {
+    padding: 12px;
   }
 
-  .list-header {
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 10px;
-    align-items: center;
-    padding: 10px 0;
+  .permiso-form-header {
+    padding: 12px 15px;
   }
 
-  .form-header {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
+  .permiso-form-header h2 {
+    font-size: 1rem;
   }
 
-  .form-header .back-button {
-    align-self: flex-start;
-    order: -1;
+  .permiso-form-list-header {
+    padding: 8px 0;
+    margin-bottom: 12px;
+    gap: 8px;
   }
 
-  /* Asegurar que el back-button en list-header no herede estilos del form-header */
-  .list-header .back-button {
-    align-self: center;
-    order: 0;
+  .permiso-form-wrapper-header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
   }
 
-  .permisos-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .permiso-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-
-  .permiso-actions {
-    align-self: flex-end;
-  }
-
-  /* Formulario responsivo - Layout horizontal como HistoryModal */
-  .form-row {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    align-items: end;
-  }
-  
-  .form-group {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .form-group input {
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .form-actions {
-    display: flex;
-    flex-direction: row !important;
-    gap: 10px;
-    justify-content: center;
-  }
-  
-  .save-button,
-  .cancel-button {
-    flex: 1;
-    min-width: 120px;
-    padding: 12px 20px;
+  .permiso-form-wrapper-header h3 {
     font-size: 0.9rem;
   }
-  
-  .field-label {
-    text-align: center;
-    font-size: 0.8rem;
+
+  .permiso-form-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
-  
-  .modal-header h2 {
-    font-size: 18px;
+
+  .permiso-form-card {
+    padding: 12px;
+    min-height: 100px;
+  }
+
+  .permiso-form-card-header {
+    margin-bottom: 8px;
+  }
+
+  .permiso-form-card-details {
+    gap: 6px;
+  }
+
+  .permiso-form-detail-row {
+    padding: 4px 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .permiso-form-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+  }
+
+  .permiso-form-value {
+    font-size: 0.7rem;
+    text-align: left;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .permiso-form-card-actions {
+    gap: 6px;
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+
+  .permiso-form-edit-btn,
+  .permiso-form-delete-btn {
+    min-width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+
+  .permiso-form-back-button,
+  .permiso-form-add-button {
+    min-width: 90px;
+    height: 32px;
+    font-size: 0.7rem;
+    padding: 5px 12px !important;
+  }
+
+  .permiso-form-section {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .permiso-form-section-label {
+    font-size: 0.75rem;
+  }
+
+  .permiso-form-field-label {
+    font-size: 0.7rem;
+  }
+
+  .permiso-form-row {
+    gap: 8px;
+  }
+
+  .permiso-form-group input,
+  .permiso-form-group textarea {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .permiso-form-actions {
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .permiso-form-save-button,
+  .permiso-form-cancel-button {
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    min-width: 90px;
+  }
+
+  .permiso-form-no-permisos {
+    padding: 20px 10px;
+  }
+
+  .permiso-form-no-permisos p {
+    font-size: 0.75rem;
   }
 }
 
 /* Media query para pantallas muy pequeñas */
 @media (max-width: 480px) {
-  .modal-overlay {
+  .permiso-form-overlay {
     padding: 5px;
   }
   
-  .permiso-form-modal {
+  .permiso-form-content-container {
     max-width: calc(100vw - 10px);
     max-height: calc(100vh - 10px);
     margin: 5px;
   }
   
-  .list-header {
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 8px;
-    align-items: center;
-    padding: 8px 0;
+  .permiso-form-body {
+    padding: 10px;
   }
 
-  .list-header .back-button,
-  .list-header .add-button {
-    min-width: 100px;
-    height: 36px;
-    font-size: 0.8rem;
-    padding: 8px 16px;
+  .permiso-form-header {
+    padding: 10px 12px;
   }
-  
-  /* Formulario compacto - Layout horizontal optimizado */
-  .form-row {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    align-items: end;
+
+  .permiso-form-header h2 {
+    font-size: 0.9rem;
   }
-  
-  .form-group {
-    flex: 1;
-    min-width: 0;
+
+  .permiso-form-list-header {
+    padding: 6px 0;
+    margin-bottom: 10px;
+    gap: 6px;
   }
-  
-  .form-group input {
-    padding: 10px 8px;
-    font-size: 14px;
-    width: 100%;
-    box-sizing: border-box;
+
+  .permiso-form-back-button,
+  .permiso-form-add-button {
+    min-width: 80px;
+    height: 30px;
+    font-size: 0.65rem;
+    padding: 4px 10px !important;
   }
-  
-  .form-actions {
-    display: flex;
-    flex-direction: row !important;
-    gap: 8px;
-    justify-content: center;
-  }
-  
-  .save-button,
-  .cancel-button {
-    flex: 1;
-    min-width: 100px;
-    padding: 10px 16px;
+
+  .permiso-form-wrapper-header h3 {
     font-size: 0.85rem;
   }
-  
-  .modal-header h2 {
-    font-size: 16px;
+
+  .permiso-form-section {
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+
+  .permiso-form-section-label {
+    font-size: 0.7rem;
+  }
+
+  .permiso-form-field-label {
+    font-size: 0.65rem;
+  }
+
+  .permiso-form-row {
+    gap: 6px;
+  }
+
+  .permiso-form-group input,
+  .permiso-form-group textarea {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
+
+  .permiso-form-actions {
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .permiso-form-save-button,
+  .permiso-form-cancel-button {
+    padding: 5px 12px;
+    font-size: 0.7rem;
+    min-width: 80px;
+  }
+
+  .permiso-form-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .permiso-form-card {
+    padding: 8px;
+    min-height: 90px;
+  }
+
+  .permiso-form-detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    padding: 3px 0;
+  }
+
+  .permiso-form-label {
+    font-size: 0.6rem;
+  }
+
+  .permiso-form-value {
+    font-size: 0.65rem;
+    text-align: left;
+    margin-left: 0;
+  }
+
+  .permiso-form-edit-btn,
+  .permiso-form-delete-btn {
+    min-width: 24px;
+    height: 24px;
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
+
+  .permiso-form-no-permisos {
+    padding: 15px 8px;
+  }
+
+  .permiso-form-no-permisos p {
+    font-size: 0.7rem;
   }
 }
 
 /* Extra small screens (phones in portrait) */
 @media (max-width: 360px) {
-  .modal-overlay {
+  .permiso-form-overlay {
     padding: 3px;
   }
   
-  .permiso-form-modal {
+  .permiso-form-content-container {
     max-width: calc(100vw - 6px);
     max-height: calc(100vh - 6px);
     margin: 3px;
   }
   
-  .permiso-content {
-    padding: 10px;
+  .permiso-form-body {
+    padding: 8px;
   }
-  
-  .list-header {
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 6px;
-    align-items: center;
-    padding: 6px 0;
+
+  .permiso-form-header {
+    padding: 8px 10px;
   }
-  
-  .list-header .back-button,
-  .list-header .add-button {
-    min-width: 80px;
-    height: 32px;
-    font-size: 0.7rem;
-    padding: 6px 12px;
+
+  .permiso-form-header h2 {
+    font-size: 0.85rem;
   }
-  
-  /* Formulario ultra compacto - Layout horizontal optimizado */
-  .form-row {
-    display: flex;
-    flex-direction: row;
-    gap: 6px;
-    align-items: end;
+
+  .permiso-form-list-header {
+    padding: 5px 0;
+    margin-bottom: 8px;
+    gap: 5px;
   }
-  
-  .form-group {
-    flex: 1;
-    min-width: 0;
+
+  .permiso-form-back-button,
+  .permiso-form-add-button {
+    min-width: 75px;
+    height: 28px;
+    font-size: 0.6rem;
+    padding: 3px 8px !important;
   }
-  
-  .form-group input {
-    padding: 8px 6px;
-    font-size: 13px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .form-actions {
-    display: flex;
-    flex-direction: row !important;
-    gap: 6px;
-    justify-content: center;
-  }
-  
-  .save-button,
-  .cancel-button {
-    flex: 1;
-    min-width: 80px;
-    padding: 8px 12px;
+
+  .permiso-form-wrapper-header h3 {
     font-size: 0.8rem;
   }
-  
-  .modal-header h2 {
-    font-size: 14px;
+
+  .permiso-form-section {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .permiso-form-section-label {
+    font-size: 0.65rem;
+  }
+
+  .permiso-form-field-label {
+    font-size: 0.6rem;
+  }
+
+  .permiso-form-row {
+    gap: 5px;
+  }
+
+  .permiso-form-group input,
+  .permiso-form-group textarea {
+    padding: 4px 6px;
+    font-size: 0.65rem;
+  }
+
+  .permiso-form-actions {
+    gap: 5px;
+    margin-top: 8px;
+  }
+
+  .permiso-form-save-button,
+  .permiso-form-cancel-button {
+    padding: 4px 10px;
+    font-size: 0.65rem;
+    min-width: 75px;
+  }
+
+  .permiso-form-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+
+  .permiso-form-card {
+    padding: 6px;
+    min-height: 85px;
+  }
+
+  .permiso-form-detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 3px 0;
+  }
+
+  .permiso-form-label {
+    font-size: 0.55rem;
+  }
+
+  .permiso-form-value {
+    font-size: 0.6rem;
+    text-align: left;
+    margin-left: 0;
+  }
+
+  .permiso-form-edit-btn,
+  .permiso-form-delete-btn {
+    min-width: 22px;
+    height: 22px;
+    font-size: 0.6rem;
+    padding: 2px 5px;
+  }
+
+  .permiso-form-no-permisos {
+    padding: 12px 6px;
+  }
+
+  .permiso-form-no-permisos p {
+    font-size: 0.65rem;
   }
 }

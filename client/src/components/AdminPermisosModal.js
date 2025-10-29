@@ -192,52 +192,52 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="admin-permisos-overlay">
       {/* Portal de mensajes - renderiza en document.body */}
       <MessagePortal />
       
-      <div className="modal-content admin-permisos-modal">
-        <div className="modal-header">
+      <div className="admin-permisos-content-container">
+        <div className="admin-permisos-header">
           <h2>🔑 Administración de Permisos Especiales</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="admin-permisos-close-btn" onClick={onClose}>
             ✕
           </button>
         </div>
 
-        <div className="admin-permisos-content">
+        <div className="admin-permisos-body">
           {/* Dropdowns en el mismo renglón */}
-          <div className="dropdowns-row">
+          <div className="admin-permisos-dropdowns-row">
             {/* Dropdown principal para seleccionar categoría */}
-            <div className="categoria-section">
-              <div className="dropdown-wrapper">
+            <div className="admin-permisos-categoria-section">
+              <div className="admin-permisos-dropdown-wrapper">
                 <button 
-                  className="dropdown-toggle"
+                  className="admin-permisos-dropdown-toggle"
                   onClick={() => setCategoriaDropdownOpen(!categoriaDropdownOpen)}
                   disabled={loading}
                 >
-                  <span className="dropdown-text">
+                  <span className="admin-permisos-dropdown-text">
                     {categoriaSeleccionada === 'sin_jefe' ? '👥 Usuarios sin jefe' :
                      categoriaSeleccionada === 'jefes' ? '👔 Jefes de departamentos' :
                      'Seleccionar categoría...'}
                   </span>
-                  <span className={`dropdown-arrow ${categoriaDropdownOpen ? 'open' : ''}`}>▼</span>
+                  <span className={`admin-permisos-dropdown-arrow ${categoriaDropdownOpen ? 'open' : ''}`}>▼</span>
                 </button>
                 
                 {categoriaDropdownOpen && (
-                  <div className="dropdown-menu">
+                  <div className="admin-permisos-dropdown-menu">
                     <div 
-                      className={`dropdown-item ${categoriaSeleccionada === 'sin_jefe' ? 'selected' : ''}`}
+                      className={`admin-permisos-dropdown-item ${categoriaSeleccionada === 'sin_jefe' ? 'selected' : ''}`}
                       onClick={() => handleCategoriaSelect('sin_jefe')}
                     >
-                      <span className="dropdown-item-name">
+                      <span className="admin-permisos-dropdown-item-name">
                         👥 Usuarios sin jefe
                       </span>
                     </div>
                     <div 
-                      className={`dropdown-item ${categoriaSeleccionada === 'jefes' ? 'selected' : ''}`}
+                      className={`admin-permisos-dropdown-item ${categoriaSeleccionada === 'jefes' ? 'selected' : ''}`}
                       onClick={() => handleCategoriaSelect('jefes')}
                     >
-                      <span className="dropdown-item-name">
+                      <span className="admin-permisos-dropdown-item-name">
                         👔 Jefes de departamentos
                       </span>
                     </div>
@@ -248,58 +248,57 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
 
             {/* Dropdown secundario para jefes (solo visible cuando se selecciona "jefes") */}
             {categoriaSeleccionada === 'jefes' && (
-              <div className="jefes-section">
-                <div className="jefes-dropdown-wrapper">
+              <div className="admin-permisos-jefes-section">
+                <div className="admin-permisos-jefes-dropdown-wrapper">
                   <button 
-                    className="jefes-dropdown-toggle"
+                    className="admin-permisos-jefes-dropdown-toggle"
                     onClick={() => setJefesDropdownOpen(!jefesDropdownOpen)}
                     disabled={loading}
-                  >
-                    <span className="dropdown-text">
-                      {jefeSeleccionado 
-                        ? `👔 ${jefeSeleccionado.nombre} ${jefeSeleccionado.apellido}`
-                        : 'Seleccionar jefe...'
-                      }
-                    </span>
-                    <span className={`dropdown-arrow ${jefesDropdownOpen ? 'open' : ''}`}>▼</span>
-                  </button>
-                  
-                  {jefesDropdownOpen && (
-                    <div className="dropdown-menu">
-                      {jefes.map((jefe) => (
-                        <div 
-                          key={jefe.id}
-                          className={`dropdown-item ${jefeSeleccionado?.id === jefe.id ? 'selected' : ''}`}
-                          onClick={() => handleJefeSelect(jefe)}
-                        >
-                          <span className="dropdown-item-name">
-                            👔 {jefe.nombre} {jefe.apellido}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    >
+                      <span className="admin-permisos-dropdown-text">
+                        {jefeSeleccionado 
+                          ? `👔 ${jefeSeleccionado.nombre} ${jefeSeleccionado.apellido}`
+                          : 'Seleccionar jefe...'
+                        }
+                      </span>
+                      <span className={`admin-permisos-dropdown-arrow ${jefesDropdownOpen ? 'open' : ''}`}>▼</span>
+                    </button>
+                    
+                    {jefesDropdownOpen && (
+                      <div className="admin-permisos-dropdown-menu">
+                        {jefes.map((jefe) => (
+                          <div 
+                            key={jefe.id}
+                            className={`admin-permisos-dropdown-item ${jefeSeleccionado?.id === jefe.id ? 'selected' : ''}`}
+                            onClick={() => handleJefeSelect(jefe)}
+                          >
+                            <span className="admin-permisos-dropdown-item-name">
+                              👔 {jefe.nombre} {jefe.apellido}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
           {/* Mensajes de error y éxito */}
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
-          {loading && <div className="loading-message">⏳ Cargando datos...</div>}
+          {error && <div className="admin-permisos-error-message">{error}</div>}
+          {success && <div className="admin-permisos-success-message">{success}</div>}
+          {loading && <div className="admin-permisos-loading-message">⏳ Cargando datos...</div>}
 
           {/* Lista de usuarios */}
           {categoriaSeleccionada && (
-            <div className="usuarios-section">
-              <div className="section-header">
-                <h3>{getTituloLista()}</h3>
-                <div className="header-actions">
-                  <span className="users-count">
+            <div className="admin-permisos-usuarios-section">
+              <div className="admin-permisos-section-header">
+                <div className="admin-permisos-header-actions">
+                  <span className="admin-permisos-users-count">
                     {getTotalUsuarios()} usuario{getTotalUsuarios() !== 1 ? 's' : ''}
                   </span>
                   <button 
-                    className="refresh-button"
+                    className="admin-permisos-refresh-button"
                     onClick={() => {
                       if (categoriaSeleccionada === 'sin_jefe') {
                         loadUsuariosSinJefe();
@@ -315,9 +314,9 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
                 </div>
               </div>
 
-              <div className="usuarios-list">
+              <div className="admin-permisos-usuarios-list">
                 {getUsuariosActuales().length === 0 ? (
-                  <div className="no-users-message">
+                  <div className="admin-permisos-no-users-message">
                     {categoriaSeleccionada === 'sin_jefe' 
                       ? 'No hay usuarios sin jefe asignado'
                       : categoriaSeleccionada === 'jefes' && !jefeSeleccionado
@@ -327,14 +326,14 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
                   </div>
                 ) : (
                   getCurrentPageUsers().map((usuario) => (
-                    <div key={usuario.id} className="usuario-card">
-                      <div className="usuario-info">
-                        <div className="usuario-nombre">
+                    <div key={usuario.id} className="admin-permisos-usuario-card">
+                      <div className="admin-permisos-usuario-info">
+                        <div className="admin-permisos-usuario-nombre">
                           👤 {usuario.nombre} {usuario.apellido}
                         </div>
-                        <div className="usuario-details">
-                          <span className="usuario-username">({usuario.username})</span>
-                          <span className="permisos-count">
+                        <div className="admin-permisos-usuario-details">
+                          <span className="admin-permisos-usuario-username">({usuario.username})</span>
+                          <span className="admin-permisos-permisos-count">
                             {usuario.permisos_activos > 0 
                               ? `🔑 ${usuario.permisos_activos} permiso${usuario.permisos_activos > 1 ? 's' : ''} activo${usuario.permisos_activos > 1 ? 's' : ''}`
                               : 'Sin permisos especiales'
@@ -342,9 +341,9 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
                           </span>
                         </div>
                       </div>
-                      <div className="usuario-actions">
+                      <div className="admin-permisos-usuario-actions">
                         <button 
-                          className="add-permiso-button"
+                          className="admin-permisos-add-permiso-button"
                           onClick={() => handleAgregarPermiso(usuario)}
                           title="Gestionar permisos especiales"
                         >
@@ -358,10 +357,10 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
 
               {/* Paginación */}
               {getTotalPages() > 1 && (
-                <div className="pagination-container">
-                  <div className="pagination-controls">
+                <div className="admin-permisos-pagination-container">
+                  <div className="admin-permisos-pagination-controls">
                     <button 
-                      className="pagination-button"
+                      className="admin-permisos-pagination-button"
                       onClick={handlePreviousPage}
                       disabled={currentPage === 1 || loading}
                       title="Página anterior"
@@ -369,16 +368,41 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
                       ◀
                     </button>
                     
-                    <div className="pagination-info">
+                    <div className="admin-permisos-pagination-info">
                       {loading ? (
                         <span>⏳ Cargando...</span>
                       ) : (
-                        `Página ${currentPage} de ${getTotalPages()}`
+                        <>
+                          <span>Página {currentPage} de {getTotalPages()}</span>
+                          <span className="admin-permisos-pagination-numbers">
+                            {Array.from({ length: getTotalPages() }, (_, i) => i + 1)
+                              .filter(page => {
+                                // Mostrar todas las páginas si son 5 o menos
+                                if (getTotalPages() <= 5) return true;
+                                // Mostrar primera, última, actual y páginas adyacentes
+                                return page === 1 || 
+                                       page === getTotalPages() || 
+                                       (page >= currentPage - 1 && page <= currentPage + 1);
+                              })
+                              .map(page => (
+                                <button
+                                  key={page}
+                                  className={`admin-permisos-page-number ${currentPage === page ? 'active' : ''}`}
+                                  onClick={() => handlePageChange(page)}
+                                  disabled={loading}
+                                  title={`Ir a página ${page}`}
+                                >
+                                  {page}
+                                </button>
+                              ))
+                            }
+                          </span>
+                        </>
                       )}
                     </div>
                     
                     <button 
-                      className="pagination-button"
+                      className="admin-permisos-pagination-button"
                       onClick={handleNextPage}
                       disabled={currentPage === getTotalPages() || loading}
                       title="Página siguiente"

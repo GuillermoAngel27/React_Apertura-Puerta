@@ -147,7 +147,7 @@ const executeQuery = async (query, params = []) => {
     const [rows] = await pool.query(query, params);
     return rows;
   } catch (error) {
-
+    console.error('Error en executeQuery:', error);
     throw error;
   }
 };
@@ -1260,7 +1260,7 @@ app.get('/api/verify-auth-token', authenticateToken, (req, res) => {
 // Ruta para obtener lista de usuarios (solo admin)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    
+    console.log('GET /api/users - Iniciando consulta');
     const { page = 1, limit = 50, search = '', role = '', active = '' } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     
@@ -1708,6 +1708,7 @@ app.delete('/api/permisos-especiales/:id', authenticateToken, async (req, res) =
 // Endpoint para obtener usuarios sin jefe asignado (solo admin)
 app.get('/api/permisos-admin/usuarios-sin-jefe', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    console.log('GET /api/permisos-admin/usuarios-sin-jefe - Iniciando consulta');
     const usuarios = await executeQuery(`
       SELECT 
         u.id, u.username, u.nombre, u.apellido, u.activo,
@@ -1737,6 +1738,7 @@ app.get('/api/permisos-admin/usuarios-sin-jefe', authenticateToken, requireAdmin
 // Endpoint para obtener lista de jefes (solo admin)
 app.get('/api/permisos-admin/jefes', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    console.log('GET /api/permisos-admin/jefes - Iniciando consulta');
     const jefes = await executeQuery(`
       SELECT 
         u.id, u.username, u.nombre, u.apellido, u.activo,

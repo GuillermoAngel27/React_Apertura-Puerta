@@ -229,7 +229,12 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
 
   const formatHorario = (inicio, fin) => {
     if (!inicio || !fin) return 'Sin restricción';
-    return `${inicio} - ${fin}`;
+    // Eliminar segundos si existen (HH:MM:SS -> HH:MM)
+    const formatTime = (time) => {
+      if (!time) return '';
+      return time.substring(0, 5); // Toma solo HH:MM
+    };
+    return `${formatTime(inicio)} - ${formatTime(fin)}`;
   };
 
   const getTipoText = (tipo) => {
@@ -256,29 +261,29 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
   if (!usuario) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className="permiso-form-overlay">
       {/* Portal de mensajes */}
       <MessagePortal />
       
-      <div className="modal-content permiso-form-modal">
-        <div className="modal-header">
+      <div className="permiso-form-content-container">
+        <div className="permiso-form-header">
           <h2>📅 Agregar Permisos</h2>
         </div>
 
-        <div className="permiso-content">
+        <div className="permiso-form-body">
           {!showForm ? (
-            <div className="permisos-list">
+            <div className="permiso-form-permisos-list">
                {/* Header con botones */}
-               <div className="list-header">
+               <div className="permiso-form-list-header">
                  <button 
-                   className="back-button"
+                   className="permiso-form-back-button"
                    onClick={onClose}
                    title="Volver"
                  >
                    ← Volver
                  </button>
                  <button 
-                   className="add-button"
+                   className="permiso-form-add-button"
                    onClick={handleNuevoPermiso}
                    disabled={loading}
                  >
@@ -286,59 +291,59 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
                  </button>
                </div>
 
-              {error && <div className="error-message">{error}</div>}
-              {success && <div className="success-message">{success}</div>}
-              {loading && <div className="loading-message">⏳ Cargando...</div>}
+              {error && <div className="permiso-form-error-message">{error}</div>}
+              {success && <div className="permiso-form-success-message">{success}</div>}
+              {loading && <div className="permiso-form-loading-message">⏳ Cargando...</div>}
 
               {/* Lista de permisos */}
-              <div className="permisos-grid">
+              <div className="permiso-form-grid">
                 {permisos.length === 0 ? (
-                  <div className="no-permisos">
+                  <div className="permiso-form-no-permisos">
                     <p>No hay permisos especiales asignados.</p>
                     <p>Este usuario usa los horarios generales del sistema.</p>
                   </div>
                 ) : (
                   permisos.map((permiso) => (
-                    <div key={permiso.id} className={`permiso-card ${!permiso.activo ? 'inactivo' : ''}`}>
-                      <div className="permiso-header">
-                        <div className="permiso-tipo">
-                          {!permiso.activo && <span className="inactivo-badge">Inactivo</span>}
+                    <div key={permiso.id} className={`permiso-form-card ${!permiso.activo ? 'permiso-form-inactivo' : ''}`}>
+                      <div className="permiso-form-card-header">
+                        <div className="permiso-form-tipo">
+                          {!permiso.activo && <span className="permiso-form-inactivo-badge">Inactivo</span>}
                         </div>
                       </div>
                       
-                      <div className="permiso-details">
-                        <div className="detail-row">
-                          <span className="label">Período:</span>
-                          <span className="value">
+                      <div className="permiso-form-card-details">
+                        <div className="permiso-form-detail-row">
+                          <span className="permiso-form-label">Período:</span>
+                          <span className="permiso-form-value">
                             {formatFecha(permiso.fecha_inicio)} - {formatFecha(permiso.fecha_fin)}
                           </span>
                         </div>
-                        <div className="detail-row">
-                          <span className="label">Horario:</span>
-                          <span className="value">
+                        <div className="permiso-form-detail-row">
+                          <span className="permiso-form-label">Horario:</span>
+                          <span className="permiso-form-value">
                             {formatHorario(permiso.hora_inicio, permiso.hora_fin)}
                           </span>
                         </div>
                         {permiso.observaciones && (
-                          <div className="detail-row">
-                            <span className="label">Observaciones:</span>
-                            <span className="value observaciones">
+                          <div className="permiso-form-detail-row">
+                            <span className="permiso-form-label">Observaciones:</span>
+                            <span className="permiso-form-value permiso-form-observaciones">
                               {permiso.observaciones}
                             </span>
                           </div>
                         )}
                       </div>
                       
-                      <div className="permiso-actions">
+                      <div className="permiso-form-card-actions">
                         <button 
-                          className="edit-btn"
+                          className="permiso-form-edit-btn"
                           onClick={() => handleEditarPermiso(permiso)}
                           title="Editar permiso"
                         >
                           ✏️
                         </button>
                         <button 
-                          className="delete-btn"
+                          className="permiso-form-delete-btn"
                           onClick={() => handleEliminarPermiso(permiso.id)}
                           title="Eliminar permiso"
                         >
@@ -351,24 +356,24 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
               </div>
             </div>
           ) : (
-            <div className="permiso-form">
-               <div className="form-header">
+            <div className="permiso-form-wrapper">
+               <div className="permiso-form-wrapper-header">
                  <h3>{editingPermiso ? '✏️ Editar Permiso' : '➕ Nuevo Permiso'}</h3>
                  <button 
-                   className="back-button"
+                   className="permiso-form-back-button"
                    onClick={resetForm}
                  >
                    ← Volver
                  </button>
                </div>
 
-              <form onSubmit={handleSubmit} className="form">
+              <form onSubmit={handleSubmit} className="permiso-form-form">
                 {/* Días */}
-                <div className="form-section">
-                  <label className="section-label">Días:</label>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="fecha_inicio" className="field-label">Inicio</label>
+                <div className="permiso-form-section">
+                  <label className="permiso-form-section-label">Días:</label>
+                  <div className="permiso-form-row">
+                    <div className="permiso-form-group">
+                      <label htmlFor="fecha_inicio" className="permiso-form-field-label">Inicio</label>
                       <input
                         type="date"
                         id="fecha_inicio"
@@ -377,8 +382,8 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
                         onChange={handleInputChange}
                       />
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="fecha_fin" className="field-label">Fin</label>
+                    <div className="permiso-form-group">
+                      <label htmlFor="fecha_fin" className="permiso-form-field-label">Fin</label>
                       <input
                         type="date"
                         id="fecha_fin"
@@ -391,11 +396,11 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
                 </div>
 
                 {/* Horarios */}
-                <div className="form-section">
-                  <label className="section-label">Horarios:</label>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="hora_inicio" className="field-label">De</label>
+                <div className="permiso-form-section">
+                  <label className="permiso-form-section-label">Horarios:</label>
+                  <div className="permiso-form-row">
+                    <div className="permiso-form-group">
+                      <label htmlFor="hora_inicio" className="permiso-form-field-label">De</label>
                       <input
                         type="time"
                         id="hora_inicio"
@@ -404,8 +409,8 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
                         onChange={handleInputChange}
                       />
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="hora_fin" className="field-label">Hasta</label>
+                    <div className="permiso-form-group">
+                      <label htmlFor="hora_fin" className="permiso-form-field-label">Hasta</label>
                       <input
                         type="time"
                         id="hora_fin"
@@ -418,7 +423,7 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
                 </div>
 
                 {/* Observaciones */}
-                <div className="form-group">
+                <div className="permiso-form-group">
                   <label htmlFor="observaciones">Observaciones:</label>
                   <textarea
                     id="observaciones"
@@ -430,20 +435,20 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
                   />
                 </div>
 
-                {error && <div className="error-message">{error}</div>}
-                {success && <div className="success-message">{success}</div>}
+                {error && <div className="permiso-form-error-message">{error}</div>}
+                {success && <div className="permiso-form-success-message">{success}</div>}
 
-                 <div className="form-actions">
+                 <div className="permiso-form-actions">
                    <button 
                      type="submit" 
-                     className="save-button"
+                     className="permiso-form-save-button"
                      disabled={loading}
                    >
                      {loading ? 'Procesando...' : (editingPermiso ? 'Actualizar' : 'Guardar')}
                    </button>
                    <button 
                      type="button" 
-                     className="cancel-button"
+                     className="permiso-form-cancel-button"
                      onClick={resetForm}
                    >
                      Cancelar
