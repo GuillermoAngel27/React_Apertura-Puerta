@@ -24,8 +24,8 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
     observaciones: ''
   });
 
-  // Sistema de mensajes animados
-  const { messages, showSuccess: showMsgSuccess, showError: showMsgError, showConfirm, removeMessage } = useAnimatedMessages();
+  // Sistema de mensajes animados (solo para confirmaciones)
+  const { messages, showConfirm, removeMessage } = useAnimatedMessages();
 
   useEffect(() => {
     if (usuario) {
@@ -48,13 +48,11 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
       if (response.ok) {
         const data = await response.json();
         setPermisos(data.permisos || []);
-        console.log('📋 Permisos cargados:', data.permisos?.length || 0);
       } else {
         setError('Error al cargar permisos del usuario');
       }
     } catch (error) {
       setError('Error de conexión al cargar permisos');
-      console.error('Error cargando permisos:', error);
     } finally {
       setLoading(false);
     }
@@ -69,7 +67,7 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
   };
 
 
-  const resetForm = () => {
+  const resetForm = (preserveSuccess = false) => {
     setFormData({
       tipo: 'horario_especial',
       fecha_inicio: new Date().toISOString().split('T')[0],
@@ -81,7 +79,10 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
     setEditingPermiso(null);
     setShowForm(false);
     setError('');
-    setSuccess('');
+    // Solo limpiar success si no se debe preservar (cuando se muestra mensaje de éxito)
+    if (!preserveSuccess) {
+      setSuccess('');
+    }
   };
 
   const handleNuevoPermiso = () => {
@@ -140,7 +141,10 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
       
       if (response.ok) {
         setSuccess('✅ Permiso eliminado exitosamente');
-        loadPermisosUsuario();
+        await loadPermisosUsuario();
+        // Limpiar mensaje después de 3 segundos
+        setTimeout(() => setSuccess(''), 3000);
+        // Llamar onSuccess solo para recargar datos del padre
         if (onSuccess) onSuccess();
       } else {
         const data = await response.json();
@@ -206,9 +210,14 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
 
       if (response.ok) {
         const message = editingPermiso ? 'Permiso actualizado exitosamente' : 'Permiso creado exitosamente';
+        // Recargar permisos antes de resetear para evitar refresco visual
+        await loadPermisosUsuario();
+        resetForm(true); // Preservar mensaje de éxito
+        // Mostrar mensaje después de resetear (se mostrará en la lista de permisos)
         setSuccess(message);
-        loadPermisosUsuario();
-        resetForm();
+        // Limpiar mensaje después de 3 segundos
+        setTimeout(() => setSuccess(''), 3000);
+        // Llamar onSuccess solo para recargar datos del padre
         if (onSuccess) onSuccess();
       } else {
         const data = await response.json();
@@ -247,23 +256,26 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
   };
 
 
-  // Componente Portal para mensajes
-  const MessagePortal = () => {
-    return createPortal(
+  // Componente Portal para mensajes de confirmación
+  const MessagePortal = React.useMemo(() => {
+    // Solo renderizar si hay mensajes (confirmaciones)
+    if (messages.length === 0) return null;
+    
+    return (
       <MessageContainer 
         messages={messages} 
         onRemoveMessage={removeMessage} 
-      />,
-      document.body
+      />
     );
-  };
+  }, [messages, removeMessage]);
 
   if (!usuario) return null;
 
   return (
-    <div className="permiso-form-overlay">
-      {/* Portal de mensajes */}
-      <MessagePortal />
+    <>
+      {/* Portal de mensajes (solo para confirmaciones) */}
+      {MessagePortal && createPortal(MessagePortal, document.body)}
+      <div className="permiso-form-overlay">
       
       <div className="permiso-form-content-container">
         <div className="permiso-form-header">
@@ -459,7 +471,8 @@ const PermisoFormModal = ({ usuario, onClose, onSuccess, isAdminMode = false }) 
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './NotificationsModal.css';
 import { apiGet } from '../utils/api';
 
@@ -26,8 +26,20 @@ const NotificationsModal = ({ onClose }) => {
     loadLoginNotifications();
   }, []); // Solo ejecutar una vez al montar el componente
 
-  // useEffect para filtros en tiempo real
+  // Evitar doble carga: solo recargar cuando existan filtros activos y no en el primer render
+  const didMountFilters = useRef(false);
   useEffect(() => {
+    // Saltar primera ejecución (montaje del modal)
+    if (!didMountFilters.current) {
+      didMountFilters.current = true;
+      return;
+    }
+
+    const hasFilters =
+      (searchUser && searchUser.trim() !== '') || dateFrom !== '' || dateTo !== '';
+
+    if (!hasFilters) return;
+
     const timeoutId = setTimeout(() => {
       loadLoginNotifications();
     }, 500); // Debounce de 500ms para evitar demasiadas consultas
@@ -155,6 +167,18 @@ const NotificationsModal = ({ onClose }) => {
   const handleNextPage = () => {
     if (currentPage < totalPages && totalPages > 0) {
       setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handleFirstPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(1);
+    }
+  };
+
+  const handleLastPage = () => {
+    if (currentPage < totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
     }
   };
 
@@ -294,33 +318,64 @@ const NotificationsModal = ({ onClose }) => {
               {/* Paginación - Fija en la parte inferior */}
               <div className="notifications-pagination-container">
                 <div className="notifications-pagination-controls">
-                  <button 
-                    className="notifications-pagination-button"
-                    onClick={handlePreviousPage}
-                    disabled={currentPage === 1 || loading}
-                    title="Página anterior"
-                    aria-label="Ir a página anterior"
-                  >
-                    ◀
-                  </button>
+                  {totalPages > 1 && (
+                    <>
+                      <button 
+                        className="notifications-pagination-button"
+                        onClick={handleFirstPage}
+                        disabled={currentPage === 1 || loading}
+                        title="Primera página"
+                        aria-label="Ir a primera página"
+                      >
+                        ◀◀
+                      </button>
+                      <button 
+                        className="notifications-pagination-button"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1 || loading}
+                        title="Página anterior"
+                        aria-label="Ir a página anterior"
+                      >
+                        ◀
+                      </button>
+                    </>
+                  )}
                   
                   <div className="notifications-pagination-info" role="status" aria-live="polite">
                     {loading ? (
                       <span>⏳ Cargando...</span>
                     ) : (
-                      <span>Pág. {currentPage} de {totalPages} • {totalNotifications} notificaciones</span>
+                      <span>
+                        {(() => {
+                          const currentCount = Math.min(currentPage * notificationsPerPage, totalNotifications);
+                          return `${currentCount} de ${totalNotifications} Reg.`;
+                        })()}
+                      </span>
                     )}
                   </div>
                   
-                  <button 
-                    className="notifications-pagination-button"
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages || loading}
-                    title="Página siguiente"
-                    aria-label="Ir a página siguiente"
-                  >
-                    ▶
-                  </button>
+                  {totalPages > 1 && (
+                    <>
+                      <button 
+                        className="notifications-pagination-button"
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages || loading}
+                        title="Página siguiente"
+                        aria-label="Ir a página siguiente"
+                      >
+                        ▶
+                      </button>
+                      <button 
+                        className="notifications-pagination-button"
+                        onClick={handleLastPage}
+                        disabled={currentPage === totalPages || loading}
+                        title="Última página"
+                        aria-label="Ir a última página"
+                      >
+                        ▶▶
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </>

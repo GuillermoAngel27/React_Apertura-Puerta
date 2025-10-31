@@ -16,22 +16,45 @@ const AnimatedMessage = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const messageIdRef = React.useRef(null);
 
   useEffect(() => {
-    if (show && message) {
-      setIsVisible(true);
+    // Crear un ID único para este mensaje basado en su contenido
+    const currentMessageId = `${message}-${type}`;
+    
+    // Si el mensaje cambió, resetear el estado de animación
+    if (messageIdRef.current !== currentMessageId) {
+      messageIdRef.current = currentMessageId;
+      setIsVisible(false);
       setIsLeaving(false);
-      
-      // Solo configurar timer para tipos que no sean 'confirm'
-      if (type !== 'confirm' && duration > 0) {
-        const timer = setTimeout(() => {
-          handleClose();
-        }, duration);
-
-        return () => clearTimeout(timer);
-      }
     }
-  }, [show, message, duration, type]);
+    
+    // Inicializar visibilidad cuando show es true y el mensaje está listo
+    if (show && message && !isVisible && !isLeaving) {
+      // Pequeño delay para asegurar que el DOM está listo antes de animar
+      const timeoutId = setTimeout(() => {
+        setIsVisible(true);
+      }, 10);
+      
+      return () => clearTimeout(timeoutId);
+    }
+    
+    // Solo configurar timer para tipos que no sean 'confirm' y si ya está visible
+    if (show && message && isVisible && type !== 'confirm' && duration > 0) {
+      const timer = setTimeout(() => {
+        handleClose();
+      }, duration);
+
+      return () => clearTimeout(timer);
+    }
+    
+    // Cleanup: resetear cuando el componente se desmonta
+    return () => {
+      if (!show) {
+        messageIdRef.current = null;
+      }
+    };
+  }, [show, message, type, duration, isVisible, isLeaving]);
 
   const handleClose = () => {
     setIsLeaving(true);
@@ -42,23 +65,31 @@ const AnimatedMessage = ({
   };
 
   const handleConfirm = () => {
-    if (onConfirm) {
-      onConfirm();
-    }
-    // Remover el mensaje después de confirmar
-    if (onClose) {
-      onClose();
-    }
+    // Cerrar el mensaje primero para evitar parpadeo antes de ejecutar la acción
+    setIsLeaving(true);
+    setTimeout(() => {
+      if (onConfirm) {
+        onConfirm();
+      }
+      // Remover el mensaje después de confirmar
+      if (onClose) {
+        onClose();
+      }
+    }, 150); // Delay corto para permitir animación de salida
   };
 
   const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    }
-    // Remover el mensaje después de cancelar
-    if (onClose) {
-      onClose();
-    }
+    // Cerrar el mensaje primero para evitar parpadeo
+    setIsLeaving(true);
+    setTimeout(() => {
+      if (onCancel) {
+        onCancel();
+      }
+      // Remover el mensaje después de cancelar
+      if (onClose) {
+        onClose();
+      }
+    }, 150); // Delay corto para permitir animación de salida
   };
 
   const getIcon = () => {

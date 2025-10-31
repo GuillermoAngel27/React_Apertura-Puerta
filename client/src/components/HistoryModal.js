@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './HistoryModal.css';
 import { apiGet } from '../utils/api';
 
 const HistoryModal = ({ onClose }) => {
   const [history, setHistory] = useState([]);
+  const [allHistoryData, setAllHistoryData] = useState([]); // Almacenar todos los datos para paginación frontend
   const [loading, setLoading] = useState(false);
+  const [loadingList, setLoadingList] = useState(false); // Loading solo para la lista
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // all, correcto, incorrecto, fuera_de_area, advertencia, denegado_horario, timeout, duplicate
   const [dateFrom, setDateFrom] = useState(''); // fecha desde
@@ -13,6 +15,7 @@ const HistoryModal = ({ onClose }) => {
   const [workingHoursFilter, setWorkingHoursFilter] = useState('all'); // all, within, outside
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
   const itemsPerPage = 10;
   
   // Estados para dropdowns personalizados
@@ -20,6 +23,9 @@ const HistoryModal = ({ onClose }) => {
   
   // Estado para items expandidos
   const [expandedItems, setExpandedItems] = useState(new Set());
+  
+  // Ref para rastrear filtros anteriores
+  const prevFilters = useRef({ statusFilter, dateFrom, dateTo, userSearch, workingHoursFilter });
 
   // Cerrar dropdowns al hacer clic fuera
   useEffect(() => {
@@ -35,23 +41,72 @@ const HistoryModal = ({ onClose }) => {
     };
   }, []);
 
-  // Debounce para prevenir refreshes excesivos
+  // Cargar datos iniciales al montar el componente
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      loadHistory();
-    }, 300); // 300ms de debounce
+    loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    return () => clearTimeout(timeoutId);
-  }, [statusFilter, dateFrom, dateTo, userSearch, currentPage, workingHoursFilter]);
+  // useEffect para cambios en filtros (cargar datos completos)
+  useEffect(() => {
+    const filtersChanged = 
+      prevFilters.current.statusFilter !== statusFilter ||
+      prevFilters.current.dateFrom !== dateFrom ||
+      prevFilters.current.dateTo !== dateTo ||
+      prevFilters.current.userSearch !== userSearch ||
+      prevFilters.current.workingHoursFilter !== workingHoursFilter;
+    
+    if (filtersChanged) {
+      prevFilters.current = { statusFilter, dateFrom, dateTo, userSearch, workingHoursFilter };
+      setCurrentPage(1); // Reset a página 1 cuando cambian los filtros
+      const timeoutId = setTimeout(() => {
+        loadHistory();
+      }, 300); // 300ms de debounce
+      return () => clearTimeout(timeoutId);
+    }
+  }, [statusFilter, dateFrom, dateTo, userSearch, workingHoursFilter]);
 
-  const loadHistory = async () => {
+  // useEffect para cambios solo de página (actualizar lista sin recargar)
+  useEffect(() => {
+    // Si tenemos datos en memoria y usamos filtros frontend, solo actualizar la lista
+    if (statusFilter !== 'all' && allHistoryData.length > 0) {
+      setLoadingList(true);
+      setTimeout(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedHistory = allHistoryData.slice(startIndex, endIndex);
+        setHistory(paginatedHistory);
+        setLoadingList(false);
+      }, 50); // Pequeño delay para animación suave
+      return;
+    }
+    
+    // Si usamos paginación backend, solo hacer API call cuando cambia la página
+    if (statusFilter === 'all') {
+      const timeoutId = setTimeout(() => {
+        loadHistory(true); // Pasar true para indicar que es cambio de página
+      }, 100); // Menor debounce para cambios de página
+      return () => clearTimeout(timeoutId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
+  const loadHistory = async (isPageChange = false) => {
     // Prevenir cargas múltiples simultáneas
-    if (loading) {
+    if (loading && !isPageChange) {
+      return;
+    }
+    if (loadingList && isPageChange) {
       return;
     }
     
     try {
-      setLoading(true);
+      // Si es solo cambio de página, usar loadingList en lugar de loading
+      if (isPageChange) {
+        setLoadingList(true);
+      } else {
+        setLoading(true);
+      }
       setError('');
       
            // Estrategia diferente para filtros frontend vs backend
@@ -110,10 +165,14 @@ const HistoryModal = ({ onClose }) => {
         
         // Manejar paginación según el tipo de filtro
         if (statusFilter !== 'all') {
-          // Para filtros frontend, implementar paginación frontend
+          // Para filtros frontend, almacenar todos los datos y aplicar paginación
           const totalFiltered = filteredHistory.length;
           const calculatedTotalPages = Math.ceil(totalFiltered / itemsPerPage);
           setTotalPages(calculatedTotalPages);
+          setTotalRecords(totalFiltered);
+          
+          // Guardar todos los datos filtrados
+          setAllHistoryData(filteredHistory);
           
           // Aplicar paginación frontend a los datos filtrados
           const startIndex = (currentPage - 1) * itemsPerPage;
@@ -129,8 +188,11 @@ const HistoryModal = ({ onClose }) => {
           
         } else {
           // Para 'all', usar paginación del backend
+          setAllHistoryData([]); // Limpiar datos frontend
           setHistory(filteredHistory);
           setTotalPages(data.pagination?.totalPages || 1);
+          // Usar totalRecords de la paginación del backend, que es el total real de registros
+          setTotalRecords(data.pagination?.totalRecords || data.pagination?.totalItems || 0);
         }
       } else {
         setError('Error al cargar el historial');
@@ -138,7 +200,14 @@ const HistoryModal = ({ onClose }) => {
     } catch (error) {
       setError('Error de conexión al cargar historial');
     } finally {
-      setLoading(false);
+      if (isPageChange) {
+        // Pequeño delay para mostrar animación suave
+        setTimeout(() => {
+          setLoadingList(false);
+        }, 150);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -388,6 +457,18 @@ const HistoryModal = ({ onClose }) => {
     setCurrentPage(page);
   };
 
+  const handleFirstPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(1);
+    }
+  };
+
+  const handleLastPage = () => {
+    if (currentPage < totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  };
+
   const clearFilters = () => {
     setStatusFilter('all');
     setDateFrom('');
@@ -619,7 +700,7 @@ const HistoryModal = ({ onClose }) => {
 
           {!loading && !error && history.length > 0 && (
             <>
-              <div className="history-list" role="list" aria-label="Lista de registros de historial">
+              <div className={`history-list ${loadingList ? 'loading' : ''}`} role="list" aria-label="Lista de registros de historial">
                 {history.map((record) => {
                   const accessBadge = getAccessTypeBadge(record);
                   return (
@@ -741,6 +822,15 @@ const HistoryModal = ({ onClose }) => {
                   <div className="pagination-controls">
                     <button 
                       className="page-btn"
+                      onClick={handleFirstPage}
+                      disabled={currentPage === 1}
+                      title="Primera página"
+                      aria-label="Ir a la primera página"
+                    >
+                      <span aria-hidden="true">◀◀</span>
+                    </button>
+                    <button 
+                      className="page-btn"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                       title="Página anterior"
@@ -750,7 +840,10 @@ const HistoryModal = ({ onClose }) => {
                     </button>
                     
                     <div className="page-info" role="status" aria-live="polite">
-                      Página {currentPage} de {totalPages}
+                      {(() => {
+                        const currentCount = Math.min(currentPage * itemsPerPage, totalRecords);
+                        return `${currentCount} de ${totalRecords} Reg.`;
+                      })()}
                     </div>
                     
                     <button 
@@ -761,6 +854,15 @@ const HistoryModal = ({ onClose }) => {
                       aria-label="Ir a la página siguiente"
                     >
                       <span aria-hidden="true">▶</span>
+                    </button>
+                    <button 
+                      className="page-btn"
+                      onClick={handleLastPage}
+                      disabled={currentPage === totalPages}
+                      title="Última página"
+                      aria-label="Ir a la última página"
+                    >
+                      <span aria-hidden="true">▶▶</span>
                     </button>
                   </div>
                 </div>

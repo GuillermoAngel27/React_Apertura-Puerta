@@ -13,6 +13,17 @@
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Animación fadeIn para el overlay */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .admin-permisos-content-container {
@@ -32,28 +43,47 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  animation: modalEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: center center;
 }
 
-/* Animación de entrada del modal */
-@keyframes modalEnter {
-  0% {
+/* Animación de entrada del modal (similar a UserManagementModal) */
+@keyframes modalSlideIn {
+  from {
     opacity: 0;
-    transform: scale(0.8) translateY(-20px);
+    transform: translateY(-40px) scale(0.92);
   }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.02) translateY(-5px);
-  }
-  100% {
+  to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Animaciones para los contenidos del modal */
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .admin-permisos-header {
-  padding: 15px 20px;
+  padding: 10px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
@@ -61,11 +91,13 @@
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  border-radius: 20px 20px 0 0;
+  animation: slideDownFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
 .admin-permisos-header h2 {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 0.96rem;
   font-weight: 600;
   background: linear-gradient(135deg, #e0a3ff, #ff69b4);
   -webkit-background-clip: text;
@@ -83,27 +115,27 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  width: 35px;
-  height: 35px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
   box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .admin-permisos-close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.25);
+  transform: scale(1.05);
   box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 2px 8px rgba(255, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
   .admin-permisos-body {
@@ -120,6 +152,7 @@
     gap: 15px;
     box-sizing: border-box;
     background: rgba(255, 255, 255, 0.01);
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
   }
 
 .admin-permisos-body::-webkit-scrollbar {
@@ -235,6 +268,19 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   max-height: 200px;
   overflow-y: auto;
+  animation: adminPermisosDropdownSlideIn 0.2s ease-out;
+}
+
+/* Animación para el dropdown */
+@keyframes adminPermisosDropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .admin-permisos-dropdown-item {
@@ -424,6 +470,32 @@
     0 0 0 1px rgba(224, 163, 255, 0.05);
   min-width: 0;
   flex-shrink: 0;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Animación escalonada para las tarjetas de usuarios */
+.admin-permisos-usuarios-list .admin-permisos-usuario-card:nth-child(1) {
+  animation-delay: 0.45s;
+}
+
+.admin-permisos-usuarios-list .admin-permisos-usuario-card:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.admin-permisos-usuarios-list .admin-permisos-usuario-card:nth-child(3) {
+  animation-delay: 0.55s;
+}
+
+.admin-permisos-usuarios-list .admin-permisos-usuario-card:nth-child(4) {
+  animation-delay: 0.6s;
+}
+
+.admin-permisos-usuarios-list .admin-permisos-usuario-card:nth-child(5) {
+  animation-delay: 0.65s;
+}
+
+.admin-permisos-usuarios-list .admin-permisos-usuario-card:nth-child(n+6) {
+  animation-delay: 0.7s;
 }
 
 .admin-permisos-usuario-card:hover {
@@ -714,11 +786,17 @@
   }
 
   .admin-permisos-header {
-    padding: 12px 15px;
+    padding: 8px 16px;
   }
 
   .admin-permisos-header h2 {
-    font-size: 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .admin-permisos-close-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
   }
 
   .admin-permisos-dropdowns-row {
@@ -804,11 +882,17 @@
   }
 
   .admin-permisos-header {
-    padding: 10px 12px;
+    padding: 8px 12px;
   }
 
   .admin-permisos-header h2 {
-    font-size: 0.9rem;
+    font-size: 14px;
+  }
+  
+  .admin-permisos-close-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
   }
   
   .admin-permisos-dropdowns-row {
@@ -865,6 +949,10 @@
   }
 
   .admin-permisos-pagination-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     gap: 8px;
   }
 
@@ -875,14 +963,20 @@
   }
 
   .admin-permisos-pagination-info {
+    order: 3;
     font-size: 0.65rem;
     padding: 5px 10px;
-    flex-direction: column;
-    gap: 6px;
+    width: fit-content;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    margin: 0 4px;
+    text-align: center;
+    box-sizing: border-box;
+    line-height: 1.4;
   }
 
   .admin-permisos-pagination-numbers {
-    gap: 3px;
+    display: none; /* Ocultar números de página en móvil para igualar UserManagementModal */
   }
 
   .admin-permisos-page-number {
@@ -890,4 +984,10 @@
     height: 24px;
     font-size: 0.65rem;
   }
+
+  /* Orden específico de botones: ◀◀, ◀, [info], ▶, ▶▶ */
+  .admin-permisos-pagination-controls .admin-permisos-pagination-button:nth-child(1) { order: 1; }
+  .admin-permisos-pagination-controls .admin-permisos-pagination-button:nth-child(2) { order: 2; }
+  .admin-permisos-pagination-controls .admin-permisos-pagination-button:nth-child(4) { order: 4; }
+  .admin-permisos-pagination-controls .admin-permisos-pagination-button:nth-child(5) { order: 5; }
 }

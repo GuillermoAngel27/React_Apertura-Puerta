@@ -1260,7 +1260,6 @@ app.get('/api/verify-auth-token', authenticateToken, (req, res) => {
 // Ruta para obtener lista de usuarios (solo admin)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    console.log('GET /api/users - Iniciando consulta');
     const { page = 1, limit = 50, search = '', role = '', active = '' } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     
@@ -1625,26 +1624,46 @@ app.put('/api/permisos-especiales/:id', authenticateToken, async (req, res) => {
     const permisoId = parseInt(req.params.id);
     const { tipo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, observaciones, activo } = req.body;
     
-        
-    // Verificar que el permiso pertenezca al jefe
-    const permisoValido = await executeQuery(
-      'SELECT * FROM permisos_entrada WHERE id = ? AND jefe_id = ?',
-      [permisoId, req.user.id]
+    // Primero verificar si el permiso existe (sin restricción de jefe_id)
+    const permisoExiste = await executeQuery(
+      'SELECT * FROM permisos_entrada WHERE id = ?',
+      [permisoId]
     );
     
-    if (permisoValido.length === 0) {
-      return res.status(404).json({ error: 'Permiso no encontrado o no pertenece a este jefe' });
+    if (permisoExiste.length === 0) {
+      return res.status(404).json({ error: 'Permiso no encontrado' });
     }
     
+    const permiso = permisoExiste[0];
+    const usuarioId = permiso.usuario_id;
     
-    // Actualizar el permiso
+    // Verificar que el usuario del permiso pertenezca al jefe
+    const usuarioValido = await executeQuery(
+      'SELECT id FROM usuarios WHERE id = ? AND jefe_id = ? AND activo = 1',
+      [usuarioId, req.user.id]
+    );
+    
+    if (usuarioValido.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado o no asignado a este jefe' });
+    }
+    
+    // Si el permiso fue creado por admin (jefe_id = NULL), al editarlo se asigna al jefe (transferir propiedad)
+    // Si ya tiene jefe_id, debe ser del jefe actual
+    if (permiso.jefe_id !== null && permiso.jefe_id !== req.user.id) {
+      return res.status(403).json({ error: 'Permiso no pertenece a este jefe' });
+    }
+    
+    // Determinar el jefe_id a asignar: si era NULL (creado por admin), asignar al jefe; si ya tenía jefe_id, mantenerlo
+    const jefeIdFinal = permiso.jefe_id === null ? req.user.id : permiso.jefe_id;
+    
+    // Actualizar el permiso (transferir propiedad si era de admin)
     const result = await executeQuery(`
       UPDATE permisos_entrada 
       SET tipo = ?, fecha_inicio = ?, fecha_fin = ?, hora_inicio = ?, hora_fin = ?, 
-          dias_semana = ?, observaciones = ?, activo = ?
-      WHERE id = ? AND jefe_id = ?
+          dias_semana = ?, observaciones = ?, activo = ?, jefe_id = ?
+      WHERE id = ?
     `, [tipo, fecha_inicio || null, fecha_fin || null, hora_inicio || null, hora_fin || null, 
-        dias_semana || null, observaciones || null, activo !== undefined ? activo : true, permisoId, req.user.id]);
+        dias_semana || null, observaciones || null, activo !== undefined ? activo : true, jefeIdFinal, permisoId]);
     
         
     res.json({
@@ -1678,21 +1697,39 @@ app.delete('/api/permisos-especiales/:id', authenticateToken, async (req, res) =
     }
 
     const permisoId = parseInt(req.params.id);
-        
-    // Verificar que el permiso pertenezca al jefe
-    const permisoValido = await executeQuery(
-      'SELECT * FROM permisos_entrada WHERE id = ? AND jefe_id = ?',
-      [permisoId, req.user.id]
+    
+    // Primero verificar si el permiso existe (sin restricción de jefe_id)
+    const permisoExiste = await executeQuery(
+      'SELECT * FROM permisos_entrada WHERE id = ?',
+      [permisoId]
     );
     
-    if (permisoValido.length === 0) {
-      return res.status(404).json({ error: 'Permiso no encontrado o no pertenece a este jefe' });
+    if (permisoExiste.length === 0) {
+      return res.status(404).json({ error: 'Permiso no encontrado' });
     }
     
-    // Eliminar el permiso
+    const permiso = permisoExiste[0];
+    const usuarioId = permiso.usuario_id;
+    
+    // Verificar que el usuario del permiso pertenezca al jefe
+    const usuarioValido = await executeQuery(
+      'SELECT id FROM usuarios WHERE id = ? AND jefe_id = ? AND activo = 1',
+      [usuarioId, req.user.id]
+    );
+    
+    if (usuarioValido.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado o no asignado a este jefe' });
+    }
+    
+    // Si el permiso ya tiene jefe_id, debe ser del jefe actual
+    if (permiso.jefe_id !== null && permiso.jefe_id !== req.user.id) {
+      return res.status(403).json({ error: 'Permiso no pertenece a este jefe' });
+    }
+    
+    // Eliminar el permiso (puede ser NULL de admin o del jefe actual)
     await executeQuery(
-      'DELETE FROM permisos_entrada WHERE id = ? AND jefe_id = ?',
-      [permisoId, req.user.id]
+      'DELETE FROM permisos_entrada WHERE id = ?',
+      [permisoId]
     );
         
     res.json({
@@ -1708,7 +1745,6 @@ app.delete('/api/permisos-especiales/:id', authenticateToken, async (req, res) =
 // Endpoint para obtener usuarios sin jefe asignado (solo admin)
 app.get('/api/permisos-admin/usuarios-sin-jefe', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    console.log('GET /api/permisos-admin/usuarios-sin-jefe - Iniciando consulta');
     const usuarios = await executeQuery(`
       SELECT 
         u.id, u.username, u.nombre, u.apellido, u.activo,
@@ -1738,7 +1774,6 @@ app.get('/api/permisos-admin/usuarios-sin-jefe', authenticateToken, requireAdmin
 // Endpoint para obtener lista de jefes (solo admin)
 app.get('/api/permisos-admin/jefes', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    console.log('GET /api/permisos-admin/jefes - Iniciando consulta');
     const jefes = await executeQuery(`
       SELECT 
         u.id, u.username, u.nombre, u.apellido, u.activo,
@@ -1881,11 +1916,11 @@ app.put('/api/permisos-admin/:id', authenticateToken, requireAdmin, async (req, 
       return res.status(404).json({ error: 'Permiso no encontrado' });
     }
     
-    // Actualizar el permiso
+    // Actualizar el permiso (admin siempre mantiene jefe_id = NULL)
     await executeQuery(`
       UPDATE permisos_entrada 
       SET tipo = ?, fecha_inicio = ?, fecha_fin = ?, hora_inicio = ?, hora_fin = ?, 
-          dias_semana = ?, observaciones = ?, activo = ?
+          dias_semana = ?, observaciones = ?, activo = ?, jefe_id = NULL
       WHERE id = ?
     `, [tipo, fecha_inicio || null, fecha_fin || null, hora_inicio || null, hora_fin || null, 
         dias_semana || null, observaciones || null, activo !== undefined ? activo : true, permisoId]);

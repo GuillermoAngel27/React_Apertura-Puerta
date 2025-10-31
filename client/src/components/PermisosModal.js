@@ -248,7 +248,8 @@ const PermisosModal = ({ onClose, currentUser }) => {
           usuario={selectedUsuario}
           onClose={handlePermisoFormClose}
           onSuccess={() => {
-            showSuccess('Permiso actualizado exitosamente');
+            // No mostrar mensaje aquí, ya se muestra en PermisoFormModal con showMsgSuccess
+            // Solo recargar datos
             loadUsuariosAsignados();
           }}
         />

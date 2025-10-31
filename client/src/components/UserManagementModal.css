@@ -31,7 +31,7 @@
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 25px;
+  border-radius: 20px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   width: 100%;
   max-width: 900px;
@@ -113,46 +113,55 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 20px;
+  padding: 10px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(224, 163, 255, 0.05);
-  border-radius: 25px 25px 0 0;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border-radius: 20px 20px 0 0;
   animation: slideDownFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
 .modal-header h2 {
-  color: #e0a3ff;
+  margin: 0;
   font-size: 0.96rem;
   font-weight: 600;
-  margin: 0;
+  background: linear-gradient(135deg, #e0a3ff, #ff69b4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  text-shadow: 0 0 15px rgba(224, 163, 255, 0.4);
 }
 
 .close-button {
   background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  width: 37px;
-  height: 37px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  opacity: 1;
-  transform: scale(1);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .close-button:hover {
-  background: rgba(255, 68, 68, 0.2);
-  border-color: rgba(255, 68, 68, 0.3);
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.25);
+  transform: scale(1.05);
+  box-shadow: 
+    0 2px 8px rgba(255, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 /* Botón de cerrar oculto */
@@ -372,7 +381,7 @@
 .user-mgmt-form-dropdown-wrapper {
   position: relative;
   width: 100%;
-  z-index: 5000;
+  z-index: 10000;
 }
 
 /* Jefe Dropdown (z-index: 4000) */
@@ -547,7 +556,7 @@
 /* Form Dropdown Menu (highest z-index) */
 .user-mgmt-form-dropdown-menu {
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 0;
   right: 0;
   background: rgba(15, 23, 42, 0.98);
@@ -555,12 +564,12 @@
   border-radius: 12px;
   backdrop-filter: blur(20px);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 -8px 32px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  z-index: 5001;
-  margin-top: 4px;
+  z-index: 10001;
+  margin-bottom: 4px;
   overflow: hidden;
-  animation: userMgmtDropdownSlideIn 0.2s ease-out;
+  animation: userMgmtDropdownSlideInUpward 0.2s ease-out;
 }
 
 /* Jefe Dropdown Menu */
@@ -973,6 +982,37 @@
 
 /* Estilos responsivos específicos para el botón de limpiar filtros */
 @media (max-width: 768px) {
+  /* Dropdown texts más compactos y centrados en móvil */
+  .user-mgmt-filter-dropdown-text,
+  .user-mgmt-form-dropdown-text,
+  .user-mgmt-jefe-dropdown-text {
+    font-size: 0.8rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 auto;
+    min-width: 0; /* permite que el texto se contraiga y aplique ellipsis */
+  }
+
+  .user-mgmt-filter-dropdown-arrow,
+  .user-mgmt-form-dropdown-arrow,
+  .user-mgmt-jefe-dropdown-arrow {
+    margin-left: 6px;
+    flex-shrink: 0;
+  }
+  .users-table-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;           /* Ocupa el alto disponible bajo el header del modal */
+    min-height: 0;     /* Necesario para que el hijo con overflow funcione */
+    overflow: hidden;  /* Evita scroll del contenedor; delega al listado */
+  }
+  .modal-content.user-management-modal {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Evita scroll global; delega a la lista */
+  }
   .user-mgmt-clear-filters-btn {
     padding: 4px 6px;
     font-size: 0.75rem;
@@ -988,6 +1028,36 @@
 }
 
 @media (max-width: 480px) {
+  /* Aún más compacto en móviles pequeños */
+  .user-mgmt-filter-dropdown-text,
+  .user-mgmt-form-dropdown-text,
+  .user-mgmt-jefe-dropdown-text {
+    font-size: 0.7rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 auto;
+    min-width: 0; /* permite que el texto se contraiga y aplique ellipsis */
+  }
+
+  .user-mgmt-filter-dropdown-arrow,
+  .user-mgmt-form-dropdown-arrow,
+  .user-mgmt-jefe-dropdown-arrow {
+    margin-left: 6px;
+  }
+  .users-table-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .modal-content.user-management-modal {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Evita scroll global; delega a la lista */
+  }
   .user-mgmt-clear-filters-btn {
     padding: 3px 5px;
     font-size: 0.7rem;
@@ -1457,6 +1527,8 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  overflow: visible;
+  position: relative;
 }
 
 /* Placeholder para mantener alineación cuando no se muestra el dropdown de jefe */
@@ -1655,7 +1727,8 @@
   backdrop-filter: blur(10px);
   letter-spacing: 0.02em;
   flex: 0 0 auto;
-  min-width: 200px;
+  width: fit-content;
+  white-space: nowrap;
 }
 
 .user-mgmt-pagination-buttons {
@@ -1737,8 +1810,10 @@
   .user-management-content {
     padding: 8px;
     max-height: calc(95vh - 120px);
-    overflow-y: auto;
-    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Mantener filtros y paginación estáticos */
+    flex: 1; /* Ocupa el alto disponible dentro del modal */
   }
   
   .table-header {
@@ -1857,6 +1932,10 @@
     flex-direction: column;
     gap: 8px;
     animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+    flex: 1;          /* Ocupa el espacio disponible */
+    min-height: 0;    /* Permite que el overflow funcione dentro de flex */
+    overflow-y: auto; /* Solo la lista hace scroll */
+    overflow-x: hidden;
   }
   
   .user-card {
@@ -1959,6 +2038,17 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+  }
+  /* Text lines inside mobile user card */
+  .user-card-line.user-card-user {
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .user-card-line.user-card-name {
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.2;
   }
   
   .user-card-field {
@@ -2229,19 +2319,19 @@
   }
   
   .modal-header {
-    padding: 6px 12px;
+    padding: 8px 12px;
     min-height: auto;
   }
   
   .modal-header h2 {
-    font-size: 0.75rem;
-    letter-spacing: 0.03em;
+    font-size: 14px;
+    letter-spacing: 0.05em;
   }
   
   .close-button {
-    width: 22px;
-    height: 22px;
-    font-size: 0.7rem;
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
   }
   
   .form-header {
@@ -2277,8 +2367,10 @@
   .user-management-content {
     padding: 10px;
     max-height: calc(100vh - 140px);
-    overflow-y: auto;
-    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Filtros y paginación estáticos */
+    flex: 1; /* Ocupa el alto disponible dentro del modal */
   }
   
   .user-mgmt-users-table th,
@@ -2370,39 +2462,59 @@
   
   /* Mobile pagination adjustments for User Management Modal */
   .user-mgmt-pagination-container {
-    margin-top: 12px;
-    padding: 8px 12px;
+    margin-top: 6px;
+    padding: 4px 8px;
     border-radius: 8px;
+    flex-shrink: 0; /* Evita que la paginación se desplace */
   }
   
   .user-mgmt-pagination-controls {
+    display: flex;
     flex-direction: row;
-    gap: 8px;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
+    gap: 4px;
+    width: 100%;
   }
   
   .user-mgmt-pagination-info {
-    font-size: 0.8rem;
-    padding: 6px 10px;
+    order: 3;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    width: fit-content;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    margin: 0 4px;
     text-align: center;
     box-sizing: border-box;
-    flex: 0 0 auto;
-    min-width: 180px;
+    line-height: 1.4;
   }
   
   .user-mgmt-pagination-buttons {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
+    display: contents; /* aplanar para que los botones sean hijos directos y ordenar por nth-child */
   }
   
   .user-mgmt-pagination-button {
-    padding: 6px 10px;
-    font-size: 0.9rem;
-    min-width: 30px;
-    height: 30px;
+    padding: 5px 8px;
+    font-size: 0.85rem;
+    min-width: 28px;
+    height: 28px;
     flex-shrink: 0;
+    line-height: 1.2;
+  }
+  
+  /* Orden correcto de los botones: ◀◀, ◀, [info], ▶, ▶▶ */
+  .user-mgmt-pagination-controls .user-mgmt-pagination-button:nth-child(1) {
+    order: 1;
+  }
+  .user-mgmt-pagination-controls .user-mgmt-pagination-button:nth-child(2) {
+    order: 2;
+  }
+  .user-mgmt-pagination-controls .user-mgmt-pagination-button:nth-child(4) {
+    order: 4;
+  }
+  .user-mgmt-pagination-controls .user-mgmt-pagination-button:nth-child(5) {
+    order: 5;
   }
 }
 
@@ -2421,7 +2533,7 @@
   }
   
   .modal-header h2 {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     letter-spacing: 0.02em;
   }
   
@@ -2429,6 +2541,20 @@
     width: 20px;
     height: 20px;
     font-size: 0.65rem;
+  }
+
+  /* Filtros de búsqueda más compactos */
+  .user-mgmt-search-input {
+    height: 24px;
+    font-size: 0.7rem;
+    padding: 4px 24px 4px 8px;
+  }
+
+  .user-mgmt-dropdown-toggle,
+  .user-mgmt-filter-dropdown-toggle {
+    height: 24px;
+    font-size: 0.7rem;
+    padding: 4px 8px;
   }
   
   .form-header {
@@ -2530,38 +2656,35 @@
   }
   
   .user-mgmt-pagination-container {
-    margin-top: 8px;
-    padding: 6px 10px;
+    margin-top: 6px;
+    padding: 6px;
     border-radius: 8px;
   }
   
   .user-mgmt-pagination-controls {
-    flex-direction: row;
     gap: 6px;
-    align-items: center;
-    justify-content: center;
   }
   
   .user-mgmt-pagination-info {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     padding: 4px 8px;
+    margin: 0 2px;
+    width: fit-content;
+    white-space: nowrap;
     flex: 0 0 auto;
-    min-width: 160px;
-    text-align: center;
+    line-height: 1.4;
   }
   
   .user-mgmt-pagination-buttons {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
+    display: contents;
   }
   
   .user-mgmt-pagination-button {
-    padding: 4px 8px;
-    font-size: 0.85rem;
-    min-width: 28px;
-    height: 28px;
-    flex-shrink: 0;
+    padding: 4px 6px;
+    font-size: 0.8rem;
+    min-width: 26px;
+    height: 26px;
+    line-height: 1.2;
   }
   
   /* Extra small mobile cards */
@@ -2596,6 +2719,20 @@
   
   .user-card-value {
     font-size: 0.85rem;
+  }
+  /* Smaller text for user and name in small mobiles */
+  .user-card-line.user-card-user {
+    font-size: 0.8rem;
+  }
+  .user-card-line.user-card-name {
+    font-size: 0.75rem;
+  }
+  /* Extra small devices: further reduce */
+  .user-card-line.user-card-user {
+    font-size: 0.75rem;
+  }
+  .user-card-line.user-card-name {
+    font-size: 0.7rem;
   }
   
   .user-card-actions {
@@ -2680,15 +2817,22 @@
   }
   
   .user-mgmt-search-input {
-    height: 32px;
-    font-size: 0.8rem;
-    padding: 6px 30px 6px 10px;
+    height: 26px;
+    font-size: 0.75rem;
+    padding: 4px 26px 4px 8px;
   }
   
   .user-mgmt-dropdown-toggle {
-    height: 32px;
+    height: 26px;
     font-size: 0.75rem;
-    padding: 6px 10px;
+    padding: 4px 8px;
+  }
+
+  /* Reducir altura/texto de los toggles de filtros en móvil */
+  .user-mgmt-filter-dropdown-toggle {
+    height: 26px;
+    font-size: 0.75rem;
+    padding: 4px 8px;
   }
   
   /* Estilos .clear-filters-button eliminados - ahora solo se usa .user-mgmt-clear-filters-btn */

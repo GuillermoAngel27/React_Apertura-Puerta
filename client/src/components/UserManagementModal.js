@@ -314,6 +314,18 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
     }
   };
 
+  const handleFirstPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(1);
+    }
+  };
+
+  const handleLastPage = () => {
+    if (currentPage < totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  };
+
   const handleEdit = async (user) => {
     try {
       setLoading(true);
@@ -950,30 +962,12 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
                     </div>
                     
                     <div className="user-card-info">
-                      <div className="user-card-field">
-                        <div className="user-card-label">Nombre</div>
-                        <div className="user-card-value">{user.nombre} {user.apellido}</div>
+                      <div className="user-card-line user-card-user" style={{ color: '#e0a3ff' }}>
+                        {user.username} 
                       </div>
-                      
-                      <div className="user-card-field">
-                        <div className="user-card-label">Usuario</div>
-                        <div className="user-card-value">{user.username}</div>
+                      <div className="user-card-line user-card-name" style={{ color: '#ffffff' }}>
+                        {user.nombre} {user.apellido}
                       </div>
-
-                      {user.role === 'user' && (
-                        <div className="user-card-field">
-                          <div className="user-card-label">Jefe</div>
-                          <div className="user-card-value">
-                            {user.jefe_nombre && user.jefe_apellido ? (
-                              <span className="user-mgmt-jefe-info">
-                                {user.jefe_nombre} {user.jefe_apellido}
-                              </span>
-                            ) : (
-                              <span className="user-mgmt-no-jefe">Sin jefe asignado</span>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
                     
                     <div className="user-card-actions">
@@ -1025,33 +1019,58 @@ const UserManagementModal = ({ onClose, onSuccess, currentUser }) => {
               <div className="user-mgmt-pagination-container">
                 <div className="user-mgmt-pagination-controls">
                   {totalPages > 1 && (
-                    <button 
-                      className="user-mgmt-pagination-button"
-                      onClick={handlePreviousPage}
-                      disabled={currentPage === 1 || loading}
-                      title="Página anterior"
-                    >
-                      ◀
-                    </button>
+                    <>
+                      <button 
+                        className="user-mgmt-pagination-button"
+                        onClick={handleFirstPage}
+                        disabled={currentPage === 1 || loading}
+                        title="Primera página"
+                      >
+                        ◀◀
+                      </button>
+                      <button 
+                        className="user-mgmt-pagination-button"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1 || loading}
+                        title="Página anterior"
+                      >
+                        ◀
+                      </button>
+                    </>
                   )}
                   
                   <div className="user-mgmt-pagination-info">
                     {loading ? (
                       <span>⏳ Cargando...</span>
                     ) : (
-                      <span>Pág. {currentPage} de {totalPages} • {totalUsers} usuarios</span>
+                      <span>
+                        {(() => {
+                          const currentCount = Math.min(currentPage * usersPerPage, totalUsers);
+                          return `${currentCount} de ${totalUsers} Reg.`;
+                        })()}
+                      </span>
                     )}
                   </div>
                   
                   {totalPages > 1 && (
-                    <button 
-                      className="user-mgmt-pagination-button"
-                      onClick={handleNextPage}
-                      disabled={currentPage === totalPages || loading}
-                      title="Página siguiente"
-                    >
-                      ▶
-                    </button>
+                    <>
+                      <button 
+                        className="user-mgmt-pagination-button"
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages || loading}
+                        title="Página siguiente"
+                      >
+                        ▶
+                      </button>
+                      <button 
+                        className="user-mgmt-pagination-button"
+                        onClick={handleLastPage}
+                        disabled={currentPage === totalPages || loading}
+                        title="Última página"
+                      >
+                        ▶▶
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

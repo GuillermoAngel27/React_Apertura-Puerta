@@ -116,8 +116,8 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
   };
 
   const handlePermisoSuccess = () => {
-    showSuccess('Permiso actualizado exitosamente');
-    // Recargar datos según la categoría actual
+    // No mostrar mensaje aquí, ya se muestra en PermisoFormModal con showMsgSuccess
+    // Solo recargar datos según la categoría actual
     if (categoriaSeleccionada === 'sin_jefe') {
       loadUsuariosSinJefe();
     } else if (categoriaSeleccionada === 'jefes' && jefeSeleccionado) {
@@ -177,6 +177,19 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
   const handleNextPage = () => {
     if (currentPage < getTotalPages()) {
       setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handleFirstPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(1);
+    }
+  };
+
+  const handleLastPage = () => {
+    const total = getTotalPages();
+    if (currentPage < total && total > 0) {
+      setCurrentPage(total);
     }
   };
 
@@ -361,6 +374,14 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
                   <div className="admin-permisos-pagination-controls">
                     <button 
                       className="admin-permisos-pagination-button"
+                      onClick={handleFirstPage}
+                      disabled={currentPage === 1 || loading}
+                      title="Primera página"
+                    >
+                      ◀◀
+                    </button>
+                    <button 
+                      className="admin-permisos-pagination-button"
                       onClick={handlePreviousPage}
                       disabled={currentPage === 1 || loading}
                       title="Página anterior"
@@ -372,32 +393,12 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
                       {loading ? (
                         <span>⏳ Cargando...</span>
                       ) : (
-                        <>
-                          <span>Página {currentPage} de {getTotalPages()}</span>
-                          <span className="admin-permisos-pagination-numbers">
-                            {Array.from({ length: getTotalPages() }, (_, i) => i + 1)
-                              .filter(page => {
-                                // Mostrar todas las páginas si son 5 o menos
-                                if (getTotalPages() <= 5) return true;
-                                // Mostrar primera, última, actual y páginas adyacentes
-                                return page === 1 || 
-                                       page === getTotalPages() || 
-                                       (page >= currentPage - 1 && page <= currentPage + 1);
-                              })
-                              .map(page => (
-                                <button
-                                  key={page}
-                                  className={`admin-permisos-page-number ${currentPage === page ? 'active' : ''}`}
-                                  onClick={() => handlePageChange(page)}
-                                  disabled={loading}
-                                  title={`Ir a página ${page}`}
-                                >
-                                  {page}
-                                </button>
-                              ))
-                            }
-                          </span>
-                        </>
+                        <span>
+                          {(() => {
+                            const currentCount = Math.min(currentPage * usersPerPage, getTotalUsuarios());
+                            return `${currentCount} de ${getTotalUsuarios()} Reg.`;
+                          })()}
+                        </span>
                       )}
                     </div>
                     
@@ -408,6 +409,14 @@ const AdminPermisosModal = ({ onClose, onSuccess }) => {
                       title="Página siguiente"
                     >
                       ▶
+                    </button>
+                    <button 
+                      className="admin-permisos-pagination-button"
+                      onClick={handleLastPage}
+                      disabled={currentPage === getTotalPages() || loading}
+                      title="Última página"
+                    >
+                      ▶▶
                     </button>
                   </div>
                 </div>
